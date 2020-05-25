@@ -46,57 +46,6 @@ class MainActivity : AppCompatActivity() {
                 csSourceFile.parentFile
             )
         }
-        AsyncTask.execute {
-            runServer()
-        }
-    }
-
-    fun runServer() {
-        val proc =
-            Runtime.getRuntime().exec("whoami")
-        val bufferedReader = BufferedReader(
-            InputStreamReader(proc.inputStream)
-        )
-
-        var line: String?
-        while (bufferedReader.readLine().also { line = it } != null) {
-            Log.e("VHRES", "RES:$line")
-        }
-
-        val HOME = applicationContext.getFileStreamPath("node").parentFile.absolutePath
-        Log.i("VHHOME", "HOME=" + HOME)
-        val process = Runtime.getRuntime().exec(
-            arrayOf(
-                applicationContext.getFileStreamPath("node").absolutePath,
-                "${HOME}/code-server/release-static",
-                "--auth",
-                "none"
-            ),
-            arrayOf(
-                "HOME=${HOME}",
-                "LD_LIBRARY_PATH=${HOME}",
-                "PORT=13337"
-            )
-        )
-        val stream = DataInputStream(process.getInputStream());
-        val bufSize = 4096
-        val buffer = ByteArray(bufSize)
-        var outputBuffer = ""
-        var serverStarted = false
-        while (process.isAlive) {
-            val size = stream.read(buffer)
-            if (size > 0) {
-                val currentBuffer = String(buffer, 0, size)
-                Log.d("VHSMainActivityOutput", currentBuffer)
-                if (!serverStarted) {
-                    outputBuffer += currentBuffer
-                    if (outputBuffer.indexOf("HTTP server listening on") >= 0) {
-                        serverStarted = true
-                        runOnUiThread { findViewById<WebView>(R.id.webview).loadUrl("http://127.0.0.1:13337/?_=" + System.currentTimeMillis()) }
-                    }
-                }
-            }
-        }
     }
 
     fun copyRawResource(resource_id: Int, output_path: String) {
