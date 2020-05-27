@@ -11,4 +11,6 @@
     <string name="credit"><a href="https://github.com/cdr/code-server">code-server</a> by <a href="https://coder.com/">coder</a>\n<a href="https://github.com/vhqtvn/VHSCode-Android">UI &amp; Android version</a> by <a href="www.linkedin.com/in/vhnvn">vhnvn</a></string>
     <string name="extracting">Extracting...</string>
     <string name="stop_server">Stop</string>
+    <string name="starting_server">Starting server...</string>
+    <string name="please_wait_starting_server">Please wait... VSCode server is starting...</string>
 </resources>

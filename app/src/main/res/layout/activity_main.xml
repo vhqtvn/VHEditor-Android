@@ -7,7 +7,6 @@
     android:background="@color/black"
     tools:context=".MainActivity">
 
-
     <TextView
         android:id="@+id/txtAppName"
         android:layout_width="0dp"
@@ -70,24 +69,10 @@
         style="?android:attr/borderlessButtonStyle"
         android:background="@drawable/button_bg"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/chkBoxDontShowAgain"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer" />
-
-    <CheckBox
-        android:id="@+id/chkBoxDontShowAgain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginTop="32dp"
-        android:textColor="@color/button"
-        android:text="@string/dont_show_this_again"
-        android:buttonTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnStartCode" />
+        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

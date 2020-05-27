@@ -1,23 +1,30 @@
 package vn.vhn.vhscode
 
+import android.annotation.SuppressLint
 import android.app.Dialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
+import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.webkit.WebChromeClient
-import android.widget.Button
+import android.webkit.WebView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_vscode.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
+import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -25,9 +32,10 @@ import java.util.zip.GZIPInputStream
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "2020-05-25"
-        val kPrefDontShowAgain = "dont_show_again"
+        val kCurrentServerVersion = "202005271607"
     }
+
+    var startServerObserver: Observer<Boolean>? = null
 
     private class VHSWebViewClient : WebChromeClient() {
     }
@@ -39,23 +47,36 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         configureUI()
         updateUI()
-        if (sharedPreferences().getBoolean(kPrefDontShowAgain, false)) {
-            CoroutineScope(Dispatchers.Main).launch {
-                startServerService()
-            }
+    }
+
+    override fun onDestroy() {
+        if (startServerObserver != null) {
+            CodeServerService.liveServerStarted.removeObserver(startServerObserver!!)
+            startServerObserver = null
         }
+        super.onDestroy()
     }
 
     suspend fun startServerService() {
         if (CodeServerService.liveServerStarted.value != true) {
-            var observer: Observer<Boolean>? = null
-            observer = Observer<Boolean> { value ->
-                if (value) {
-                    CodeServerService.liveServerStarted.removeObserver(observer!!)
-                    startEditor()
+            val progressDialog = ProgressDialog(this)
+            progressDialog.setTitle(R.string.starting_server)
+            progressDialog.setMessage(getString(R.string.please_wait_starting_server))
+            progressDialog.setCancelable(false)
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            progressDialog.show()
+            if (startServerObserver == null) {
+                startServerObserver = Observer<Boolean> { value ->
+                    if (value) {
+                        progressDialog.dismiss()
+                        if (startServerObserver != null) {
+                            CodeServerService.liveServerStarted.removeObserver(startServerObserver!!)
+                        }
+                        startEditor()
+                    }
                 }
+                CodeServerService.liveServerStarted.observeForever(startServerObserver!!)
             }
-            CodeServerService.liveServerStarted.observeForever(observer)
             CodeServerService.startService(this)
         } else {
             startEditor()
@@ -64,7 +85,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun startEditor() {
-        Log.d("VH", "startEditor")
         val intent = Intent(this, VSCodeActivity::class.java)
         startActivity(intent)
     }
@@ -125,11 +145,6 @@ class MainActivity : AppCompatActivity() {
                 startServerService()
             }
         }
-        chkBoxDontShowAgain.setOnCheckedChangeListener { _: Button, newValue: Boolean ->
-            sharedPreferences().edit()
-                .putBoolean(kPrefDontShowAgain, newValue)
-                .apply()
-        }
     }
 
     fun updateUI() {
@@ -140,11 +155,16 @@ class MainActivity : AppCompatActivity() {
                 R.string.server_version,
                 codeServerVersion ?: getString(R.string.not_installed)
             )
-            if (codeServerVersion.isNullOrBlank()) btnInstallServer.text =
-                getString(R.string.install_server)
-            else if (codeServerVersion < kCurrentServerVersion) btnInstallServer.text =
-                getString(R.string.update_server)
-            else btnInstallServer.text = getString(R.string.reinstall_server)
+            if (codeServerVersion.isNullOrBlank()) {
+                btnStartCode.isEnabled = false
+                btnInstallServer.text =
+                    getString(R.string.install_server)
+            } else {
+                btnStartCode.isEnabled = true
+                if (codeServerVersion < kCurrentServerVersion) btnInstallServer.text =
+                    getString(R.string.update_server)
+                else btnInstallServer.text = getString(R.string.reinstall_server)
+            }
         }
     }
 
@@ -159,7 +179,7 @@ class MainActivity : AppCompatActivity() {
             stream.close()
             return String(bytes, 0, bytes.size)
         }
-        return "2020-05-25"
+        return "202005250000"
     }
 
     suspend fun extractServer(progressChannel: Channel<Pair<Int, Int>>) {
@@ -177,6 +197,7 @@ class MainActivity : AppCompatActivity() {
         csSourceFile.delete()
         copyRawResource(R.raw.node, "node")
         applicationContext.getFileStreamPath("node").setExecutable(true)
+        updateUI()
     }
 
     fun copyRawResource(resource_id: Int, output_path: String) {

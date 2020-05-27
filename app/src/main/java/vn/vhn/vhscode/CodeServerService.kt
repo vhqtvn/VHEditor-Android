@@ -89,10 +89,12 @@ class CodeServerService : Service() {
         val resultPendingIntent: PendingIntent =
             stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val stopIntent = Intent(this, this.javaClass)
+        val stopIntent = Intent(this, CodeServerService::class.java)
         stopIntent.action = kActionStopService
-        val pendingStopIntent = TaskStackBuilder.create(this).addNextIntent(stopIntent)
-            .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingStopStackBuilder = TaskStackBuilder.create(this)
+        pendingStopStackBuilder.addNextIntent(stopIntent)
+        val pendingStopIntent =
+            pendingStopStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val chan =
             NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
@@ -109,11 +111,11 @@ class CodeServerService : Service() {
             .setPriority(NotificationManager.IMPORTANCE_MAX)
             .setCategory(Notification.CATEGORY_SERVICE)
             .setContentIntent(resultPendingIntent)
-            .addAction(
-                R.drawable.ic_launcher_foreground,
-                getString(R.string.stop_server),
-                pendingStopIntent
-            )
+//            .addAction(
+//                R.drawable.ic_launcher_foreground,
+//                getString(R.string.stop_server),
+//                pendingStopIntent
+//            )
             .build()
         val notificationManager = NotificationManagerCompat.from(this)
         notificationManager.notify(1, notificationBuilder.build())
