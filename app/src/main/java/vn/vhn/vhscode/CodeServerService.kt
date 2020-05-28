@@ -9,6 +9,10 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.*
 
 
@@ -215,6 +219,10 @@ class CodeServerService : Service() {
                         serverStarted = true
                         outputBuffer = ""
                         liveServerStarted.postValue(true)
+                        CoroutineScope(Dispatchers.Main).launch {
+                            delay(1000)
+                            updateNotification()
+                        }
                     }
                 }
                 logData += currentBuffer

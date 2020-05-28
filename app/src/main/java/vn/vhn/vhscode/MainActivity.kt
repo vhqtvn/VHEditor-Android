@@ -98,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         serverLogObserver = Observer<String> { txt ->
             runOnUiThread {
                 txtServerLog.setTextKeepState(txt)
+                if (txtServerLog.layout == null) return@runOnUiThread
                 val scrollAmount =
                     txtServerLog.layout.getLineTop(txtServerLog.lineCount) - txtServerLog.height;
                 if (scrollAmount > 0)
