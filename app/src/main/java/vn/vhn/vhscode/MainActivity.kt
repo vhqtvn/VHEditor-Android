@@ -33,6 +33,7 @@ import java.util.zip.GZIPInputStream
 class MainActivity : AppCompatActivity() {
     companion object {
         val kCurrentServerVersion = "202005271607"
+        val kPrefHardKeyboard = "hardkb"
     }
 
     var startServerObserver: Observer<Boolean>? = null
@@ -86,6 +87,7 @@ class MainActivity : AppCompatActivity() {
 
     fun startEditor() {
         val intent = Intent(this, VSCodeActivity::class.java)
+        intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
         startActivity(intent)
     }
 
@@ -145,10 +147,14 @@ class MainActivity : AppCompatActivity() {
                 startServerService()
             }
         }
+        chkHardKeyboard.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences().edit().putBoolean(kPrefHardKeyboard, isChecked).apply()
+        }
     }
 
     fun updateUI() {
         CoroutineScope(Dispatchers.Main).launch {
+            chkHardKeyboard.isChecked = sharedPreferences().getBoolean(kPrefHardKeyboard, true);
             val codeServerVersion =
                 withContext(Dispatchers.IO) { getCurrentCodeServerVersion() }
             txtInstalledServerVersion.text = getString(
