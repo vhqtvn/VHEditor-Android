@@ -1,30 +1,25 @@
 package vn.vhn.vhscode
 
-import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
-import android.view.KeyEvent
-import android.view.View
+import android.os.Process
+import android.os.UserManager
 import android.view.Window
 import android.view.WindowManager
-import android.webkit.WebChromeClient
-import android.webkit.WebView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_vscode.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
-import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -37,9 +32,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     var startServerObserver: Observer<Boolean>? = null
-
-    private class VHSWebViewClient : WebChromeClient() {
-    }
+    var serverLogObserver: Observer<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,10 +48,15 @@ class MainActivity : AppCompatActivity() {
             CodeServerService.liveServerStarted.removeObserver(startServerObserver!!)
             startServerObserver = null
         }
+        if (serverLogObserver != null) {
+            CodeServerService.liveServerLog.removeObserver(serverLogObserver!!)
+            serverLogObserver = null
+        }
         super.onDestroy()
     }
 
     suspend fun startServerService() {
+        File(CodeServerService.HOME_PATH).mkdirs()
         if (CodeServerService.liveServerStarted.value != true) {
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle(R.string.starting_server)
@@ -71,9 +69,15 @@ class MainActivity : AppCompatActivity() {
                     if (value) {
                         progressDialog.dismiss()
                         if (startServerObserver != null) {
-                            CodeServerService.liveServerStarted.removeObserver(startServerObserver!!)
+                            CodeServerService.liveServerStarted.removeObserver(
+                                startServerObserver!!
+                            )
                         }
                         startEditor()
+                    } else {
+                        if (!CodeServerService.isServerStarting()) {
+                            progressDialog.dismiss()
+                        }
                     }
                 }
                 CodeServerService.liveServerStarted.observeForever(startServerObserver!!)
@@ -82,7 +86,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             startEditor()
         }
-
     }
 
     fun startEditor() {
@@ -92,9 +95,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun configureUI() {
+        serverLogObserver = Observer<String> { txt ->
+            runOnUiThread {
+                txtServerLog.setTextKeepState(txt)
+                val scrollAmount =
+                    txtServerLog.layout.getLineTop(txtServerLog.lineCount) - txtServerLog.height;
+                if (scrollAmount > 0)
+                    txtServerLog.scrollTo(0, scrollAmount);
+                else
+                    txtServerLog.scrollTo(0, 0);
+            }
+        }
+        CodeServerService.liveServerLog.observeForever(serverLogObserver!!)
         btnInstallServer.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-
                 var progressBar: ProgressBar
                 var progressText: TextView
                 val dialog = Dialog(this@MainActivity).apply {
@@ -177,7 +191,7 @@ class MainActivity : AppCompatActivity() {
     suspend fun getCurrentCodeServerVersion(): String? {
         val node = getFileStreamPath("node")
         if (!node.exists()) return null
-        val dataHome = node.parent.toString()
+        val dataHome = node.parent!!.toString()
         val versionFile = File("$dataHome/code-server/VERSION")
         if (versionFile.exists()) {
             val stream = FileInputStream(versionFile)
@@ -189,6 +203,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     suspend fun extractServer(progressChannel: Channel<Pair<Int, Int>>) {
+
+        // Termux can only be run as the primary user (device owner) since only that
+        // account has the expected file system paths. Verify that:
+        val userService: UserManager = getSystemService(Context.USER_SERVICE) as UserManager
+        val isPrimaryUser = userService.getSerialNumberForUser(Process.myUserHandle()) == 0L
+        if (!isPrimaryUser) {
+            AlertDialog.Builder(this).setTitle(R.string.error_title)
+                .setMessage(R.string.error_not_primary_user_message)
+                .setOnDismissListener(DialogInterface.OnDismissListener { _: DialogInterface? ->
+                    System.exit(
+                        0
+                    )
+                }).setPositiveButton(android.R.string.ok, null).show()
+            return
+        }
         copyRawResource(R.raw.libcpp, "libc++_shared.so")
         copyRawResource(R.raw.cs, "cs.tgz")
         val csSourceFile = applicationContext.getFileStreamPath("cs.tgz")
