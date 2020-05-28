@@ -16,6 +16,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -158,8 +159,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         btnStartCode.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                startServerService()
+            TermuxInstaller.setupIfNeeded(this) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    startServerService()
+                }
             }
         }
         chkHardKeyboard.setOnCheckedChangeListener { _, isChecked ->

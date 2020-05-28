@@ -164,7 +164,7 @@ class CodeServerService : Service() {
         val env = mutableListOf<String>()
         env.add("TERM=xterm-256color")
         env.add("HOME=${envHome}/home")
-        env.add("LD_LIBRARY_PATH=${envHome}")
+        env.add("LD_LIBRARY_PATH=${envHome}:${envHome}/usr/lib")
         env.add("PATH=${envHome}/usr/bin:${envHome}/usr/bin/applets")
 
         env.add("BOOTCLASSPATH=" + System.getenv("BOOTCLASSPATH"))
@@ -231,6 +231,8 @@ class CodeServerService : Service() {
             liveServerStarted.postValue(false)
         } catch (e: Exception) {
             error = e.toString()
+            logData += "\nException: ${error}"
+            liveServerLog.postValue(logData)
             liveServerStarted.postValue(false)
         } finally {
             isServerStarting = false
