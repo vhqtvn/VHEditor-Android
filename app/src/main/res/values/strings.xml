@@ -13,4 +13,5 @@
     <string name="stop_server">Stop</string>
     <string name="starting_server">Starting server...</string>
     <string name="please_wait_starting_server">Please wait... VSCode server is starting...</string>
+    <string name="use_hard_keyboard">Use hard keyboard mode</string>
 </resources>

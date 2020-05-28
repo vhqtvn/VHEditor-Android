@@ -13,24 +13,25 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/app_name"
-        android:textSize="30dp"
         android:textColor="@color/white"
+        android:textSize="30dp"
+        app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintBottom_toTopOf="@+id/creditLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/creditLine"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="0dp"
         android:gravity="center"
-        android:textColor="@color/credit"
         android:text="@string/credit"
+        android:textColor="@color/credit"
+        app:layout_constraintBottom_toTopOf="@+id/txtInstalledServerVersion"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/txtInstalledServerVersion"
         app:layout_constraintTop_toBottomOf="@id/txtAppName" />
 
     <TextView
@@ -39,22 +40,22 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
         android:gravity="center"
-        android:textColor="@color/white"
         android:text="@string/loading"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/btnInstallServer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/btnInstallServer"
         app:layout_constraintTop_toBottomOf="@id/creditLine" />
 
     <Button
         android:id="@+id/btnInstallServer"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
+        android:background="@drawable/button_bg"
         android:text="@string/install_server"
         android:textColor="@color/button"
-        style="?android:attr/borderlessButtonStyle"
-        android:background="@drawable/button_bg"
         app:layout_constraintBottom_toTopOf="@+id/btnStartCode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -62,17 +63,32 @@
 
     <Button
         android:id="@+id/btnStartCode"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/button_bg"
         android:text="@string/start_code"
         android:textColor="@color/button"
-        style="?android:attr/borderlessButtonStyle"
-        android:background="@drawable/button_bg"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/chkHardKeyboard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer" />
+
+    <CheckBox
+        android:id="@+id/chkHardKeyboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/button"
+        android:text="@string/use_hard_keyboard"
+        android:textColor="@color/button"
+        android:tint="@color/button"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer" />
+        app:layout_constraintTop_toBottomOf="@+id/btnStartCode" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

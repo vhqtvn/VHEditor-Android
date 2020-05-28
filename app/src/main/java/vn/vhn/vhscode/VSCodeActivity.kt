@@ -17,9 +17,15 @@ import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
 
 class VSCodeActivity : AppCompatActivity() {
+    companion object {
+        val kConfigUseHardKeyboard = "use_hardkb";
+    }
+
+    var useHardKeyboard = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        useHardKeyboard = intent.getBooleanExtra(kConfigUseHardKeyboard, false)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         supportActionBar?.hide()
         setContentView(R.layout.activity_vscode)
@@ -38,7 +44,11 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
         webView.webViewClient = VSCodeWebClient()
-        webView.focusable = View.NOT_FOCUSABLE
+        if (useHardKeyboard) {
+            webView.focusable = View.NOT_FOCUSABLE
+        } else {
+            webView.focusable = View.FOCUSABLE_AUTO
+        }
         webView.loadUrl("http://127.0.0.1:13337/?_=" + System.currentTimeMillis())
     }
 
