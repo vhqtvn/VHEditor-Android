@@ -2,24 +2,26 @@ package vn.vhn.vhscode
 
 import android.app.*
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.IBinder
+import android.os.UserManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.*
+import java.util.zip.GZIPInputStream
 
 
 class CodeServerService : Service() {
 
     companion object {
-        val ROOT_PATH = "/data/data/vn.vhn.vhscode/files"
+        val ROOT_PATH = "/data/data/vn.vhn.vsc/files"
         val HOME_PATH = ROOT_PATH + "/home"
         val PREFIX_PATH = ROOT_PATH
 
@@ -43,8 +45,111 @@ class CodeServerService : Service() {
             context.stopService(intent)
         }
 
-        public fun isServerStarting(): Boolean {
+        fun isServerStarting(): Boolean {
             return isServerStarting
+        }
+
+        fun setupIfNeeded(context: Context, whenDone: () -> Unit) {
+            val dpkg_path = "$PREFIX_PATH/usr/bin/dpkg"
+            val dpkg_orig_path = "$dpkg_path.bin-orig"
+            if (!File(dpkg_orig_path).isFile) {
+                File(dpkg_path).renameTo(File(dpkg_orig_path))
+                copyRawResource(context, R.raw.dpkg, dpkg_path.toString())
+                File(dpkg_path).setExecutable(true)
+            }
+            whenDone()
+        }
+
+        suspend fun extractServer(context: Context, progressChannel: Channel<Pair<Int, Int>>) {
+            val userService: UserManager =
+                context.getSystemService(Context.USER_SERVICE) as UserManager
+            val isPrimaryUser =
+                userService.getSerialNumberForUser(android.os.Process.myUserHandle()) == 0L
+            if (!isPrimaryUser) {
+                AlertDialog.Builder(context).setTitle(R.string.error_title)
+                    .setMessage(R.string.error_not_primary_user_message)
+                    .setOnDismissListener(DialogInterface.OnDismissListener { _: DialogInterface? ->
+                        System.exit(
+                            0
+                        )
+                    }).setPositiveButton(android.R.string.ok, null).show()
+                return
+            }
+            copyRawResource(context, R.raw.libcpp, "$ROOT_PATH/libc++_shared.so")
+            copyRawResource(context, R.raw.cs, "$ROOT_PATH/cs.tgz")
+            val csSourceFile = context.getFileStreamPath("cs.tgz")
+            with(context.getFileStreamPath("code-server")) {
+                if (exists()) deleteRecursively()
+            }
+            extractTarGz(
+                csSourceFile,
+                csSourceFile.parentFile,
+                progressChannel
+            )
+            csSourceFile.delete()
+            copyRawResource(context, R.raw.node, "$ROOT_PATH/node")
+            context.getFileStreamPath("node").setExecutable(true)
+        }
+
+        fun copyRawResource(context: Context, resource_id: Int, output_path: String) {
+            val inStream = context.resources.openRawResource(resource_id)
+            val outStream = FileOutputStream(File(output_path))
+
+            val bufSize = 4096
+            val buffer = ByteArray(bufSize)
+            while (true) {
+                val cnt = inStream.read(buffer)
+                if (cnt <= 0) break;
+                outStream.write(buffer, 0, cnt)
+            }
+
+            inStream.close()
+            outStream.close()
+        }
+
+        suspend fun extractTarGz(
+            archiveFile: File,
+            outputDir: File,
+            progressChannel: Channel<Pair<Int, Int>>
+        ) {
+            val bufSize: Int = 4096
+            val buffer = ByteArray(bufSize)
+
+            var total = 0
+
+            var reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
+            var currentEntry = reader.nextTarEntry
+            while (currentEntry != null) {
+                total += 1
+                currentEntry = reader.nextTarEntry
+            }
+
+            progressChannel.send(Pair(0, total))
+
+            var currentFileIndex = 0
+            reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
+            currentEntry = reader.nextTarEntry
+
+            while (currentEntry != null) {
+                currentFileIndex++
+                progressChannel.send(Pair(currentFileIndex, total))
+                val outputFile = File(outputDir.absolutePath + "/" + currentEntry.name)
+                if (!outputFile.parentFile!!.exists()) {
+                    outputFile.parentFile!!.mkdirs()
+                }
+                if (currentEntry.isDirectory) {
+                    outputFile.mkdirs()
+                } else {
+                    val outStream = FileOutputStream(outputFile)
+                    while (true) {
+                        val size = reader.read(buffer)
+                        if (size <= 0) break;
+                        outStream.write(buffer, 0, size)
+                    }
+                    outStream.close()
+                }
+                currentEntry = reader.nextTarEntry
+            }
         }
     }
 
@@ -69,7 +174,6 @@ class CodeServerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
-            Log.d("VH", "Handle intent " + intent.action)
             when (intent.action) {
                 kActionStartService -> startForegroundService()
                 kActionStopService -> stopForegroundService()
@@ -158,8 +262,7 @@ class CodeServerService : Service() {
     }
 
     fun buildEnv(): Array<String> {
-        val nodeBinary = applicationContext.getFileStreamPath("node")
-        val envHome = nodeBinary?.parentFile?.absolutePath
+        val envHome = ROOT_PATH
 
         val env = mutableListOf<String>()
         env.add("TERM=xterm-256color")
@@ -191,7 +294,6 @@ class CodeServerService : Service() {
         try {
             error = null;
             liveServerStarted.postValue(false)
-            buildEnv()
             process = Runtime.getRuntime().exec(
                 arrayOf(
                     applicationContext.getFileStreamPath("node").absolutePath,
