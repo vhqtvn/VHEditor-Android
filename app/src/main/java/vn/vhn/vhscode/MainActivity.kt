@@ -1,15 +1,11 @@
 package vn.vhn.vhscode
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Process
-import android.os.UserManager
 import android.view.Window
 import android.view.WindowManager
 import android.widget.ProgressBar
@@ -20,11 +16,8 @@ import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.zip.GZIPInputStream
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -147,7 +140,8 @@ class MainActivity : AppCompatActivity() {
                 )
                 launch {
                     delay(500)
-                    extractServer(progressChannel)
+                    CodeServerService.extractServer(this@MainActivity, progressChannel)
+                    updateUI()
                     finished = true
                     progressChannel.close()
                 }
@@ -160,8 +154,10 @@ class MainActivity : AppCompatActivity() {
         }
         btnStartCode.setOnClickListener {
             TermuxInstaller.setupIfNeeded(this) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    startServerService()
+                CodeServerService.setupIfNeeded(this) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        startServerService()
+                    }
                 }
             }
         }
@@ -204,100 +200,6 @@ class MainActivity : AppCompatActivity() {
             return String(bytes, 0, bytes.size)
         }
         return "202005250000"
-    }
-
-    suspend fun extractServer(progressChannel: Channel<Pair<Int, Int>>) {
-
-        // Termux can only be run as the primary user (device owner) since only that
-        // account has the expected file system paths. Verify that:
-        val userService: UserManager = getSystemService(Context.USER_SERVICE) as UserManager
-        val isPrimaryUser = userService.getSerialNumberForUser(Process.myUserHandle()) == 0L
-        if (!isPrimaryUser) {
-            AlertDialog.Builder(this).setTitle(R.string.error_title)
-                .setMessage(R.string.error_not_primary_user_message)
-                .setOnDismissListener(DialogInterface.OnDismissListener { _: DialogInterface? ->
-                    System.exit(
-                        0
-                    )
-                }).setPositiveButton(android.R.string.ok, null).show()
-            return
-        }
-        copyRawResource(R.raw.libcpp, "libc++_shared.so")
-        copyRawResource(R.raw.cs, "cs.tgz")
-        val csSourceFile = applicationContext.getFileStreamPath("cs.tgz")
-        with(applicationContext.getFileStreamPath("code-server")) {
-            if (exists()) deleteRecursively()
-        }
-        extractTarGz(
-            csSourceFile,
-            csSourceFile.parentFile,
-            progressChannel
-        )
-        csSourceFile.delete()
-        copyRawResource(R.raw.node, "node")
-        applicationContext.getFileStreamPath("node").setExecutable(true)
-        updateUI()
-    }
-
-    fun copyRawResource(resource_id: Int, output_path: String) {
-        val inStream = applicationContext.resources.openRawResource(resource_id)
-        val outStream = applicationContext.openFileOutput(output_path, Context.MODE_PRIVATE)
-
-        val bufSize = 4096
-        val buffer = ByteArray(bufSize)
-        while (true) {
-            val cnt = inStream.read(buffer)
-            if (cnt <= 0) break;
-            outStream.write(buffer, 0, cnt)
-        }
-
-        inStream.close()
-        outStream.close()
-    }
-
-    suspend fun extractTarGz(
-        archiveFile: File,
-        outputDir: File,
-        progressChannel: Channel<Pair<Int, Int>>
-    ) {
-        val bufSize: Int = 4096
-        val buffer = ByteArray(bufSize)
-
-        var total = 0
-
-        var reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
-        var currentEntry = reader.nextTarEntry
-        while (currentEntry != null) {
-            total += 1
-            currentEntry = reader.nextTarEntry
-        }
-
-        progressChannel.send(Pair(0, total))
-
-        var currentFileIndex = 0
-        reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
-        currentEntry = reader.nextTarEntry
-
-        while (currentEntry != null) {
-            currentFileIndex++
-            progressChannel.send(Pair(currentFileIndex, total))
-            val outputFile = File(outputDir.absolutePath + "/" + currentEntry.name)
-            if (!outputFile.parentFile!!.exists()) {
-                outputFile.parentFile!!.mkdirs()
-            }
-            if (currentEntry.isDirectory) {
-                outputFile.mkdirs()
-            } else {
-                val outStream = FileOutputStream(outputFile)
-                while (true) {
-                    val size = reader.read(buffer)
-                    if (size <= 0) break;
-                    outStream.write(buffer, 0, size)
-                }
-                outStream.close()
-            }
-            currentEntry = reader.nextTarEntry
-        }
     }
 
     private fun sharedPreferences(): SharedPreferences {
