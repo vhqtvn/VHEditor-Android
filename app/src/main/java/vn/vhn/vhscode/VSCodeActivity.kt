@@ -1,6 +1,7 @@
 package vn.vhn.vhscode
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -19,6 +20,7 @@ import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
 class VSCodeActivity : AppCompatActivity() {
     companion object {
         val kConfigUseHardKeyboard = "use_hardkb";
+        val kConfigUrl = "url";
     }
 
     var useHardKeyboard = false
@@ -49,7 +51,14 @@ class VSCodeActivity : AppCompatActivity() {
         } else {
             webView.focusable = View.FOCUSABLE_AUTO
         }
-        webView.loadUrl("http://127.0.0.1:13337/?_=" + System.currentTimeMillis())
+        var url = intent.getStringExtra(kConfigUrl)
+        if (intent.data != null) {
+            val dataUri = Uri.parse(intent.data.toString())
+            val paramUrl = dataUri.getQueryParameter("url")
+            if (paramUrl != null) url = paramUrl
+        }
+        if (url == null) url = "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
+        webView.loadUrl(url)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {

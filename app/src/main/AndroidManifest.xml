@@ -20,7 +20,19 @@
             android:enabled="true"
             android:exported="true"></service>
 
-        <activity android:name=".VSCodeActivity" />
+        <activity android:name=".VSCodeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:pathPrefix="/android/vsc/editor"
+                    android:host="vhn.vn"
+                    android:scheme="http" />
+            </intent-filter>
+        </activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

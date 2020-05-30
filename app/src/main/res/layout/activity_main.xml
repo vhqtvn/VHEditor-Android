@@ -70,10 +70,38 @@
         android:background="@drawable/button_bg"
         android:text="@string/start_code"
         android:textColor="@color/button"
-        app:layout_constraintBottom_toTopOf="@+id/chkHardKeyboard"
+        app:layout_constraintBottom_toTopOf="@+id/btnStartRemote"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnInstallServer"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <EditText
+        android:id="@+id/editTxtRemoteServer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/white"
+        android:ems="10"
+        android:inputType="textUri"
+        android:text="http://127.0.0.1:13337"
+        android:textColor="@color/white"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btnStartRemote"
+        app:layout_constraintEnd_toStartOf="@+id/btnStartRemote"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnStartRemote"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/button_bg"
+        android:text="@string/start_remote"
+        android:textColor="@color/button"
+        app:layout_constraintBottom_toTopOf="@+id/chkHardKeyboard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/editTxtRemoteServer"
+        app:layout_constraintTop_toBottomOf="@+id/btnStartCode"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <CheckBox
@@ -88,7 +116,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnStartCode" />
+        app:layout_constraintTop_toBottomOf="@+id/btnStartRemote" />
 
     <EditText
         android:id="@+id/txtServerLog"
@@ -98,11 +126,11 @@
         android:enabled="false"
         android:gravity="start|top"
         android:inputType="textMultiLine"
-        android:typeface="monospace"
         android:maxLines="5"
-        android:textSize="10dp"
         android:scrollbars="vertical"
         android:textColor="@color/log"
+        android:textSize="10dp"
+        android:typeface="monospace"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

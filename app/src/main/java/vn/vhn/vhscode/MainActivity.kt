@@ -6,11 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Window
 import android.view.WindowManager
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
@@ -23,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         val kCurrentServerVersion = "202005271607"
         val kPrefHardKeyboard = "hardkb"
+        val kPrefRemoteServer = "remoteserver"
     }
 
     var startServerObserver: Observer<Boolean>? = null
@@ -82,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun startEditor() {
+    fun startEditor(url: String = "http://127.0.0.1:1337") {
         val intent = Intent(this, VSCodeActivity::class.java)
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
         startActivity(intent)
@@ -163,6 +167,26 @@ class MainActivity : AppCompatActivity() {
         }
         chkHardKeyboard.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences().edit().putBoolean(kPrefHardKeyboard, isChecked).apply()
+        }
+        editTxtRemoteServer.setText(
+            sharedPreferences().getString(
+                kPrefRemoteServer,
+                "http://127.0.0.1:13337"
+            )
+        )
+        editTxtRemoteServer.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                sharedPreferences().edit().putString(kPrefRemoteServer, s.toString()).apply()
+            }
+        })
+        btnStartRemote.setOnClickListener {
+            startEditor(editTxtRemoteServer.text.toString())
         }
     }
 

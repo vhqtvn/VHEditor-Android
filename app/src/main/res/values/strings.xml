@@ -23,4 +23,5 @@
     <string name="bootstrap_error_abort">Abort</string>
     <string name="bootstrap_error_try_again">Try again</string>
     <string name="bootstrap_error_not_primary_user_message">Termux can only be installed on the primary user account.</string>
+    <string name="start_remote">Start remote</string>
 </resources>
