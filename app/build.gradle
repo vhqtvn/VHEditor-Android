@@ -27,10 +27,31 @@ android {
         }
     }
 
+    signingConfigs {
+        debug {
+            storeFile file('keystore')
+            keyAlias 'alias'
+            storePassword '123456'
+            keyPassword '123456'
+        }
+        release {
+            storeFile file('keystore')
+            keyAlias 'alias'
+            storePassword '123456'
+            keyPassword '123456'
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            signingConfig signingConfigs.debug
         }
     }
 
@@ -109,7 +130,7 @@ clean {
     }
 }
 
-task downloadBootstraps(){
+task downloadBootstraps() {
     doLast {
         def version = 22
         downloadBootstrap("aarch64", "d00cd85b773202924e0256af25c521744fcfa845a1120ecffe685a4a0baf44d6", version)
