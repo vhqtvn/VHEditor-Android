@@ -15,9 +15,10 @@
 		if(this._vscode_modded) return;
 		this._vscode_modded = true;
 		var orig = codeGetter.apply(this);
-        console.log(this, orig);
         if (this.key == 'Alt') {
             this._vscodeCode = "";
+		} else if (this.key === 'Shift') {
+		    this._vscodeCode = "ShiftLeft";
 		} else if (this.which in customMapper) {
 			this._vscodeCode = customMapper[this.which];
 		} else if (orig === "" && typeof this.key === "string" && this.key.length) {
