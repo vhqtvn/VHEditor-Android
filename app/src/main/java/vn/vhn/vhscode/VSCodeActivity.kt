@@ -1,30 +1,35 @@
 package vn.vhn.vhscode
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.View
-import android.view.Window
+import android.view.*
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_vscode.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
+import vn.vhn.vhscode.generic_dispatcher.BBKeyboardEventDispatcher
+import vn.vhn.vhscode.generic_dispatcher.IGenericEventDispatcher
 
 class VSCodeActivity : AppCompatActivity() {
     companion object {
         val kConfigUseHardKeyboard = "use_hardkb";
         val kConfigUrl = "url";
+        val TAG = "VSCodeActivity"
+    }
+
+    class WebInterface {
     }
 
     var useHardKeyboard = false
+    var genericMotionEventDispatcher: IGenericEventDispatcher? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +39,13 @@ class VSCodeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_vscode)
         configureWebView(webView)
         CoroutineScope(Dispatchers.Main).launch {
-
+            Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
+        }
+        if (android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+"))) { //Key1,2
+            genericMotionEventDispatcher = BBKeyboardEventDispatcher()
+        }
+        if (genericMotionEventDispatcher != null) {
+            genericMotionEventDispatcher!!.initializeForTarget(this, webView)
         }
     }
 
@@ -62,13 +73,20 @@ class VSCodeActivity : AppCompatActivity() {
         webView.loadUrl(url)
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
-        if (webView.dispatchKeyEvent(event)) return true
-        return super.dispatchKeyEvent(event)
+    override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
+        if (genericMotionEventDispatcher != null && ev != null) {
+            if (genericMotionEventDispatcher!!.dispatchKeyEvent(ev!!))
+                return true
+        }
+        if (webView.dispatchKeyEvent(ev)) return true
+        return super.dispatchKeyEvent(ev)
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (webView.onTouchEvent(event)) return true
-        return super.onTouchEvent(event)
+    override fun dispatchGenericMotionEvent(ev: MotionEvent?): Boolean {
+        if (genericMotionEventDispatcher != null && ev != null) {
+            if (genericMotionEventDispatcher!!.dispatchGenericMotionEvent(ev!!))
+                return true
+        }
+        return super.dispatchGenericMotionEvent(ev)
     }
 }

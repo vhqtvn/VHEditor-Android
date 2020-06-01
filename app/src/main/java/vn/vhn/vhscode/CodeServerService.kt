@@ -186,7 +186,7 @@ class CodeServerService : Service() {
                                 },100);
                             }
                         });
-                    })()
+                    })();
             """.trimIndent() + String(data)
         }
     }
