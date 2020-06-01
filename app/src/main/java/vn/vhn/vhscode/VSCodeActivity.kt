@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.webkit.WebView
@@ -64,5 +65,10 @@ class VSCodeActivity : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
         if (webView.dispatchKeyEvent(event)) return true
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (webView.onTouchEvent(event)) return true
+        return super.onTouchEvent(event)
     }
 }
