@@ -5,11 +5,13 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
+import android.os.Environment
 import android.os.IBinder
 import android.os.UserManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -24,6 +26,7 @@ class CodeServerService : Service() {
         val ROOT_PATH = "/data/data/vn.vhn.vsc/files"
         val HOME_PATH = ROOT_PATH + "/home"
         val PREFIX_PATH = ROOT_PATH
+        val BOOTJS = ".vsboot.js"
 
         val kActionStartService = "ACTION_START_SERVICE"
         val kActionStopService = "ACTION_STOP_SERVICE"
@@ -151,6 +154,22 @@ class CodeServerService : Service() {
                 currentEntry = reader.nextTarEntry
             }
         }
+
+        fun homePath(ctx: Context): String {
+            return ContextCompat.getExternalFilesDirs(ctx, null)[0].absolutePath
+        }
+
+        fun getBootjs(ctx: Context): String? {
+            val HOME = homePath(ctx)
+            val configFile = File("$HOME/$BOOTJS")
+            if (!configFile.exists()) {
+                copyRawResource(ctx, R.raw.vsboot, configFile.absolutePath)
+            }
+            val stream = FileInputStream(configFile)
+            val data = stream.readBytes()
+            stream.close()
+            return String(data)
+        }
     }
 
     var started = false
@@ -186,7 +205,7 @@ class CodeServerService : Service() {
         if (started) return
         started = true
         Thread {
-            runServer()
+            runServer(applicationContext)
             started = false
         }.start()
         updateNotification()
@@ -261,12 +280,12 @@ class CodeServerService : Service() {
         }
     }
 
-    fun buildEnv(): Array<String> {
+    fun buildEnv(ctx: Context): Array<String> {
         val envHome = ROOT_PATH
 
         val env = mutableListOf<String>()
         env.add("TERM=xterm-256color")
-        env.add("HOME=${envHome}/home")
+        env.add("HOME=${homePath(ctx)}")
         env.add("LD_LIBRARY_PATH=${envHome}:${envHome}/usr/lib")
         env.add("PATH=${envHome}/usr/bin:${envHome}/usr/bin/applets")
 
@@ -284,7 +303,7 @@ class CodeServerService : Service() {
         return env.toTypedArray()
     }
 
-    fun runServer() {
+    fun runServer(ctx: Context) {
         if (isServerStarting || (liveServerStarted.value == true)) return
         isServerStarting = true
         liveServerStarted.postValue(null)
@@ -301,7 +320,7 @@ class CodeServerService : Service() {
                     "--auth",
                     "none"
                 ),
-                buildEnv()
+                buildEnv(ctx)
             )
             val stream = DataInputStream(process!!.inputStream);
             val bufSize = kConfigStreamBuferSize
