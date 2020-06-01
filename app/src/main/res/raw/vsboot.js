@@ -31,10 +31,4 @@
 			return this._vscodeCode;
 		}
 	});
-	Object.defineProperty(KeyboardEvent.prototype, 'altKey', {
-		get(){
-			prepareCustomProps.apply(this);
-			return false;
-		}
-	});
 })()

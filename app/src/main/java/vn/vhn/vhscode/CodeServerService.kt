@@ -168,7 +168,26 @@ class CodeServerService : Service() {
             val stream = FileInputStream(configFile)
             val data = stream.readBytes()
             stream.close()
-            return String(data)
+            return """
+                	(function(){
+                        let click = false;
+                        let click2 = false;
+                        const clickTimer = function(){
+                            click=true;click2=true;
+                            setTimeout(()=>{click=false;},300)
+                        };
+                        document.body.addEventListener('click', ()=>{click2=false;});
+                        document.body.addEventListener('touchstart', clickTimer);
+                        document.body.addEventListener('touchmove', ()=>{click=false;});
+                        document.body.addEventListener('touchend', (e)=>{
+                            if(click) {
+                                setTimeout(()=>{
+                                    if(click2) e.target.click();
+                                },100);
+                            }
+                        });
+                    })()
+            """.trimIndent() + String(data)
         }
     }
 
