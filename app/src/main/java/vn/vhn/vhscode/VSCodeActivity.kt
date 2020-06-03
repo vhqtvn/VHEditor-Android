@@ -56,11 +56,14 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.domStorageEnabled = true
         webView.settings.allowContentAccess = true
         webView.settings.allowFileAccess = true
+        webView.settings.allowFileAccessFromFileURLs = true
+        webView.settings.allowUniversalAccessFromFileURLs = true
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
         webView.settings.setAppCacheEnabled(true)
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
+        webView.settings.fixedFontFamily = "vscode-monospace"
         webView.webViewClient = VSCodeWebClient()
         if (useHardKeyboard) {
             webView.focusable = View.NOT_FOCUSABLE
