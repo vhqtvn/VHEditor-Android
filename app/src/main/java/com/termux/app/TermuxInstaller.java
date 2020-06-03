@@ -44,6 +44,7 @@ import vn.vhn.vhscode.R;
  * <p/>
  * (5.2) For every other zip entry, extract it into $STAGING_PREFIX and set execute permissions if necessary.
  */
+@SuppressWarnings("deprecation")
 public final class TermuxInstaller {
     static String str_fr = "/data/data/com.termux";
     static String str_to = "/data/data/vn.vhn.vsc";

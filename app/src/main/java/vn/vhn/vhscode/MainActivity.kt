@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    @Suppress("DEPRECATION")
     suspend fun startServerService() {
         File(CodeServerService.HOME_PATH).mkdirs()
         if (CodeServerService.liveServerStarted.value != true) {
@@ -86,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun startEditor(url: String = "http://127.0.0.1:1337") {
+    fun startEditor(url: String = "http://127.0.0.1:13337") {
         val intent = Intent(this, VSCodeActivity::class.java)
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
         intent.putExtra(VSCodeActivity.kConfigUrl, url)

@@ -86,7 +86,7 @@ class CodeServerService : Service() {
             }
             extractTarGz(
                 csSourceFile,
-                csSourceFile.parentFile,
+                csSourceFile.parentFile!!,
                 progressChannel
             )
             csSourceFile.delete()
@@ -166,9 +166,9 @@ class CodeServerService : Service() {
                 copyRawResource(ctx, R.raw.vsboot, configFile.absolutePath)
             }
             val stream = FileInputStream(configFile)
-            val data = stream.readBytes()
+            var windowScriptBytes = stream.readBytes()
             stream.close()
-            return """
+            val windowScript = """
                 	(function(){
                         let click = false;
                         let click2 = false;
@@ -187,7 +187,35 @@ class CodeServerService : Service() {
                             }
                         });
                     })();
-            """.trimIndent() + String(data)
+            """.trimIndent() + String(windowScriptBytes)
+            return """
+                (function(){
+                    var single_window_apply = function(window){
+                        if(window.__vscode_boot_included__) return;
+                        window.__vscode_boot_included__ = true;
+                        var document = window.document;
+                        var local_apply = function(){
+                            if(!document.body) {
+                                setTimeout(local_apply, 100);
+                                return;
+                            }
+                            $windowScript
+                        };
+                        local_apply();
+                	}
+                	single_window_apply(window);
+                	var vscode_boot_frames_inner = function(window){
+                	    for(var i=0;i<window.frames.length;i++) {
+                            single_window_apply(window.frames[i]);
+                            vscode_boot_frames_inner(window.frames[i]);
+                        }
+                	}
+                	window.vscode_boot_frames = function(){
+                	    vscode_boot_frames_inner(window);
+                	}
+                	window.vscode_boot_frames();
+                })()
+            """.trimIndent()
         }
     }
 
@@ -249,8 +277,8 @@ class CodeServerService : Service() {
         stopIntent.action = kActionStopService
         val pendingStopStackBuilder = TaskStackBuilder.create(this)
         pendingStopStackBuilder.addNextIntent(stopIntent)
-        val pendingStopIntent =
-            pendingStopStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val pendingStopIntent =
+//            pendingStopStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val chan =
             NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
@@ -259,7 +287,7 @@ class CodeServerService : Service() {
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         service.createNotificationChannel(chan)
 
-        var status: String = ""
+        var status: String
         if (isServerStarting) {
             if (liveServerStarted.value == true) status = "running";
             else status = "starting"
