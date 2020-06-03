@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.webkit.JavascriptInterface
+import android.webkit.WebSettings
 import android.webkit.WebView
 import kotlinx.android.synthetic.main.activity_vscode.*
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +56,9 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.domStorageEnabled = true
         webView.settings.allowContentAccess = true
         webView.settings.allowFileAccess = true
+        webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
+        webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
+        webView.settings.setAppCacheEnabled(true)
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
         webView.webViewClient = VSCodeWebClient()
@@ -75,7 +79,7 @@ class VSCodeActivity : AppCompatActivity() {
 
     override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
         if (genericMotionEventDispatcher != null && ev != null) {
-            if (genericMotionEventDispatcher!!.dispatchKeyEvent(ev!!))
+            if (genericMotionEventDispatcher!!.dispatchKeyEvent(ev))
                 return true
         }
         if (webView.dispatchKeyEvent(ev)) return true
@@ -84,7 +88,7 @@ class VSCodeActivity : AppCompatActivity() {
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent?): Boolean {
         if (genericMotionEventDispatcher != null && ev != null) {
-            if (genericMotionEventDispatcher!!.dispatchGenericMotionEvent(ev!!))
+            if (genericMotionEventDispatcher!!.dispatchGenericMotionEvent(ev))
                 return true
         }
         return super.dispatchGenericMotionEvent(ev)
