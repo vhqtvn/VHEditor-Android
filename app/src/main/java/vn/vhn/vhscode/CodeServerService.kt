@@ -27,6 +27,7 @@ class CodeServerService : Service() {
         val HOME_PATH = ROOT_PATH + "/home"
         val PREFIX_PATH = ROOT_PATH
         val BOOTJS = ".vsboot.js"
+        val ASSET_PREFIX = "/vscode_local_asset/"
 
         val kActionStartService = "ACTION_START_SERVICE"
         val kActionStopService = "ACTION_STOP_SERVICE"
@@ -160,6 +161,7 @@ class CodeServerService : Service() {
         }
 
         fun getBootjs(ctx: Context): String? {
+            val fontname = "firacode" //TODO: add more fonts and let user configure
             val HOME = homePath(ctx)
             val configFile = File("$HOME/$BOOTJS")
             if (!configFile.exists()) {
@@ -186,6 +188,16 @@ class CodeServerService : Service() {
                                 },100);
                             }
                         });
+                    })();
+                    (function(){
+                        if (document.querySelector("#vscode_font_css")) return;
+                        var link = document.createElement( "link" );
+                        link.href = "${ASSET_PREFIX}fonts/$fontname/font.css";
+                        link.type = "text/css";
+                        link.rel = "stylesheet";
+                        link.id = "vscode_font_css";
+                        link.media = "screen,print";
+                        document.getElementsByTagName( "head" )[0].appendChild( link );
                     })();
             """.trimIndent() + String(windowScriptBytes)
             return """
