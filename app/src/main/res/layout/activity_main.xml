@@ -71,9 +71,23 @@
         android:text="@string/start_code"
         android:textColor="@color/button"
         app:layout_constraintBottom_toTopOf="@+id/btnStartRemote"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnStopCode"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnInstallServer"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <Button
+        android:id="@+id/btnStopCode"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:background="@drawable/button_bg"
+        android:text="@string/stop_code"
+        android:textColor="@color/button"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btnStartCode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnStartCode"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <EditText
@@ -121,16 +135,16 @@
     <EditText
         android:id="@+id/txtServerLog"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:enabled="false"
+        android:layout_height="0dp"
+        android:enabled="true"
+        android:focusable="false"
         android:gravity="start|top"
         android:inputType="textMultiLine"
-        android:maxLines="5"
         android:scrollbars="vertical"
         android:textColor="@color/log"
         android:textSize="10dp"
         android:typeface="monospace"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

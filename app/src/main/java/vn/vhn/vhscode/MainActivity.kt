@@ -8,12 +8,13 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.method.ScrollingMovementMethod
 import android.view.Window
 import android.view.WindowManager
 import android.widget.ProgressBar
+import android.widget.Scroller
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
@@ -21,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.File
 import java.io.FileInputStream
+
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -84,6 +86,12 @@ class MainActivity : AppCompatActivity() {
             CodeServerService.startService(this)
         } else {
             startEditor()
+        }
+    }
+
+    fun stopServerService() {
+        if (CodeServerService.liveServerStarted.value == true) {
+            CodeServerService.stopService(this)
         }
     }
 
@@ -167,6 +175,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        btnStopCode.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                stopServerService()
+            }
+        }
+        btnStopCode.isEnabled = CodeServerService.liveServerStarted.value == true
+        CodeServerService.liveServerStarted.observeForever { value ->
+            btnStopCode.isEnabled = value == true
+        }
+        btnStartRemote.setOnClickListener {
+            startEditor(editTxtRemoteServer.text.toString())
+        }
+
         chkHardKeyboard.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences().edit().putBoolean(kPrefHardKeyboard, isChecked).apply()
         }
@@ -187,9 +208,6 @@ class MainActivity : AppCompatActivity() {
                 sharedPreferences().edit().putString(kPrefRemoteServer, s.toString()).apply()
             }
         })
-        btnStartRemote.setOnClickListener {
-            startEditor(editTxtRemoteServer.text.toString())
-        }
     }
 
     fun updateUI() {
