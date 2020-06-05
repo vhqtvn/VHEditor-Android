@@ -46,6 +46,7 @@ class CodeServerService : Service() {
 
         fun stopService(context: Context) {
             val intent = Intent(context, CodeServerService::class.java)
+            intent.action = kActionStopService
             context.stopService(intent)
         }
 
@@ -279,6 +280,7 @@ class CodeServerService : Service() {
     }
 
     private fun updateNotification() {
+        if (instance == null) return
         val resultIntent = Intent(this, MainActivity::class.java)
         val stackBuilder: TaskStackBuilder = TaskStackBuilder.create(this)
         stackBuilder.addNextIntentWithParentStack(resultIntent)
