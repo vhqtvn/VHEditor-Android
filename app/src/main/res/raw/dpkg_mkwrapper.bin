@@ -1,0 +1,11 @@
+#!/data/data/vn.vhn.vsc/files/usr/bin/bash
+
+ROOT=/data/data/vn.vhn.vsc/files
+
+CURRENT_SIZE=$(stat -c%s "$ROOT/usr/bin/dpkg")
+
+if [ $CURRENT_SIZE -ge 5000 ]; then
+    mv -f "$ROOT/usr/bin/dpkg" "$ROOT/usr/bin/dpkg.bin-orig"
+    cp -f "$ROOT/usr/bin/dpkg.wrapper" "$ROOT/usr/bin/dpkg"
+    echo "Updated dpkg wrapper" >&2
+fi

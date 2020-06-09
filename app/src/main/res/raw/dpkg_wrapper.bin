@@ -1,0 +1,69 @@
+#!/data/data/vn.vhn.vsc/files/usr/bin/bash
+
+echo '$ dpkg.bin ' $@ >&2
+
+DPKG_UNPACK=0
+for p in "$@"
+do
+    if [ "$p" = "--unpack" ]; then
+        DPKG_UNPACK=1
+    fi
+done
+
+if [ "$DPKG_UNPACK" = "1" ]; then
+    for p in "$@"; do
+        if [ -f "$p" ]; then
+            echo "> DPKG Process $p" >&2
+            sed -i'' -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#' $p
+        fi
+    done
+fi
+
+if [ "$DPKG_UNPACK" = "1" ]; then
+	DPKG_INSTALL_ROOT=/data/data/vn.vhn.vsc/files/tmp/vh-dpkg.bin-install
+	rm -rf $DPKG_INSTALL_ROOT || true
+	mkdir -p $DPKG_INSTALL_ROOT
+	dpkg.bin-orig --instdir=$DPKG_INSTALL_ROOT "$@" || exit $?
+	find $DPKG_INSTALL_ROOT/data/data/com.termux/files |  while read f; do
+		g=$(echo $f | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
+		echo -en "\033[2K\rInstall {$(basename "$f"): -30}" >&2
+		if [ -L "$f" ]; then
+			target=$(readlink $f)
+			target_replaced=$(echo $target | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
+			rm -f $g
+			ln -s "$target_replaced" "$g"
+		elif [ -d "$f" ]; then
+			mkdir -p "$g"
+			chmod "--reference=$g" "$f"
+		else
+			cp -p $f $g
+		fi
+	done
+	rm -rf $DPKG_INSTALL_ROOT/data/data/com.termux
+	find $DPKG_INSTALL_ROOT |  while read f; do
+		g=$(echo $f | sed -e "s#$DPKG_INSTALL_ROOT/#/#")
+		echo -en "\033[2K\rUpdate {$(basename "$f"): -30}" >&2
+		if [ -L "$f" ]; then
+			target=$(readlink $f)
+			rm -f $g
+			ln -s "$target" "$g"
+		elif [ -d "$f" ]; then
+			mkdir -p "$g"
+			chmod "--reference=$g" "$f"
+		else
+			cp -p $f $g
+			sed -i'' -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#' $g
+		fi
+	done
+	find /data/data/vn.vhn.vsc/files/usr/var/lib/dpkg |  while read f; do
+		echo -en "\033[2K\rUpdate dpkg {$(basename "$f"): -30}" >&2
+	  if [ -f "$f" ]; then
+			sed -i'' -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#' $f
+    fi
+  done
+else
+	dpkg.bin-orig "$@" || exit $?
+fi
+echo -en "\r" >&2
+/data/data/vn.vhn.vsc/files/usr/bin/dpkg_mkwrapper
+echo 'Finished $ dpkg.bin ' $@ >&2

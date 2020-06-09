@@ -1,18 +1,19 @@
 package vn.vhn.vhscode
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.text.method.ScrollingMovementMethod
+import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.widget.ProgressBar
-import android.widget.Scroller
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -22,17 +23,24 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "202005271607"
+        val kCurrentServerVersion = "202006090100"
         val kPrefHardKeyboard = "hardkb"
+        val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
     }
 
-    var startServerObserver: Observer<Boolean>? = null
+    var startServerObserver: Observer<Int>? = null
     var serverLogObserver: Observer<String>? = null
+
+    override fun onResume() {
+        super.onResume()
+        updateUI()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     suspend fun startServerService() {
         File(CodeServerService.HOME_PATH).mkdirs()
-        if (CodeServerService.liveServerStarted.value != true) {
+        if (CodeServerService.liveServerStarted.value != 1) {
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle(R.string.starting_server)
             progressDialog.setMessage(getString(R.string.please_wait_starting_server))
@@ -66,8 +74,8 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
             progressDialog.show()
             if (startServerObserver == null) {
-                startServerObserver = Observer<Boolean> { value ->
-                    if (value) {
+                startServerObserver = Observer<Int> { value ->
+                    if (value == 1) {
                         progressDialog.dismiss()
                         if (startServerObserver != null) {
                             CodeServerService.liveServerStarted.removeObserver(
@@ -90,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun stopServerService() {
-        if (CodeServerService.liveServerStarted.value == true) {
+        if (CodeServerService.liveServerStarted.value == 1) {
             CodeServerService.stopService(this)
         }
     }
@@ -99,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, VSCodeActivity::class.java)
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
         intent.putExtra(VSCodeActivity.kConfigUrl, url)
+        intent.putExtra(VSCodeActivity.kConfigScreenAlive, chkKeepScreenAlive.isChecked)
         startActivity(intent)
     }
 
@@ -116,81 +125,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
         CodeServerService.liveServerLog.observeForever(serverLogObserver!!)
-        btnInstallServer.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                var progressBar: ProgressBar
-                var progressText: TextView
-                val dialog = Dialog(this@MainActivity).apply {
-                    setCancelable(false)
-                    setContentView(R.layout.progress_dialog)
-                    progressBar = findViewById(R.id.progressBar)
-                    progressText = findViewById(R.id.progressText)
-                    setTitle(R.string.extracting)
-                }
-                var currentProgress: Int = 0
-                var progressMax: Int = 0
-                var finished = false
-                launch {
-                    var uiProgress: Int = -1
-                    var uiProgressMax: Int = -1
-                    while (!finished) {
-                        delay(50)
-                        if (uiProgress != currentProgress || uiProgressMax != progressMax) {
-                            uiProgress = currentProgress
-                            uiProgressMax = progressMax
-                            withContext(Dispatchers.Main) {
-                                progressBar.progress =
-                                    currentProgress * progressBar.max / maxOf(1, progressMax)
-                                progressText.text = "%d/%d".format(uiProgress, uiProgressMax)
-                            }
-                        }
-                    }
-                }
-                val progressChannel = Channel<Pair<Int, Int>>()
-                dialog.show()
-                dialog.window!!.setLayout(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT
-                )
-                launch {
-                    delay(500)
-                    CodeServerService.extractServer(this@MainActivity, progressChannel)
-                    updateUI()
-                    finished = true
-                    progressChannel.close()
-                }
-                for ((progress, max) in progressChannel) {
-                    currentProgress = progress
-                    progressMax = max
-                }
-                dialog.hide()
-            }
-        }
-        btnStartCode.setOnClickListener {
-            TermuxInstaller.setupIfNeeded(this) {
-                CodeServerService.setupIfNeeded(this) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        startServerService()
-                    }
-                }
-            }
-        }
-        btnStopCode.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                stopServerService()
-            }
-        }
-        btnStopCode.isEnabled = CodeServerService.liveServerStarted.value == true
+        btnStopCode.isEnabled = CodeServerService.liveServerStarted.value == 1
         CodeServerService.liveServerStarted.observeForever { value ->
-            btnStopCode.isEnabled = value == true
-        }
-        btnStartRemote.setOnClickListener {
-            startEditor(editTxtRemoteServer.text.toString())
+            btnStopCode.isEnabled = value == 1
         }
 
         chkHardKeyboard.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences().edit().putBoolean(kPrefHardKeyboard, isChecked).apply()
         }
+        chkKeepScreenAlive.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences().edit().putBoolean(kPrefKeepScreenAlive, isChecked).apply()
+        }
+
         editTxtRemoteServer.setText(
             sharedPreferences().getString(
                 kPrefRemoteServer,
@@ -212,7 +158,10 @@ class MainActivity : AppCompatActivity() {
 
     fun updateUI() {
         CoroutineScope(Dispatchers.Main).launch {
-            chkHardKeyboard.isChecked = sharedPreferences().getBoolean(kPrefHardKeyboard, true);
+            sharedPreferences().apply {
+                chkHardKeyboard.isChecked = getBoolean(kPrefHardKeyboard, false)
+                chkKeepScreenAlive.isChecked = getBoolean(kPrefKeepScreenAlive, false)
+            }
             val codeServerVersion =
                 withContext(Dispatchers.IO) { getCurrentCodeServerVersion() }
             txtInstalledServerVersion.text = getString(
@@ -223,11 +172,19 @@ class MainActivity : AppCompatActivity() {
                 btnStartCode.isEnabled = false
                 btnInstallServer.text =
                     getString(R.string.install_server)
+                btnInstallServer.visibility = View.VISIBLE
+                installedRegionGroup.visibility = View.GONE
             } else {
                 btnStartCode.isEnabled = true
-                if (codeServerVersion < kCurrentServerVersion) btnInstallServer.text =
-                    getString(R.string.update_server)
-                else btnInstallServer.text = getString(R.string.reinstall_server)
+                if (codeServerVersion < kCurrentServerVersion) {
+                    btnInstallServer.text = getString(R.string.update_server)
+                    btnInstallServer.visibility = View.VISIBLE
+                }
+                else {
+                    btnInstallServer.text = getString(R.string.reinstall_server)
+                    btnInstallServer.visibility = View.GONE
+                }
+                installedRegionGroup.visibility = View.VISIBLE
             }
         }
     }
@@ -248,5 +205,113 @@ class MainActivity : AppCompatActivity() {
 
     private fun sharedPreferences(): SharedPreferences {
         return getSharedPreferences("main_settings", Context.MODE_PRIVATE)
+    }
+
+    fun onInstallServerClick(view: View) {
+        CoroutineScope(Dispatchers.Main).launch {
+            var progressBar: ProgressBar
+            var progressText: TextView
+            val dialog = Dialog(this@MainActivity).apply {
+                setCancelable(false)
+                setContentView(R.layout.progress_dialog)
+                progressBar = findViewById(R.id.progressBar)
+                progressText = findViewById(R.id.progressText)
+                setTitle(R.string.extracting)
+            }
+            var currentProgress: Int = 0
+            var progressMax: Int = 0
+            var finished = false
+            launch {
+                var uiProgress: Int = -1
+                var uiProgressMax: Int = -1
+                while (!finished) {
+                    delay(50)
+                    if (uiProgress != currentProgress || uiProgressMax != progressMax) {
+                        uiProgress = currentProgress
+                        uiProgressMax = progressMax
+                        withContext(Dispatchers.Main) {
+                            progressBar.progress =
+                                currentProgress * progressBar.max / maxOf(1, progressMax)
+                            progressText.text = "%d/%d".format(uiProgress, uiProgressMax)
+                        }
+                    }
+                }
+            }
+            val progressChannel = Channel<Pair<Int, Int>>()
+            dialog.show()
+            dialog.window!!.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            launch {
+                delay(500)
+                CodeServerService.extractServer(this@MainActivity, progressChannel)
+                updateUI()
+                finished = true
+                progressChannel.close()
+            }
+            for ((progress, max) in progressChannel) {
+                currentProgress = progress
+                progressMax = max
+            }
+            dialog.hide()
+        }
+    }
+
+    fun onSettingsClick(view: View) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.settings)
+            .setView(R.layout.dialog_settings)
+            .setNegativeButton(
+                R.string.close
+            ) { dialog: DialogInterface?, which: Int ->
+                dialog?.dismiss()
+            }
+            .setOnDismissListener {
+                updateUI()
+            }
+            .show()
+    }
+
+    fun onStartRemote(view: View) {
+        startEditor(editTxtRemoteServer.text.toString())
+    }
+
+    fun onStartCode(view: View) {
+        TermuxInstaller.setupIfNeeded(this) {
+            CodeServerService.setupIfNeeded(this) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    startServerService()
+                }
+            }
+        }
+    }
+
+    fun onStopCode(view: View) {
+        CoroutineScope(Dispatchers.Main).launch {
+            stopServerService()
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    fun onResetRootFS(view: View) {
+        val progress = ProgressDialog.show(
+            this,
+            null,
+            getString(R.string.deleting),
+            true,
+            false
+        )
+        Thread {
+            val runtime = Runtime.getRuntime()
+            try {
+                runtime.exec("rm -rf ${CodeServerService.ROOT_PATH}/*")
+            } catch (e: IOException) {
+            } finally {
+                runOnUiThread {
+                    progress.dismiss()
+                }
+            }
+        }.start()
     }
 }

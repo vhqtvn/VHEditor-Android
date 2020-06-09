@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
-import android.os.Environment
+import android.os.Build
 import android.os.IBinder
 import android.os.UserManager
 import android.util.Log
@@ -13,16 +13,23 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.io.*
+import java.io.DataInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.zip.GZIPInputStream
 
 
 class CodeServerService : Service() {
 
     companion object {
+        val TAG = "CodeServerService"
         val ROOT_PATH = "/data/data/vn.vhn.vsc/files"
         val HOME_PATH = ROOT_PATH + "/home"
         val PREFIX_PATH = ROOT_PATH
@@ -34,7 +41,7 @@ class CodeServerService : Service() {
         val channelId = "VSCodeServer"
         val channelName = "VSCodeServer"
         var instance: CodeServerService? = null
-        val liveServerStarted: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>() }
+        val liveServerStarted: MutableLiveData<Int> by lazy { MutableLiveData<Int>() }
         val liveServerLog: MutableLiveData<String> by lazy { MutableLiveData<String>() }
         private var isServerStarting = false
 
@@ -56,12 +63,40 @@ class CodeServerService : Service() {
 
         fun setupIfNeeded(context: Context, whenDone: () -> Unit) {
             val dpkg_path = "$PREFIX_PATH/usr/bin/dpkg"
+            val dpkg_mkwrapper_path = "$PREFIX_PATH/usr/bin/dpkg_mkwrapper"
             val dpkg_orig_path = "$dpkg_path.bin-orig"
-            if (!File(dpkg_orig_path).isFile) {
+
+            if (!File(dpkg_orig_path).isFile || File(dpkg_path).length() > 5000) {
+                if (File(dpkg_orig_path).exists()) File(dpkg_orig_path).delete()
                 File(dpkg_path).renameTo(File(dpkg_orig_path))
-                copyRawResource(context, R.raw.dpkg, dpkg_path.toString())
-                File(dpkg_path).setExecutable(true)
             }
+
+            dpkg_path.apply {
+                copyRawResource(context, R.raw.dpkg, this)
+                File(this).setExecutable(true)
+            }
+            "$PREFIX_PATH/usr/bin/dpkg.wrapper".apply {
+                copyRawResource(context, R.raw.dpkg_wrapper, this)
+                File(this).setExecutable(true)
+            }
+            dpkg_mkwrapper_path.apply {
+                copyRawResource(context, R.raw.dpkg_mkwrapper, this)
+                File(this).setExecutable(true)
+            }
+
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+                File("$PREFIX_PATH/libc_android24.so").apply {
+                    if (!isFile) {
+                        copyRawResource(context, R.raw.libc_android24, this.toString())
+                    }
+                }
+                File("$PREFIX_PATH/android_23.so").apply {
+                    if (!isFile) {
+                        copyRawResource(context, R.raw.android_23, this.toString())
+                    }
+                }
+            }
+
             whenDone()
         }
 
@@ -80,7 +115,7 @@ class CodeServerService : Service() {
                     }).setPositiveButton(android.R.string.ok, null).show()
                 return
             }
-            copyRawResource(context, R.raw.libcpp, "$ROOT_PATH/libc++_shared.so")
+            copyRawResource(context, R.raw.libcpp, "$ROOT_PATH/libc_android24++_shared.so")
             copyRawResource(context, R.raw.cs, "$ROOT_PATH/cs.tgz")
             val csSourceFile = context.getFileStreamPath("cs.tgz")
             with(context.getFileStreamPath("code-server")) {
@@ -182,10 +217,10 @@ class CodeServerService : Service() {
                         document.body.addEventListener('click', ()=>{click2=false;});
                         document.body.addEventListener('touchstart', clickTimer);
                         document.body.addEventListener('touchmove', ()=>{click=false;});
-                        document.body.addEventListener('touchend', (e)=>{
+                        document.body.addEventListener('touchend', (e) =>{
                             if(click) {
                                 setTimeout(()=>{
-                                    if(click2) e.target.click();
+                                    if(click2 && ["A"].indexOf(e.target.tagName)==-1) e.target.click();
                                 },100);
                             }
                         });
@@ -234,6 +269,7 @@ class CodeServerService : Service() {
 
     var started = false
     var process: Process? = null
+    var stderrThread: Thread? = null
     var error: String? = null;
 
     override fun onBind(intent: Intent): IBinder {
@@ -294,16 +330,19 @@ class CodeServerService : Service() {
 //        val pendingStopIntent =
 //            pendingStopStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val chan =
-            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-        chan.lightColor = Color.BLUE
-        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        service.createNotificationChannel(chan)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val chan = NotificationChannel(
+                channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT
+            )
+            chan.lightColor = Color.BLUE
+            chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            service.createNotificationChannel(chan)
+        }
 
         var status: String
         if (isServerStarting) {
-            if (liveServerStarted.value == true) status = "running";
+            if (liveServerStarted.value == 1) status = "running";
             else status = "starting"
         } else {
             status = "not running"
@@ -348,6 +387,9 @@ class CodeServerService : Service() {
         env.add("TERM=xterm-256color")
         env.add("HOME=${homePath(ctx)}")
         env.add("LD_LIBRARY_PATH=${envHome}:${envHome}/usr/lib")
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            env.add("LD_PRELOAD=${envHome}/android_23.so")
+        }
         env.add("PATH=${envHome}/usr/bin:${envHome}/usr/bin/applets")
 
         env.add("BOOTCLASSPATH=" + System.getenv("BOOTCLASSPATH"))
@@ -361,19 +403,21 @@ class CodeServerService : Service() {
 
         env.add("PORT=13337")
 
+        Log.d(TAG, "env = " + env.toString())
+
         return env.toTypedArray()
     }
 
     fun runServer(ctx: Context) {
-        if (isServerStarting || (liveServerStarted.value == true)) return
+        if (isServerStarting || (liveServerStarted.value == 1)) return
         isServerStarting = true
-        liveServerStarted.postValue(null)
+        liveServerStarted.postValue(-1)
         val nodeBinary = applicationContext.getFileStreamPath("node")
         val envHome = nodeBinary?.parentFile?.absolutePath
         var logData = "Starting...\n"
         try {
             error = null;
-            liveServerStarted.postValue(false)
+            liveServerStarted.postValue(0)
             process = Runtime.getRuntime().exec(
                 arrayOf(
                     applicationContext.getFileStreamPath("node").absolutePath,
@@ -384,13 +428,35 @@ class CodeServerService : Service() {
                 buildEnv(ctx)
             )
             val stream = DataInputStream(process!!.inputStream);
+            val errStream = DataInputStream(process!!.errorStream);
             val bufSize = kConfigStreamBuferSize
             val buffer = ByteArray(bufSize)
             var outputBuffer = ""
             var serverStarted = false
             updateNotification()
             liveServerLog.postValue(logData)
-            while (process?.isAlive == true) {
+            stderrThread = Thread {
+                while (true) {
+                    try {
+                        process?.exitValue()
+                        break
+                    } catch (e: IllegalThreadStateException) {
+                    }
+                    val size = errStream.read(buffer)
+                    if (size <= 0) continue
+                    val currentBuffer = String(buffer, 0, size)
+                    logData += currentBuffer
+                    liveServerLog.postValue(logData)
+                }
+            }
+            stderrThread?.start()
+            while (true) {
+                try {
+                    process?.exitValue()
+                    break
+                } catch (e: IllegalThreadStateException) {
+                }
+
                 val size = stream.read(buffer)
                 if (size <= 0) continue
                 val currentBuffer = String(buffer, 0, size)
@@ -400,7 +466,7 @@ class CodeServerService : Service() {
                     if (outputBuffer.indexOf("HTTP server listening on") >= 0) {
                         serverStarted = true
                         outputBuffer = ""
-                        liveServerStarted.postValue(true)
+                        liveServerStarted.postValue(1)
                         CoroutineScope(Dispatchers.Main).launch {
                             delay(1000)
                             updateNotification()
@@ -410,17 +476,22 @@ class CodeServerService : Service() {
                 logData += currentBuffer
                 liveServerLog.postValue(logData)
             }
-            liveServerStarted.postValue(false)
+            liveServerStarted.postValue(0)
         } catch (e: Exception) {
             error = e.toString()
             logData += "\nException: ${error}"
             liveServerLog.postValue(logData)
-            liveServerStarted.postValue(false)
+            liveServerStarted.postValue(0)
         } finally {
             isServerStarting = false
             updateNotification()
             logData += "Finished.\n"
             liveServerLog.postValue(logData)
+            try {
+                stderrThread?.interrupt()
+            } catch (e: Exception) {
+            }
+            stderrThread = null
         }
     }
 }
