@@ -1,10 +1,13 @@
 package vn.vhn.vhscode
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PowerManager
 import android.util.Log
 import android.view.*
 import android.webkit.JavascriptInterface
@@ -23,10 +26,8 @@ class VSCodeActivity : AppCompatActivity() {
     companion object {
         val kConfigUseHardKeyboard = "use_hardkb";
         val kConfigUrl = "url";
+        val kConfigScreenAlive = "screen_alive";
         val TAG = "VSCodeActivity"
-    }
-
-    class WebInterface {
     }
 
     var useHardKeyboard = false
@@ -44,9 +45,21 @@ class VSCodeActivity : AppCompatActivity() {
         }
         if (android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+"))) { //Key1,2
             genericMotionEventDispatcher = BBKeyboardEventDispatcher()
+        } else if (android.os.Build.MODEL.matches(Regex("STV100-[0-9]+"))) { //Priv
+            genericMotionEventDispatcher = BBKeyboardEventDispatcher()
         }
         if (genericMotionEventDispatcher != null) {
             genericMotionEventDispatcher!!.initializeForTarget(this, webView)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val keepalive = getBooleanParameter(kConfigScreenAlive, false)
+        if (keepalive == true) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 
@@ -65,18 +78,17 @@ class VSCodeActivity : AppCompatActivity() {
         webView.webChromeClient = VSCodeWebChromeClient()
         webView.settings.fixedFontFamily = "vscode-monospace"
         webView.webViewClient = VSCodeWebClient()
-        if (useHardKeyboard) {
-            webView.focusable = View.NOT_FOCUSABLE
-        } else {
-            webView.focusable = View.FOCUSABLE_AUTO
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (useHardKeyboard) {
+                webView.focusable = View.NOT_FOCUSABLE
+            } else {
+                webView.focusable = View.FOCUSABLE_AUTO
+            }
         }
-        var url = intent.getStringExtra(kConfigUrl)
-        if (intent.data != null) {
-            val dataUri = Uri.parse(intent.data.toString())
-            val paramUrl = dataUri.getQueryParameter("url")
-            if (paramUrl != null) url = paramUrl
-        }
-        if (url == null) url = "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
+        val url = getStringParameter(
+            kConfigUrl,
+            "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
+        )
         webView.loadUrl(url)
     }
 
@@ -95,5 +107,31 @@ class VSCodeActivity : AppCompatActivity() {
                 return true
         }
         return super.dispatchGenericMotionEvent(ev)
+    }
+
+    fun getStringParameter(name: String, default: String? = null): String? {
+        var res = intent.getStringExtra(name)
+        if (intent.data != null) {
+            val dataUri = Uri.parse(intent.data.toString())
+            val paramValue = dataUri.getQueryParameter(name)
+            if (paramValue != null) res = paramValue
+        }
+        if (res == null) res = default
+        return res
+    }
+
+    fun getBooleanParameter(name: String, default: Boolean? = null): Boolean? {
+        var res: Boolean? = null
+        if (intent.hasExtra(name)) {
+            res = intent.getBooleanExtra(name, false)
+        }
+        if (intent.data != null) {
+            val dataUri = Uri.parse(intent.data.toString())
+            val paramValue = dataUri.getQueryParameter(name)?.toLowerCase()
+            if (paramValue != null)
+                res = paramValue != "" && paramValue != "0" && paramValue != "false"
+        }
+        if (res == null) res = default
+        return res
     }
 }
