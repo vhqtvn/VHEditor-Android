@@ -442,11 +442,14 @@ class CodeServerService : Service() {
                         break
                     } catch (e: IllegalThreadStateException) {
                     }
-                    val size = errStream.read(buffer)
-                    if (size <= 0) continue
-                    val currentBuffer = String(buffer, 0, size)
-                    logData += currentBuffer
-                    liveServerLog.postValue(logData)
+                    try {
+                        val size = errStream.read(buffer)
+                        if (size <= 0) continue
+                        val currentBuffer = String(buffer, 0, size)
+                        logData += currentBuffer
+                        liveServerLog.postValue(logData)
+                    } catch (e: Exception) {
+                    }
                 }
             }
             stderrThread?.start()
@@ -457,24 +460,27 @@ class CodeServerService : Service() {
                 } catch (e: IllegalThreadStateException) {
                 }
 
-                val size = stream.read(buffer)
-                if (size <= 0) continue
-                val currentBuffer = String(buffer, 0, size)
-                Log.d("VHSServerOutput", currentBuffer)
-                if (!serverStarted) {
-                    outputBuffer += currentBuffer
-                    if (outputBuffer.indexOf("HTTP server listening on") >= 0) {
-                        serverStarted = true
-                        outputBuffer = ""
-                        liveServerStarted.postValue(1)
-                        CoroutineScope(Dispatchers.Main).launch {
-                            delay(1000)
-                            updateNotification()
+                try {
+                    val size = stream.read(buffer)
+                    if (size <= 0) continue
+                    val currentBuffer = String(buffer, 0, size)
+                    Log.d("VHSServerOutput", currentBuffer)
+                    if (!serverStarted) {
+                        outputBuffer += currentBuffer
+                        if (outputBuffer.indexOf("HTTP server listening on") >= 0) {
+                            serverStarted = true
+                            outputBuffer = ""
+                            liveServerStarted.postValue(1)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                delay(1000)
+                                updateNotification()
+                            }
                         }
                     }
+                    logData += currentBuffer
+                    liveServerLog.postValue(logData)
+                } catch (e: Exception) {
                 }
-                logData += currentBuffer
-                liveServerLog.postValue(logData)
             }
             liveServerStarted.postValue(0)
         } catch (e: Exception) {

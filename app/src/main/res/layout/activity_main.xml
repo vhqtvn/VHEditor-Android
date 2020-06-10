@@ -88,7 +88,7 @@
             app:layout_constraintBottom_toTopOf="@+id/btnStartRemote"
             app:layout_constraintEnd_toStartOf="@+id/btnStopCode"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnInstallServer"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <Button
@@ -129,7 +129,7 @@
             android:onClick="onStartRemote"
             android:text="@string/start_remote"
             android:textColor="@color/button"
-            app:layout_constraintBottom_toTopOf="@+id/chkBoxConfigGroup"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/editTxtRemoteServer"
             app:layout_constraintTop_toBottomOf="@+id/btnStartCode"
