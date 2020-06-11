@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId "vn.vhn.vsc"
-        minSdkVersion 26
+        minSdkVersion 24
         targetSdkVersion 28
-        versionCode 5
-        versionName "1.1.03"
+        versionCode 7
+        versionName "1.1.04"
 
         externalNativeBuild {
             ndkBuild {
