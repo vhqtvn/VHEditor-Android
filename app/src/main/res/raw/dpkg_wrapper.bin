@@ -27,7 +27,10 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	find $DPKG_INSTALL_ROOT/data/data/com.termux/files |  while read f; do
 		g=$(echo $f | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
 		BFN=$(basename "$f")
-		echo -en "\033[2K\rInstall ${BFN: -30}" >&2
+		if [ ${#BFN} -gt 30 ]; then
+		    BFN=${BFN: -30}
+		fi
+		echo -en "\033[2K\rInstall ${BFN}" >&2
 		if [ -L "$f" ]; then
 			target=$(readlink $f)
 			target_replaced=$(echo $target | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
@@ -44,8 +47,10 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	find $DPKG_INSTALL_ROOT |  while read f; do
 		g=$(echo $f | sed -e "s#$DPKG_INSTALL_ROOT/#/#")
 		BFN=$(basename "$f")
-		# echo -en "\033[2K\rUpdate ${BFN: -30}" >&2
-		echo -en "Update ${BFN: -30}" >&2
+		if [ ${#BFN} -gt 30 ]; then
+		    BFN=${BFN: -30}
+		fi
+		echo -en "\033[2K\rUpdate ${BFN}" >&2
 		if [ -L "$f" ]; then
 			target=$(readlink $f)
 			rm -f $g
@@ -60,11 +65,14 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	done
 	find /data/data/vn.vhn.vsc/files/usr/var/lib/dpkg |  while read f; do
 		BFN=$(basename "$f")
-		echo -en "\033[2K\rUpdate dpkg {$BFN: -30}" >&2
+		if [ ${#BFN} -gt 30 ]; then
+		    BFN=${BFN: -30}
+		fi
+		echo -en "\033[2K\rUpdate dpkg ${BFN}" >&2
 	  if [ -f "$f" ]; then
 			sed -i'' -e 's#com.termux#vn.vhn.vsc#' $f
-    fi
-  done
+      fi
+    done
 else
 	dpkg.bin-orig "$@" || exit $?
 fi
