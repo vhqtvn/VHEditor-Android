@@ -15,6 +15,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.termux.app.TermuxInstaller
@@ -28,7 +29,7 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "202006090100"
+        val kCurrentServerVersion = "202006100100"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
@@ -179,8 +180,7 @@ class MainActivity : AppCompatActivity() {
                 if (codeServerVersion < kCurrentServerVersion) {
                     btnInstallServer.text = getString(R.string.update_server)
                     btnInstallServer.visibility = View.VISIBLE
-                }
-                else {
+                } else {
                     btnInstallServer.text = getString(R.string.reinstall_server)
                     btnInstallServer.visibility = View.GONE
                 }
@@ -305,8 +305,16 @@ class MainActivity : AppCompatActivity() {
         Thread {
             val runtime = Runtime.getRuntime()
             try {
-                runtime.exec("rm -rf ${CodeServerService.ROOT_PATH}/*")
+                runtime.exec("rm -rf ${CodeServerService.ROOT_PATH}; mkdir ${CodeServerService.ROOT_PATH}")
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        R.string.reset_root_fs_finished,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             } catch (e: IOException) {
+                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
             } finally {
                 runOnUiThread {
                     progress.dismiss()
