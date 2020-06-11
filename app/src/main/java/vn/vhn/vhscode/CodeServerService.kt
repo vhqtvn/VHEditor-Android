@@ -21,10 +21,11 @@ import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.DataInputStream
 import java.io.File
+import java.io.InputStream
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.GZIPInputStream
-
+import java.io.ByteArrayInputStream
 
 class CodeServerService : Service() {
 
@@ -83,22 +84,15 @@ class CodeServerService : Service() {
                 copyRawResource(context, R.raw.dpkg_mkwrapper, this)
                 File(this).setExecutable(true)
             }
-
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-                File("$PREFIX_PATH/libc_android24.so").apply {
-                    if (!isFile) {
-                        copyRawResource(context, R.raw.libc_android24, this.toString())
-                    }
-                }
-                File("$PREFIX_PATH/android_23.so").apply {
-                    if (!isFile) {
-                        copyRawResource(context, R.raw.android_23, this.toString())
-                    }
-                }
-            }
-
             whenDone()
         }
+
+        fun loadZipBytes(): ByteArray? {
+            System.loadLibrary("vsc-bootstrap")
+            return getZip()
+        }
+
+        external fun getZip(): ByteArray?
 
         suspend fun extractServer(context: Context, progressChannel: Channel<Pair<Int, Int>>) {
             val userService: UserManager =
@@ -115,19 +109,19 @@ class CodeServerService : Service() {
                     }).setPositiveButton(android.R.string.ok, null).show()
                 return
             }
-            copyRawResource(context, R.raw.libcpp, "$ROOT_PATH/libc_android24++_shared.so")
-            copyRawResource(context, R.raw.cs, "$ROOT_PATH/cs.tgz")
-            val csSourceFile = context.getFileStreamPath("cs.tgz")
             with(context.getFileStreamPath("code-server")) {
                 if (exists()) deleteRecursively()
             }
+            for (file in listOf("libc_android24++_shared.so", "node")) {
+                with(context.getFileStreamPath(file)) {
+                    if (exists()) delete()
+                }
+            }
             extractTarGz(
-                csSourceFile,
-                csSourceFile.parentFile!!,
+                ByteArrayInputStream(loadZipBytes()),
+                File(ROOT_PATH),
                 progressChannel
             )
-            csSourceFile.delete()
-            copyRawResource(context, R.raw.node, "$ROOT_PATH/node")
             context.getFileStreamPath("node").setExecutable(true)
         }
 
@@ -148,7 +142,7 @@ class CodeServerService : Service() {
         }
 
         suspend fun extractTarGz(
-            archiveFile: File,
+            archiveFile: ByteArrayInputStream,
             outputDir: File,
             progressChannel: Channel<Pair<Int, Int>>
         ) {
@@ -157,7 +151,8 @@ class CodeServerService : Service() {
 
             var total = 0
 
-            var reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
+            archiveFile.mark(0)
+            var reader = TarArchiveInputStream(GZIPInputStream(archiveFile))
             var currentEntry = reader.nextTarEntry
             while (currentEntry != null) {
                 total += 1
@@ -167,7 +162,8 @@ class CodeServerService : Service() {
             progressChannel.send(Pair(0, total))
 
             var currentFileIndex = 0
-            reader = TarArchiveInputStream(GZIPInputStream(FileInputStream(archiveFile)))
+            archiveFile.reset()
+            reader = TarArchiveInputStream(GZIPInputStream(archiveFile))
             currentEntry = reader.nextTarEntry
 
             while (currentEntry != null) {
