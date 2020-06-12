@@ -1,5 +1,6 @@
 package vn.vhn.vhscode
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
@@ -7,6 +8,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -17,6 +19,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
@@ -33,10 +37,12 @@ class MainActivity : AppCompatActivity() {
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
+        val kPrefRequestedPermission = "requestedpermission"
     }
 
     var startServerObserver: Observer<Int>? = null
     var serverLogObserver: Observer<String>? = null
+    var requestedPermission: Boolean = false
 
     override fun onResume() {
         super.onResume()
@@ -186,7 +192,41 @@ class MainActivity : AppCompatActivity() {
                 }
                 installedRegionGroup.visibility = View.VISIBLE
             }
+
+            performRequestPermissions()
         }
+    }
+
+    private fun performRequestPermissions() {
+        CoroutineScope(Dispatchers.Main).launch {
+            if (requestedPermission) return@launch
+            requestedPermission = true
+            sharedPreferences().edit().putBoolean(kPrefRequestedPermission, true).apply()
+            val listPermissionsNeeded = mutableListOf<String>()
+            for (permission in listOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ))
+                if (ContextCompat.checkSelfPermission(this@MainActivity, permission)
+                    != PackageManager.PERMISSION_GRANTED
+                )
+                    listPermissionsNeeded.add(permission)
+            if (!listPermissionsNeeded.isEmpty()) {
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    listPermissionsNeeded.toTypedArray(),
+                    0
+                )
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+
     }
 
     suspend fun getCurrentCodeServerVersion(): String? {
