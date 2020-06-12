@@ -77,7 +77,6 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
         webView.settings.fixedFontFamily = "vscode-monospace"
-        webView.webViewClient = VSCodeWebClient()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (useHardKeyboard) {
                 webView.focusable = View.NOT_FOCUSABLE
@@ -85,10 +84,11 @@ class VSCodeActivity : AppCompatActivity() {
                 webView.focusable = View.FOCUSABLE_AUTO
             }
         }
-        val url = getStringParameter(
+        val url: String = getStringParameter(
             kConfigUrl,
             "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
-        )
+        )!!
+        webView.webViewClient = VSCodeWebClient(url)
         webView.loadUrl(url)
     }
 
@@ -133,5 +133,13 @@ class VSCodeActivity : AppCompatActivity() {
         }
         if (res == null) res = default
         return res
+    }
+
+    override fun onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            super.onBackPressed()
+        }
     }
 }

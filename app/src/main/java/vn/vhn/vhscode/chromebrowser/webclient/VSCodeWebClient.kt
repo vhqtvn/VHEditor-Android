@@ -1,18 +1,23 @@
 package vn.vhn.vhscode.chromebrowser.webclient
 
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.content.ContextCompat.startActivity
 import vn.vhn.vhscode.CodeServerService
-import java.lang.Exception
 
-class VSCodeWebClient : WebViewClient() {
+
+class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
     companion object {
         val TAG = "VSCodeWebClient"
     }
+
+    private val rootUri: Uri = Uri.parse(rootUrl)
 
     var resource_html = Regex("\\.html?(\\?|\$)")
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -65,5 +70,15 @@ class VSCodeWebClient : WebViewClient() {
             }
         }
         return super.shouldInterceptRequest(view, request)
+    }
+
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        if (request != null && request.isForMainFrame) {
+            if (request.url.host != rootUri.host) {
+                view?.context?.startActivity(Intent(Intent.ACTION_VIEW, request.url))
+                return true
+            }
+        }
+        return super.shouldOverrideUrlLoading(view, request)
     }
 }
