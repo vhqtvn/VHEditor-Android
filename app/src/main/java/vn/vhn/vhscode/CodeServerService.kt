@@ -202,7 +202,7 @@ class CodeServerService : Service() {
             val stream = FileInputStream(configFile)
             var windowScriptBytes = stream.readBytes()
             stream.close()
-            val windowScript = """
+            var windowScript = """
                 	(function(){
                         let click = false;
                         let click2 = false;
@@ -232,6 +232,22 @@ class CodeServerService : Service() {
                         document.getElementsByTagName( "head" )[0].appendChild( link );
                     })();
             """.trimIndent() + String(windowScriptBytes)
+            windowScript += """
+                (function(){
+                    if(!window.vscodeOrigKeyboardEventDescriptorShiftKey) window.vscodeOrigKeyboardEventDescriptorShiftKey = Object.getOwnPropertyDescriptor(window.KeyboardEvent.prototype, 'shiftKey');
+                    var shiftGetter = window.vscodeOrigKeyboardEventDescriptorShiftKey.get;
+                    Object.defineProperty(window.KeyboardEvent.prototype, 'shiftKey', {
+                        get(){
+                            let orig = shiftGetter.apply(this);
+                            if (orig) return true;
+                            if (typeof this.cached_shift_pressed === 'undefined') {
+                                this.cached_shift_pressed = _vn_vhn_vscjs_.isShiftKeyPressed()
+                            }
+                            return this.cached_shift_pressed;
+                        }
+                    });
+                })()
+            """.trimIndent()
             return """
                 (function(){
                     var single_window_apply = function(window){
