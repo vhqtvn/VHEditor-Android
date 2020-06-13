@@ -89,7 +89,6 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                     ev.eventTime > mFirstTapDeadline
                             || ev.action == MotionEvent.ACTION_DOWN)
         ) {
-            Log.d(TAG, "None due to down");
             setHandlingState(SpecialHandlingState.STATE_NONE, ev)
         }
 //        Log.d(TAG, "ev: " + mHandlingState + " ; " + ev.toString());
@@ -112,15 +111,22 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                 }
             SpecialHandlingState.STATE_ENABLED ->
                 when (true) {
-//                    ev.action == MotionEvent.ACTION_UP && ev.pointerCount == 1 -> {
-//                        setHandlingState(SpecialHandlingState.STATE_NONE, ev)
-//                    }
                     ev.action == MotionEvent.ACTION_MOVE && ev.pointerCount > 1 && ev.historySize > 0 -> {
                         var dx = 0.0
                         var dy = 0.0
                         for (pointerId in 0 until ev.pointerCount) {
                             dx += ev.getX(pointerId) - ev.getHistoricalX(pointerId, 0)
                             dy += ev.getY(pointerId) - ev.getHistoricalY(pointerId, 0)
+                        }
+                        var minX = ev.getX(0)
+                        var maxY = ev.getY(0)
+                        for (pointerId in 1 until ev.pointerCount) {
+                            minX = Math.min(minX, ev.getX(pointerId))
+                            maxY = Math.max(maxY, ev.getY(pointerId))
+                        }
+                        if (minX > TOP_LEFT_SLIDE_START || maxY < BOTTOM_LEFT_SLIDE_END) {
+                            setHandlingState(SpecialHandlingState.STATE_NONE, ev)
+                            return true
                         }
                         if (Math.abs(dx) > Math.abs(dy)) {
                             var minY = ev.getY(0)
@@ -132,7 +138,6 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                             mAccumulateX += dx * speedMultiplier
                             val nSteps = (mAccumulateX / KB_BTN_WIDTH).toInt()
                             if (nSteps != 0) {
-                                Log.d(TAG, "Move LeftRight " + nSteps)
                                 if (nSteps > 0) {
                                     for (i in 1..nSteps) sendDownUpKeyEvent(
                                         KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -158,7 +163,6 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                             mAccumulateY += dy * speedMultiplier
                             val nSteps = (mAccumulateY / KB_BTN_HEIGHT).toInt()
                             if (nSteps != 0) {
-                                Log.d(TAG, "Move UpDown " + nSteps)
                                 if (nSteps > 0) {
                                     for (i in 1..nSteps) sendDownUpKeyEvent(
                                         KeyEvent.KEYCODE_DPAD_DOWN,
