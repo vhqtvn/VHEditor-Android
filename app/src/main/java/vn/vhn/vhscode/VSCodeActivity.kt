@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.activity_vscode.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import vn.vhn.vhscode.chromebrowser.VSCodeJSInterface
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebClient
 import vn.vhn.vhscode.generic_dispatcher.BBKeyboardEventDispatcher
@@ -32,6 +33,7 @@ class VSCodeActivity : AppCompatActivity() {
 
     var useHardKeyboard = false
     var genericMotionEventDispatcher: IGenericEventDispatcher? = null
+    var jsInterface = VSCodeJSInterface()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,9 +46,9 @@ class VSCodeActivity : AppCompatActivity() {
             Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
         }
         if (android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+"))) { //Key1,2
-            genericMotionEventDispatcher = BBKeyboardEventDispatcher()
+            genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface)
         } else if (android.os.Build.MODEL.matches(Regex("STV100-[0-9]+"))) { //Priv
-            genericMotionEventDispatcher = BBKeyboardEventDispatcher()
+            genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface)
         }
         if (genericMotionEventDispatcher != null) {
             genericMotionEventDispatcher!!.initializeForTarget(this, webView)
@@ -89,6 +91,7 @@ class VSCodeActivity : AppCompatActivity() {
             "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
         )!!
         webView.webViewClient = VSCodeWebClient(url)
+        webView.addJavascriptInterface(jsInterface, "_vn_vhn_vscjs_")
         webView.loadUrl(url)
     }
 

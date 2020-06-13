@@ -11,9 +11,10 @@ import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import androidx.core.content.ContextCompat.getSystemService
+import vn.vhn.vhscode.chromebrowser.VSCodeJSInterface
 
 
-class BBKeyboardEventDispatcher : IGenericEventDispatcher {
+class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEventDispatcher {
     companion object {
         val TAG = "BBKeyboardEventDispatcher"
         private val KEYBOARD_WIDTH = 1080.0
@@ -43,6 +44,7 @@ class BBKeyboardEventDispatcher : IGenericEventDispatcher {
     private var mHandlingState: SpecialHandlingState = SpecialHandlingState.STATE_NONE
     private var mFirstTapDeadline: Long = 0
     private var mMeta: Int = 0
+    private var mShift: Int = 0
 
     override fun initializeForTarget(ctx: Context, webView: WebView) {
         this.mContext = ctx
@@ -61,15 +63,33 @@ class BBKeyboardEventDispatcher : IGenericEventDispatcher {
     }
 
     override fun dispatchKeyEvent(ev: KeyEvent): Boolean {
+        var msk = 0
+        if (ev.keyCode == KeyEvent.KEYCODE_SHIFT_LEFT) {
+            msk = 1
+        }
+        if (ev.keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) {
+            msk = 2
+        }
+        if (msk != 0) {
+            var nextShift = mShift
+            if (ev.action == KeyEvent.ACTION_DOWN) nextShift = nextShift or msk
+            else if (ev.action == KeyEvent.ACTION_UP) nextShift = nextShift and msk.inv()
+            if (nextShift != mShift) {
+                mShift = nextShift
+                jsInterface.setShiftKeyPressed(mShift != 0)
+            }
+        }
         return false
     }
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent): Boolean {
         if (this.mInputConnection == null) return false
+        if (ev.action == MotionEvent.ACTION_UP) return false
         if (mHandlingState == SpecialHandlingState.STATE_FIRST_TAP && (
                     ev.eventTime > mFirstTapDeadline
                             || ev.action == MotionEvent.ACTION_DOWN)
         ) {
+            Log.d(TAG, "None due to down");
             setHandlingState(SpecialHandlingState.STATE_NONE, ev)
         }
 //        Log.d(TAG, "ev: " + mHandlingState + " ; " + ev.toString());
@@ -92,8 +112,9 @@ class BBKeyboardEventDispatcher : IGenericEventDispatcher {
                 }
             SpecialHandlingState.STATE_ENABLED ->
                 when (true) {
-                    ev.action == MotionEvent.ACTION_UP && ev.pointerCount == 1 ->
-                        setHandlingState(SpecialHandlingState.STATE_NONE, ev)
+//                    ev.action == MotionEvent.ACTION_UP && ev.pointerCount == 1 -> {
+//                        setHandlingState(SpecialHandlingState.STATE_NONE, ev)
+//                    }
                     ev.action == MotionEvent.ACTION_MOVE && ev.pointerCount > 1 && ev.historySize > 0 -> {
                         var dx = 0.0
                         var dy = 0.0
@@ -111,6 +132,7 @@ class BBKeyboardEventDispatcher : IGenericEventDispatcher {
                             mAccumulateX += dx * speedMultiplier
                             val nSteps = (mAccumulateX / KB_BTN_WIDTH).toInt()
                             if (nSteps != 0) {
+                                Log.d(TAG, "Move LeftRight " + nSteps)
                                 if (nSteps > 0) {
                                     for (i in 1..nSteps) sendDownUpKeyEvent(
                                         KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -136,6 +158,7 @@ class BBKeyboardEventDispatcher : IGenericEventDispatcher {
                             mAccumulateY += dy * speedMultiplier
                             val nSteps = (mAccumulateY / KB_BTN_HEIGHT).toInt()
                             if (nSteps != 0) {
+                                Log.d(TAG, "Move UpDown " + nSteps)
                                 if (nSteps > 0) {
                                     for (i in 1..nSteps) sendDownUpKeyEvent(
                                         KeyEvent.KEYCODE_DPAD_DOWN,
