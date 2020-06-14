@@ -10,14 +10,14 @@ do
     fi
 done
 
-if [ "$DPKG_UNPACK" = "1" ]; then
-    for p in "$@"; do
-        if [ -f "$p" ]; then
-            echo "> DPKG Process $p" >&2
-            sed -i'' -e 's#com.termux#vn.vhn.vsc#' $p
-        fi
-    done
-fi
+#if [ "$DPKG_UNPACK" = "1" ]; then
+#    for p in "$@"; do
+#        if [ -f "$p" ]; then
+#            echo "> DPKG Process $p" >&2
+#            sed -i'' -e 's#com.termux#vn.vhn.vsc#' $p
+#        fi
+#    done
+#fi
 
 if [ "$DPKG_UNPACK" = "1" ]; then
 	DPKG_INSTALL_ROOT=/data/data/vn.vhn.vsc/files/tmp/vh-dpkg.bin-install
@@ -25,7 +25,7 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	mkdir -p $DPKG_INSTALL_ROOT
 	dpkg.bin-orig --instdir=$DPKG_INSTALL_ROOT "$@" || exit $?
 	find $DPKG_INSTALL_ROOT/data/data/com.termux/files |  while read f; do
-		g=$(echo $f | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
+		g=$(echo $f | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#g')
 		BFN=$(basename "$f")
 		if [ ${#BFN} -gt 30 ]; then
 		    BFN=${BFN: -30}
@@ -33,7 +33,7 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 		echo -en "\033[2K\rInstall ${BFN}" >&2
 		if [ -L "$f" ]; then
 			target=$(readlink $f)
-			target_replaced=$(echo $target | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#')
+			target_replaced=$(echo $target | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#g')
 			rm -f $g
 			ln -s "$target_replaced" "$g"
 		elif [ -d "$f" ]; then
@@ -45,7 +45,7 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	done
 	rm -rf $DPKG_INSTALL_ROOT/data/data/com.termux
 	find $DPKG_INSTALL_ROOT |  while read f; do
-		g=$(echo $f | sed -e "s#$DPKG_INSTALL_ROOT/#/#")
+		g=$(echo $f | sed -e "s#$DPKG_INSTALL_ROOT/#/#g")
 		BFN=$(basename "$f")
 		if [ ${#BFN} -gt 30 ]; then
 		    BFN=${BFN: -30}
@@ -70,7 +70,7 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 		fi
 		echo -en "\033[2K\rUpdate dpkg ${BFN}" >&2
 	  if [ -f "$f" ]; then
-			sed -i'' -e 's#com.termux#vn.vhn.vsc#' $f
+			sed -i'' -e 's#com.termux#vn.vhn.vsc#g' $f
       fi
     done
 else
