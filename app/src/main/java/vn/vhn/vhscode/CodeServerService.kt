@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.os.UserManager
+import android.system.Os
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,13 +20,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.File
-import java.io.InputStream
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Files
 import java.util.zip.GZIPInputStream
-import java.io.ByteArrayInputStream
 
 class CodeServerService : Service() {
 
@@ -62,7 +63,33 @@ class CodeServerService : Service() {
             return isServerStarting
         }
 
+        // https://stackoverflow.com/questions/813710/java-1-6-determine-symbolic-links
+        private fun isSymlink(file: File): Boolean {
+            val canon: File
+            canon = if (file.parent == null) {
+                file
+            } else {
+                val canonDir = file.parentFile.canonicalFile
+                File(canonDir, file.name)
+            }
+            return canon.canonicalFile != canon.absoluteFile
+        }
+
+
         fun setupIfNeeded(context: Context, whenDone: () -> Unit) {
+            // region home symlink
+            HOME_PATH.apply {
+                val homeFile = File(this)
+                if (homeFile.exists() && !isSymlink(homeFile)) {
+                    homeFile.deleteRecursively()
+                }
+                if (!homeFile.exists()) {
+                    Os.symlink(homePath(context), homeFile.absolutePath)
+                }
+            }
+            // region
+
+            // region setup dpkg
             val dpkg_path = "$PREFIX_PATH/usr/bin/dpkg"
             val dpkg_mkwrapper_path = "$PREFIX_PATH/usr/bin/dpkg_mkwrapper"
             val dpkg_orig_path = "$dpkg_path.bin-orig"
@@ -76,9 +103,6 @@ class CodeServerService : Service() {
                 copyRawResource(context, R.raw.dpkg, this)
                 File(this).setExecutable(true)
             }
-            "$PREFIX_PATH/globalinject.js".apply {
-                copyRawResource(context, R.raw.globalinject, this)
-            }
             "$PREFIX_PATH/usr/bin/dpkg.wrapper".apply {
                 copyRawResource(context, R.raw.dpkg_wrapper, this)
                 File(this).setExecutable(true)
@@ -87,6 +111,13 @@ class CodeServerService : Service() {
                 copyRawResource(context, R.raw.dpkg_mkwrapper, this)
                 File(this).setExecutable(true)
             }
+            // endregion
+
+            // region global inject
+            "$PREFIX_PATH/globalinject.js".apply {
+                copyRawResource(context, R.raw.globalinject, this)
+            }
+            // endregion
             whenDone()
         }
 
@@ -438,6 +469,7 @@ class CodeServerService : Service() {
         addToEnvIfPresent(env, "ANDROID_TZDATA_ROOT")
         env.add("LANG=en_US.UTF-8")
         env.add("TMPDIR=${PREFIX_PATH}/tmp")
+        env.add("PREFIX=${PREFIX_PATH}")
         env.add("SHELL=${PREFIX_PATH}/usr/bin/bash")
 
         env.add("PORT=13337")
