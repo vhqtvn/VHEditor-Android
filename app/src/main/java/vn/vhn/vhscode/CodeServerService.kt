@@ -76,6 +76,9 @@ class CodeServerService : Service() {
                 copyRawResource(context, R.raw.dpkg, this)
                 File(this).setExecutable(true)
             }
+            "$PREFIX_PATH/globalinject.js".apply {
+                copyRawResource(context, R.raw.globalinject, this)
+            }
             "$PREFIX_PATH/usr/bin/dpkg.wrapper".apply {
                 copyRawResource(context, R.raw.dpkg_wrapper, this)
                 File(this).setExecutable(true)
@@ -127,7 +130,11 @@ class CodeServerService : Service() {
 
         fun copyRawResource(context: Context, resource_id: Int, output_path: String) {
             val inStream = context.resources.openRawResource(resource_id)
-            val outStream = FileOutputStream(File(output_path))
+            val targetFile = File(output_path)
+            if (targetFile.parentFile?.exists() == false) {
+                targetFile.parentFile?.mkdirs()
+            }
+            val outStream = FileOutputStream(targetFile)
 
             val bufSize = 4096
             val buffer = ByteArray(bufSize)
@@ -210,13 +217,31 @@ class CodeServerService : Service() {
                             click=true;click2=true;
                             setTimeout(()=>{click=false;},300)
                         };
+                        const dispatchMouseUp = function(e) {
+                            var ev = document.createEvent ('MouseEvents');
+                            ev.initEvent ('mouseup', true, true);
+                            e.dispatchEvent(ev);
+                            e.dispatchEvent(ev);
+                        };
                         document.body.addEventListener('click', ()=>{click2=false;});
                         document.body.addEventListener('touchstart', clickTimer);
                         document.body.addEventListener('touchmove', ()=>{click=false;});
                         document.body.addEventListener('touchend', (e) =>{
+                            var node = e.target;
+                            if(node) {
+                                if(node.classList.contains('monaco-list-row')) {
+                                    dispatchMouseUp(node);
+                                    return;
+                                } else if(node.parentNode && node.parentNode.classList.contains('monaco-list-row')) {
+                                    dispatchMouseUp(node.parentNode);
+                                    return;
+                                }
+                            }
                             if(click) {
                                 setTimeout(()=>{
-                                    if(click2 && ["A"].indexOf(e.target.tagName)==-1) e.target.click();
+                                    if(click2 && ["A"].indexOf(e.target.tagName)==-1) {
+                                        if(node) node.click();
+                                    }
                                 },100);
                             }
                         });
@@ -403,6 +428,7 @@ class CodeServerService : Service() {
             env.add("LD_PRELOAD=${envHome}/android_23.so")
         }
         env.add("PATH=${envHome}/usr/bin:${envHome}/usr/bin/applets")
+        env.add("NODE_OPTIONS=\"--require=${envHome}/globalinject.js\"")
 
         env.add("BOOTCLASSPATH=" + System.getenv("BOOTCLASSPATH"))
         env.add("ANDROID_ROOT=" + System.getenv("ANDROID_ROOT"))
@@ -412,6 +438,7 @@ class CodeServerService : Service() {
         addToEnvIfPresent(env, "ANDROID_TZDATA_ROOT")
         env.add("LANG=en_US.UTF-8")
         env.add("TMPDIR=${PREFIX_PATH}/tmp")
+        env.add("SHELL=${PREFIX_PATH}/usr/bin/bash")
 
         env.add("PORT=13337")
 
