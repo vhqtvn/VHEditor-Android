@@ -2,6 +2,8 @@ name: Build Android CI
 
 on: 
   push:
+    branches:
+      - master
     tags:
       - 'v[0-9]+.*'
     
