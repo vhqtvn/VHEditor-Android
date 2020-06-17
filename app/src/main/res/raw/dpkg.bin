@@ -1,0 +1,3 @@
+#!/data/data/vn.vhn.vsc/files/usr/bin/bash
+
+/data/data/vn.vhn.vsc/files/usr/bin/dpkg.wrapper $@; exit $?
