@@ -31,7 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: VHSCode-arm64.apk
           asset_path: ./app/build/outputs/apk/release/app-arm64-v8a-release.apk
           asset_content_type: application/vnd.android.package-archive
@@ -40,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: VHSCode-arm.apk
           asset_path: ./app/build/outputs/apk/release/app-armeabi-v7a-release.apk
           asset_content_type: application/vnd.android.package-archive
@@ -49,7 +49,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: VHSCode-x86_64.apk
           asset_path: ./app/build/outputs/apk/release/app-x86_64-release.apk
           asset_content_type: application/vnd.android.package-archive
@@ -58,7 +58,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: VHSCode-x86.apk
           asset_path: ./app/build/outputs/apk/release/app-x86-release.apk
           asset_content_type: application/vnd.android.package-archive
