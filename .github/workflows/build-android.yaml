@@ -1,7 +1,9 @@
 name: Build Android CI
 
 on: 
-  push
+  push:
+    tags:
+      - 'v[0-9]+.*'
     
 jobs:
   build-android:
@@ -13,11 +15,50 @@ jobs:
           java-version: '12.x'
       - name: "Build"
         run: |
-          ./gradlew assembleDebug
-      # - name: "Runner environment"
-      #   run: |
-      #     export GITHUB_REF_SLUG=$(if [ -z $GITHUB_HEAD_REF]; then echo ${GITHUB_REF##*/}; else echo $GITHUB_HEAD_REF; fi)
-      #     export GITHUB_SHA_SHORT=${GITHUB_SHA:0:7}
-      #     export BUILD_VERSION=$(git rev-list HEAD --first-parent --count)
-      #     echo $GITHUB_REF_SLUG $BUILD_VERSION $GITHUB_SHA_SHORT
-      #     export
+          ./gradlew assembleRelease
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload arm64 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-arm64.apk
+          asset_path: ./app/build/outputs/apk/release/app-arm64-v8a-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload arm release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-arm.apk
+          asset_path: ./app/build/outputs/apk/release/app-armeabi-v7a-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload x86_64 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-x86_64.apk
+          asset_path: ./app/build/outputs/apk/release/app-x86_64-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload x86 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-x86.apk
+          asset_path: ./app/build/outputs/apk/release/app-x86-release.apk
+          asset_content_type: application/vnd.android.package-archive
