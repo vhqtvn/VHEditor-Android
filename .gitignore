@@ -7,4 +7,6 @@
 /captures
 .externalNativeBuild
 .cxx
+*.aab
+*.apk
 .history

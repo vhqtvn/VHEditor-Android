@@ -7,10 +7,28 @@
     <string name="update_server">Update server</string>
     <string name="reinstall_server">Reinstall server</string>
     <string name="start_code">Start Editor</string>
+    <string name="stop_code">Stop Server</string>
     <string name="dont_show_this_again">Don\'t show this again</string>
     <string name="credit"><a href="https://github.com/cdr/code-server">code-server</a> by <a href="https://coder.com/">coder</a>\n<a href="https://github.com/vhqtvn/VHSCode-Android">UI &amp; Android version</a> by <a href="www.linkedin.com/in/vhnvn">vhnvn</a></string>
     <string name="extracting">Extracting...</string>
     <string name="stop_server">Stop</string>
     <string name="starting_server">Starting server...</string>
     <string name="please_wait_starting_server">Please wait... VSCode server is starting...</string>
+    <string name="use_hard_keyboard">Use hard keyboard mode</string>
+    <string name="error_title">Error</string>
+    <string name="error_not_primary_user_message">Base data can only be installed on the primary user account</string>
+    <string name="failed_to_run_server">Failed to run server, got exception %s</string>
+    <string name="bootstrap_installer_body">Installing…</string>
+    <string name="bootstrap_error_title">Unable to install</string>
+    <string name="bootstrap_error_body">Termux was unable to install the bootstrap packages.</string>
+    <string name="bootstrap_error_abort">Abort</string>
+    <string name="bootstrap_error_try_again">Try again</string>
+    <string name="bootstrap_error_not_primary_user_message">Termux can only be installed on the primary user account.</string>
+    <string name="start_remote">Start remote</string>
+    <string name="keep_screen_alive">Keep screen alive</string>
+    <string name="settings">Settings</string>
+    <string name="reset_root_fs">Reset rootfs</string>
+    <string name="close">Close</string>
+    <string name="deleting">Deleting...</string>
+    <string name="reset_root_fs_finished">Reset rootfs finished</string>
 </resources>

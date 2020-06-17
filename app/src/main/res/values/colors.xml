@@ -8,4 +8,5 @@
     <color name="credit">#CCCCCC</color>
     <color name="button">#EEEEEE</color>
     <color name="buttonBackground">#30FFFFFF</color>
+    <color name="log">#AAAAAA</color>
 </resources>
