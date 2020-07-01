@@ -12,7 +12,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 10
-        versionName "1.1.07"
+        versionName "1.1.08"
 
         externalNativeBuild {
             ndkBuild {
