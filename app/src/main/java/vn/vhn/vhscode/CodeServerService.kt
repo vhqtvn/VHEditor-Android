@@ -4,15 +4,18 @@ import android.app.*
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.Intent.makeRestartActivityTask
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.os.UserManager
 import android.system.Os
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,20 +23,18 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.nio.file.Files
+import java.io.*
+import java.nio.charset.Charset
 import java.util.zip.GZIPInputStream
+
 
 class CodeServerService : Service() {
 
     companion object {
         val TAG = "CodeServerService"
-        val ROOT_PATH = "/data/data/vn.vhn.vsc/files"
-        val HOME_PATH = ROOT_PATH + "/home"
+        val BASE_PATH = "/data/data/vn.vhn.vsc"
+        val ROOT_PATH = "${BASE_PATH}/files"
+        val HOME_PATH = "${ROOT_PATH}/home"
         val PREFIX_PATH = ROOT_PATH
         val BOOTJS = ".vsboot.js"
         val ASSET_PREFIX = "/vscode_local_asset/"
@@ -43,8 +44,9 @@ class CodeServerService : Service() {
         val channelId = "VSCodeServer"
         val channelName = "VSCodeServer"
         var instance: CodeServerService? = null
-        val liveServerStarted: MutableLiveData<Int> by lazy { MutableLiveData<Int>() }
-        val liveServerLog: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+        val liveServerStarted: MutableLiveData<Int> = MutableLiveData<Int>().apply { postValue(0) }
+        val liveServerLog: MutableLiveData<String> =
+            MutableLiveData<String>().apply { postValue("") }
         private var isServerStarting = false
 
         fun startService(context: Context) {
@@ -73,6 +75,29 @@ class CodeServerService : Service() {
                 File(canonDir, file.name)
             }
             return canon.canonicalFile != canon.absoluteFile
+        }
+
+        fun clearCacheFolder(dir: File?): Int {
+            var deletedFiles = 0
+            if (dir != null && dir.isDirectory) {
+                try {
+                    for (child in dir.listFiles()) {
+                        if (child.isDirectory) {
+                            deletedFiles += clearCacheFolder(child)
+                        }
+
+                        if (child.delete()) {
+                            deletedFiles++
+                        }
+                    }
+                } catch (e: java.lang.Exception) {
+                    Log.e(
+                        TAG,
+                        String.format("Failed to clean the cache, error %s", e.message)
+                    )
+                }
+            }
+            return deletedFiles
         }
 
 
@@ -112,6 +137,26 @@ class CodeServerService : Service() {
                 File(this).setExecutable(true)
             }
             // endregion
+
+            "$ROOT_PATH/code-server/release-static/dist/serviceWorker.js".apply {
+                val cs = Charset.forName("utf-8")
+                val content = File(this).readText(cs)
+                val new_content = content.replace("navigator.onLine", "(true)")
+                if (content != new_content) {
+                    File(this).writeText(new_content, cs)
+                    Log.d(TAG, "Clear cache ${context.cacheDir}")
+                    clearCacheFolder(context.cacheDir)
+                    File("${BASE_PATH}/cache").apply {
+                        if (exists()) clearCacheFolder(this)
+                    }
+                    File("${BASE_PATH}/app_webview").apply {
+                        if (exists()) clearCacheFolder(this)
+                    }
+                    context.externalCacheDir?.apply {
+                        if (exists()) clearCacheFolder(this)
+                    }
+                }
+            }
 
             // region global inject
             "$PREFIX_PATH/globalinject.js".apply {
@@ -315,6 +360,7 @@ class CodeServerService : Service() {
                                 setTimeout(local_apply, 100);
                                 return;
                             }
+                            Object.defineProperty(window.navigator,'onLine',{value:true, writable: false});
                             $windowScript
                         };
                         local_apply();
@@ -480,7 +526,7 @@ class CodeServerService : Service() {
     }
 
     fun runServer(ctx: Context) {
-        if (isServerStarting || (liveServerStarted.value == 1)) return
+        if (isServerStarting || (liveServerStarted.value != 0)) return
         isServerStarting = true
         liveServerStarted.postValue(-1)
         val nodeBinary = applicationContext.getFileStreamPath("node")
@@ -553,17 +599,16 @@ class CodeServerService : Service() {
                 } catch (e: Exception) {
                 }
             }
-            liveServerStarted.postValue(0)
         } catch (e: Exception) {
             error = e.toString()
             logData += "\nException: ${error}"
             liveServerLog.postValue(logData)
-            liveServerStarted.postValue(0)
         } finally {
             isServerStarting = false
             updateNotification()
             logData += "Finished.\n"
             liveServerLog.postValue(logData)
+            liveServerStarted.postValue(0)
             try {
                 stderrThread?.interrupt()
             } catch (e: Exception) {
