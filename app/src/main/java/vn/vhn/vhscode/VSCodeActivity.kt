@@ -73,9 +73,9 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.allowFileAccess = true
         webView.settings.allowFileAccessFromFileURLs = true
         webView.settings.allowUniversalAccessFromFileURLs = true
-        webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
         webView.settings.setAppCacheEnabled(true)
+        webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
         webView.settings.fixedFontFamily = "vscode-monospace"
@@ -90,6 +90,9 @@ class VSCodeActivity : AppCompatActivity() {
             kConfigUrl,
             "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
         )!!
+        if(url.startsWith("http://127.0.0.1:13337")) {
+            webView.clearCache(true)
+        }
         webView.webViewClient = VSCodeWebClient(url)
         webView.addJavascriptInterface(jsInterface, "_vn_vhn_vscjs_")
         webView.loadUrl(url)
@@ -142,7 +145,7 @@ class VSCodeActivity : AppCompatActivity() {
         if (webView.canGoBack()) {
             webView.goBack()
         } else {
-            super.onBackPressed()
+            finish()
         }
     }
 }

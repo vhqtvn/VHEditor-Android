@@ -70,35 +70,46 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    fun cleanupStartServerObserver() {
+        if (startServerObserver != null) {
+            CodeServerService.liveServerStarted.removeObserver(
+                startServerObserver!!
+            )
+            startServerObserver = null
+        }
+    }
+
     @Suppress("DEPRECATION")
     suspend fun startServerService() {
         File(CodeServerService.HOME_PATH).mkdirs()
         if (CodeServerService.liveServerStarted.value != 1) {
-            val progressDialog = ProgressDialog(this)
-            progressDialog.setTitle(R.string.starting_server)
-            progressDialog.setMessage(getString(R.string.please_wait_starting_server))
-            progressDialog.setCancelable(false)
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-            progressDialog.show()
             if (startServerObserver == null) {
+                val progressDialog = ProgressDialog(this)
+                progressDialog.setTitle(R.string.starting_server)
+                progressDialog.setMessage(getString(R.string.please_wait_starting_server))
+                progressDialog.setCancelable(false)
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                progressDialog.show()
+                var skipOnce = false
                 startServerObserver = Observer<Int> { value ->
                     if (value == 1) {
                         progressDialog.dismiss()
-                        if (startServerObserver != null) {
-                            CodeServerService.liveServerStarted.removeObserver(
-                                startServerObserver!!
-                            )
-                        }
+                        cleanupStartServerObserver()
                         startEditor()
                     } else {
+                        if (value == 0 && !skipOnce) {
+                            skipOnce = true
+                            return@Observer
+                        }
                         if (!CodeServerService.isServerStarting()) {
                             progressDialog.dismiss()
+                            cleanupStartServerObserver()
                         }
                     }
                 }
                 CodeServerService.liveServerStarted.observeForever(startServerObserver!!)
+                CodeServerService.startService(this)
             }
-            CodeServerService.startService(this)
         } else {
             startEditor()
         }
@@ -110,10 +121,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun startEditor(url: String = "http://127.0.0.1:13337") {
+    fun startEditor(url: String? = null) {
         val intent = Intent(this, VSCodeActivity::class.java)
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
-        intent.putExtra(VSCodeActivity.kConfigUrl, url)
+        if (url != null) intent.putExtra(VSCodeActivity.kConfigUrl, url)
         intent.putExtra(VSCodeActivity.kConfigScreenAlive, chkKeepScreenAlive.isChecked)
         startActivity(intent)
     }
