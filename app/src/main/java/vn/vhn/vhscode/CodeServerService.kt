@@ -297,18 +297,24 @@ class CodeServerService : Service() {
                             var ev = document.createEvent ('MouseEvents');
                             ev.initEvent ('mouseup', true, true);
                             e.dispatchEvent(ev);
+                            ev = document.createEvent ('MouseEvents');
+                            ev.initEvent ('click', true, true);
                             e.dispatchEvent(ev);
                         };
                         document.body.addEventListener('click', ()=>{click2=false;});
                         document.body.addEventListener('touchstart', clickTimer);
                         document.body.addEventListener('touchmove', ()=>{click=false;});
+                        const classLists = [
+                            'monaco-list-row',
+                            'monaco-select-box'
+                        ];
                         document.body.addEventListener('touchend', (e) =>{
                             var node = e.target;
                             if(node) {
-                                if(node.classList.contains('monaco-list-row')) {
+                                if(classLists.some(x=>node.classList.contains(x))) {
                                     dispatchMouseUp(node);
                                     return;
-                                } else if(node.parentNode && node.parentNode.classList.contains('monaco-list-row')) {
+                                } else if(node.parentNode && classLists.every(x=>node.parentNode.classList.contains(x))) {
                                     dispatchMouseUp(node.parentNode);
                                     return;
                                 }
