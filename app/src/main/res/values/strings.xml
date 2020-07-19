@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VHSCode</string>
+    <string name="app_name">VHEditor</string>
     <string name="loading">Loading...</string>
     <string name="server_version">Server version: %s</string>
     <string name="not_installed">Not installed</string>
@@ -31,4 +31,5 @@
     <string name="close">Close</string>
     <string name="deleting">Deleting...</string>
     <string name="reset_root_fs_finished">Reset rootfs finished</string>
+    <string name="server_listen_on_all_interfaces">Server listen on all interfaces</string>
 </resources>

@@ -15,6 +15,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import android.widget.CheckBox
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
+        val kPrefListenOnAllInterfaces = "listenstar"
         val kPrefRequestedPermission = "requestedpermission"
     }
 
@@ -108,7 +110,10 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 CodeServerService.liveServerStarted.observeForever(startServerObserver!!)
-                CodeServerService.startService(this)
+                CodeServerService.startService(
+                    this,
+                    sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
+                )
             }
         } else {
             startEditor()
@@ -310,7 +315,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onSettingsClick(view: View) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.settings)
             .setView(R.layout.dialog_settings)
             .setNegativeButton(
@@ -322,6 +327,8 @@ class MainActivity : AppCompatActivity() {
                 updateUI()
             }
             .show()
+        dialog.findViewById<CheckBox>(R.id.chkListenOnAllInterfaces).isChecked =
+            sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
     }
 
     fun onStartRemote(view: View) {
@@ -372,5 +379,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+
+    fun onChkListenOnAllInterfacesClick(view: View) {
+        sharedPreferences().edit()
+            .putBoolean(kPrefListenOnAllInterfaces, (view as CheckBox).isChecked).apply()
     }
 }
