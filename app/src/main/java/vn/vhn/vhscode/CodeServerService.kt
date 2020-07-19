@@ -29,7 +29,6 @@ import java.util.zip.GZIPInputStream
 
 
 class CodeServerService : Service() {
-
     companion object {
         val TAG = "CodeServerService"
         val BASE_PATH = "/data/data/vn.vhn.vsc"
@@ -48,10 +47,12 @@ class CodeServerService : Service() {
         val liveServerLog: MutableLiveData<String> =
             MutableLiveData<String>().apply { postValue("") }
         private var isServerStarting = false
+        private val kPrefListenOnAllInterfaces = "listenstar"
 
-        fun startService(context: Context) {
+        fun startService(context: Context, listenOnAllInterface: Boolean = false) {
             val intent = Intent(context, CodeServerService::class.java)
             intent.action = kActionStartService
+            intent.putExtra(kPrefListenOnAllInterfaces, listenOnAllInterface)
             context.startService(intent)
         }
 
@@ -410,20 +411,25 @@ class CodeServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             when (intent.action) {
-                kActionStartService -> startForegroundService()
+                kActionStartService -> {
+                    started = true
+                    Thread {
+                        runServer(
+                            applicationContext,
+                            intent.getBooleanExtra(kPrefListenOnAllInterfaces, false)
+                        )
+                        started = false
+                    }.start()
+                    startForegroundService()
+                }
                 kActionStopService -> stopForegroundService()
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun startForegroundService() {
+    fun startForegroundService() {
         if (started) return
-        started = true
-        Thread {
-            runServer(applicationContext)
-            started = false
-        }.start()
         updateNotification()
     }
 
@@ -500,7 +506,7 @@ class CodeServerService : Service() {
         }
     }
 
-    fun buildEnv(ctx: Context): Array<String> {
+    fun buildEnv(ctx: Context, listenOnAllInterface: Boolean): Array<String> {
         val envHome = ROOT_PATH
 
         val env = mutableListOf<String>()
@@ -524,20 +530,18 @@ class CodeServerService : Service() {
         env.add("PREFIX=${PREFIX_PATH}")
         env.add("SHELL=${PREFIX_PATH}/usr/bin/bash")
 
-        env.add("PORT=13337")
-
         Log.d(TAG, "env = " + env.toString())
 
         return env.toTypedArray()
     }
 
-    fun runServer(ctx: Context) {
+    fun runServer(ctx: Context, listenOnAllInterface: Boolean) {
         if (isServerStarting || (liveServerStarted.value != 0)) return
         isServerStarting = true
         liveServerStarted.postValue(-1)
         val nodeBinary = applicationContext.getFileStreamPath("node")
         val envHome = nodeBinary?.parentFile?.absolutePath
-        var logData = "Starting...\n"
+        var logData = "Starting... listenOnAllInterface=${listenOnAllInterface}\n"
         try {
             error = null;
             liveServerStarted.postValue(0)
@@ -546,9 +550,13 @@ class CodeServerService : Service() {
                     applicationContext.getFileStreamPath("node").absolutePath,
                     "${envHome}/code-server/release-static",
                     "--auth",
-                    "none"
+                    "none",
+                    "--host",
+                    if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1",
+                    "--port",
+                    "13337"
                 ),
-                buildEnv(ctx)
+                buildEnv(ctx, listenOnAllInterface)
             )
             val stream = DataInputStream(process!!.inputStream);
             val errStream = DataInputStream(process!!.errorStream);
