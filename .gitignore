@@ -10,3 +10,4 @@
 *.aab
 *.apk
 .history
+**/root_ca.key

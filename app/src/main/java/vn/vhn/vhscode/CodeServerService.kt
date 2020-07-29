@@ -4,18 +4,15 @@ import android.app.*
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.Intent.makeRestartActivityTask
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.os.UserManager
 import android.system.Os
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,11 +45,17 @@ class CodeServerService : Service() {
             MutableLiveData<String>().apply { postValue("") }
         private var isServerStarting = false
         private val kPrefListenOnAllInterfaces = "listenstar"
+        private val kPreUseSSL = "ssl"
 
-        fun startService(context: Context, listenOnAllInterface: Boolean = false) {
+        fun startService(
+            context: Context,
+            listenOnAllInterface: Boolean = false,
+            useSSL: Boolean = true
+        ) {
             val intent = Intent(context, CodeServerService::class.java)
             intent.action = kActionStartService
             intent.putExtra(kPrefListenOnAllInterfaces, listenOnAllInterface)
+            intent.putExtra(kPreUseSSL, useSSL)
             context.startService(intent)
         }
 
@@ -106,19 +109,28 @@ class CodeServerService : Service() {
             // region home symlink
             HOME_PATH.apply {
                 val homeFile = File(this)
-                if(homeFile.canonicalFile.equals(homeFile.canonicalFile)) {
+                if (homeFile.canonicalFile.equals(homeFile.canonicalFile)) {
                     homeFile.delete()
                     homeFile.mkdir()
                 }
-                File(this + "/storage").apply {
-                    if(!exists()) {
+                File("$this/storage").apply {
+                    if (!exists()) {
                         val oldHome = homePath(context)
-                        if(File(oldHome).exists()) {
-                            Runtime.getRuntime().exec("mv ${oldHome}/* ${oldHome}/.[!.]* ${oldHome}/..?* ${HOME_PATH}/").waitFor()
+                        if (File(oldHome).exists()) {
+                            Runtime.getRuntime()
+                                .exec("mv $oldHome/* $oldHome/.[!.]* $oldHome/..?* $HOME_PATH/")
+                                .waitFor()
                         }
                         Os.symlink(oldHome, absolutePath)
                     }
                 }
+            }
+            // region
+
+            // region setup certs
+            if (true || !File("$HOME_PATH/cert.cert").exists()) {
+                copyRawResource(context, R.raw.cert_crt, "$HOME_PATH/cert.cert")
+                copyRawResource(context, R.raw.cert_key, "$HOME_PATH/cert.key")
             }
             // region
 
@@ -423,7 +435,8 @@ class CodeServerService : Service() {
                     Thread {
                         runServer(
                             applicationContext,
-                            intent.getBooleanExtra(kPrefListenOnAllInterfaces, false)
+                            intent.getBooleanExtra(kPrefListenOnAllInterfaces, false),
+                            intent.getBooleanExtra(kPreUseSSL, true)
                         )
                         started = false
                     }.start()
@@ -542,7 +555,7 @@ class CodeServerService : Service() {
         return env.toTypedArray()
     }
 
-    fun runServer(ctx: Context, listenOnAllInterface: Boolean) {
+    fun runServer(ctx: Context, listenOnAllInterface: Boolean, useSSL: Boolean) {
         if (isServerStarting || (liveServerStarted.value != 0)) return
         isServerStarting = true
         liveServerStarted.postValue(-1)
@@ -556,13 +569,19 @@ class CodeServerService : Service() {
                 arrayOf(
                     applicationContext.getFileStreamPath("node").absolutePath,
                     "${envHome}/code-server/release-static",
-                    "--auth",
-                    "none",
-                    "--host",
-                    if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1",
-                    "--port",
-                    "13337"
-                ),
+                    "--disable-telemetry"
+                ) + (if (useSSL) arrayOf(
+                    "--cert", "$HOME_PATH/cert.cert",
+                    "--cert-key", "$HOME_PATH/cert.key"
+                ) else arrayOf()) +
+                        arrayOf(
+                            "--auth",
+                            "none",
+                            "--host",
+                            if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1",
+                            "--port",
+                            "13337"
+                        ),
                 buildEnv(ctx, listenOnAllInterface)
             )
             val stream = DataInputStream(process!!.inputStream);

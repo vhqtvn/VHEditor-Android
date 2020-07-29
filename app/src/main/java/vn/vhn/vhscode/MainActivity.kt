@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
         val kPrefListenOnAllInterfaces = "listenstar"
+        val kPrefUseSSL = "ssl"
         val kPrefRequestedPermission = "requestedpermission"
     }
 
@@ -112,7 +113,8 @@ class MainActivity : AppCompatActivity() {
                 CodeServerService.liveServerStarted.observeForever(startServerObserver!!)
                 CodeServerService.startService(
                     this,
-                    sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
+                    sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false),
+                    sharedPreferences().getBoolean(kPrefUseSSL, true)
                 )
             }
         } else {
@@ -163,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         editTxtRemoteServer.setText(
             sharedPreferences().getString(
                 kPrefRemoteServer,
-                "http://127.0.0.1:13337"
+                "https://127.0.0.1:13337"
             )
         )
         editTxtRemoteServer.addTextChangedListener(object : TextWatcher {
@@ -329,6 +331,8 @@ class MainActivity : AppCompatActivity() {
             .show()
         dialog.findViewById<CheckBox>(R.id.chkListenOnAllInterfaces).isChecked =
             sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
+        dialog.findViewById<CheckBox>(R.id.chkUseSSL).isChecked =
+            sharedPreferences().getBoolean(kPrefUseSSL, true)
     }
 
     fun onStartRemote(view: View) {
@@ -385,5 +389,11 @@ class MainActivity : AppCompatActivity() {
     fun onChkListenOnAllInterfacesClick(view: View) {
         sharedPreferences().edit()
             .putBoolean(kPrefListenOnAllInterfaces, (view as CheckBox).isChecked).apply()
+    }
+
+    fun onChkUseSSLClick(view: View) {
+        sharedPreferences().edit()
+            .putBoolean(kPrefUseSSL, (view as CheckBox).isChecked).apply()
+
     }
 }
