@@ -88,10 +88,11 @@ class VSCodeActivity : AppCompatActivity() {
         }
         val url: String = getStringParameter(
             kConfigUrl,
-            "http://127.0.0.1:13337/?_=" + System.currentTimeMillis()
+            "https://127.0.0.1:13337/?_=" + System.currentTimeMillis()
         )!!
-        if(url.startsWith("http://127.0.0.1:13337")) {
+        if (url.startsWith("https://127.0.0.1:13337")) {
             webView.clearCache(true)
+            webView.clearSslPreferences()
         }
         webView.webViewClient = VSCodeWebClient(url)
         webView.addJavascriptInterface(jsInterface, "_vn_vhn_vscjs_")

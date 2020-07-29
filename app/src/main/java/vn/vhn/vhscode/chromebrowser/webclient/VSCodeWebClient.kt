@@ -3,13 +3,12 @@ package vn.vhn.vhscode.chromebrowser.webclient
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.net.http.SslError
 import android.util.Log
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.core.content.ContextCompat.startActivity
 import vn.vhn.vhscode.CodeServerService
+import java.net.URI
 
 
 class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
@@ -38,6 +37,16 @@ class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
             Log.d(TAG, "Loading url $url")
             view!!.evaluateJavascript("setTimeout(window.vscode_boot_frames,500)", null)
         }
+    }
+
+    override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+        Log.d(TAG, "SSL error ${URI.create(error?.url)?.host} vs ${rootUri.host}: $error")
+        if (error != null && URI.create(error.url)?.host != rootUri.host) {
+            Log.d(TAG, "SSL -> cancel")
+            handler?.cancel()
+            return
+        }
+        handler?.proceed()
     }
 
     override fun shouldInterceptRequest(

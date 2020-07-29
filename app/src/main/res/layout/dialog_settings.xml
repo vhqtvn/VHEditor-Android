@@ -52,7 +52,20 @@
             android:onClick="onChkListenOnAllInterfacesClick"
             android:text="@string/server_listen_on_all_interfaces"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/chkUseSSL"
+            />
+
+        <CheckBox
+            android:id="@+id/chkUseSSL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:onClick="onChkUseSSLClick"
+            android:text="@string/use_https"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chkListenOnAllInterfaces" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

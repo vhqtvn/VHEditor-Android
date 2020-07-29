@@ -32,4 +32,5 @@
     <string name="deleting">Deleting...</string>
     <string name="reset_root_fs_finished">Reset rootfs finished</string>
     <string name="server_listen_on_all_interfaces">Server listen on all interfaces</string>
+    <string name="use_https">Use https</string>
 </resources>
