@@ -106,11 +106,18 @@ class CodeServerService : Service() {
             // region home symlink
             HOME_PATH.apply {
                 val homeFile = File(this)
-                if (homeFile.exists() && !isSymlink(homeFile)) {
-                    homeFile.deleteRecursively()
+                if(homeFile.canonicalFile.equals(homeFile.canonicalFile)) {
+                    homeFile.delete()
+                    homeFile.mkdir()
                 }
-                if (!homeFile.exists()) {
-                    Os.symlink(homePath(context), homeFile.absolutePath)
+                File(this + "/storage").apply {
+                    if(!exists()) {
+                        val oldHome = homePath(context)
+                        if(File(oldHome).exists()) {
+                            Runtime.getRuntime().exec("mv ${oldHome}/* ${oldHome}/.[!.]* ${oldHome}/..?* ${HOME_PATH}/").waitFor()
+                        }
+                        Os.symlink(oldHome, absolutePath)
+                    }
                 }
             }
             // region
@@ -278,7 +285,7 @@ class CodeServerService : Service() {
 
         fun getBootjs(ctx: Context): String? {
             val fontname = "firacode" //TODO: add more fonts and let user configure
-            val HOME = homePath(ctx)
+            val HOME = HOME_PATH
             val configFile = File("$HOME/$BOOTJS")
             if (!configFile.exists()) {
                 copyRawResource(ctx, R.raw.vsboot, configFile.absolutePath)
@@ -511,7 +518,7 @@ class CodeServerService : Service() {
 
         val env = mutableListOf<String>()
         env.add("TERM=xterm-256color")
-        env.add("HOME=${homePath(ctx)}")
+        env.add("HOME=${HOME_PATH}")
         env.add("LD_LIBRARY_PATH=${envHome}:${envHome}/usr/lib")
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             env.add("LD_PRELOAD=${envHome}/android_23.so")
