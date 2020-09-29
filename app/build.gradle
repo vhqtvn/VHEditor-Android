@@ -11,8 +11,8 @@ android {
         applicationId "vn.vhn.vsc"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 15
-        versionName "1.1.12"
+        versionCode 16
+        versionName "1.1.13"
 
         externalNativeBuild {
             ndkBuild {
@@ -143,13 +143,13 @@ clean {
     }
 }
 
-task downloadBootstraps() {
+task downloadBootstraps(){
     doLast {
-        def version = 25
-        downloadBootstrap("aarch64", "633baa1f7edfd81f6064338a68d1149aa203d4b24cbc4f7c64283aaca109609e", version)
-        downloadBootstrap("arm", "a581a22e0d79a0e8cef9395b1bd951ba066ac2d688522e17cca0b3e1c0649daa", version)
-        downloadBootstrap("i686", "8288e13f0a6ddeb2ff9406d8f968a8930a58e9318d09fadb2b7c8970a034cfdc", version)
-        downloadBootstrap("x86_64", "c99b80a18d6bbb64c24c5a64d6ee6b8d4306729ebd172662b807bcb4a46dd39a", version)
+        def version = 30
+        downloadBootstrap("aarch64", "7a90034285c614d23fa450547a5e2aec77d4242c9891ad662bf0c6fd3bd7ef4e", version)
+        downloadBootstrap("arm",     "f030869ce9a43f84d88560d7ac5153ee4f7e517bca0b37ab01df3e1acba0fe37", version)
+        downloadBootstrap("i686",    "1ea9b63f21602231140d58a5545cfbc6bc2ded56ef2b3c31cba2759d913eef00", version)
+        downloadBootstrap("x86_64",  "a50eb8a4dd02b7898bbd4a9653a25c14b56c1737409ce7f64110fd33c2c69382", version)
     }
 }
 

@@ -500,7 +500,7 @@ class CodeServerService : Service() {
         val notificationBuilder =
             NotificationCompat.Builder(this, channelId)
         val notification = notificationBuilder.setOngoing(true)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.logo_b)
             .setContentTitle("VSCode Server is ${status}.")
             .setPriority(NotificationManager.IMPORTANCE_MAX)
             .setCategory(Notification.CATEGORY_SERVICE)
@@ -536,7 +536,7 @@ class CodeServerService : Service() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             env.add("LD_PRELOAD=${envHome}/android_23.so")
         }
-        env.add("PATH=${envHome}/usr/bin:${envHome}/usr/bin/applets")
+        env.add("PATH=${envHome}/bin:${envHome}/usr/bin:${envHome}/usr/bin/applets")
         env.add("NODE_OPTIONS=\"--require=${envHome}/globalinject.js\"")
 
         env.add("BOOTCLASSPATH=" + System.getenv("BOOTCLASSPATH"))
