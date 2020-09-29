@@ -1,5 +1,45 @@
 #!/data/data/vn.vhn.vsc/files/usr/bin/bash
 
+if command -v mkdir; then
+    xmkdir() {
+        mkdir -p "$@"
+    }
+else
+    xmkdir() {
+        coreutils --coreutils-prog=mkdir -p $@
+    }
+fi
+
+if command -v ln; then
+    xln() {
+        ln -s "$@"
+    }
+else
+    xln() {
+        coreutils --coreutils-prog=ln -s $@
+    }
+fi
+
+if command -v readlink; then
+    xreadlink() {
+        readlink "$@"
+    }
+else
+    xreadlink() {
+        coreutils --coreutils-prog=readlink $@
+    }
+fi
+
+if command -v basename; then
+    xbasename() {
+        basename "$@"
+    }
+else
+    xbasename() {
+        coreutils --coreutils-prog=basename $@
+    }
+fi
+
 echo '$ dpkg.bin ' $@ >&2
 
 DPKG_UNPACK=0
@@ -22,22 +62,22 @@ done
 if [ "$DPKG_UNPACK" = "1" ]; then
 	DPKG_INSTALL_ROOT=/data/data/vn.vhn.vsc/files/tmp/vh-dpkg.bin-install
 	rm -rf $DPKG_INSTALL_ROOT || true
-	mkdir -p $DPKG_INSTALL_ROOT
+	xmkdir "$DPKG_INSTALL_ROOT"
 	dpkg.bin-orig --instdir=$DPKG_INSTALL_ROOT "$@" || exit $?
 	find $DPKG_INSTALL_ROOT/data/data/com.termux/files |  while read f; do
-		g=$(echo $f | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#g')
-		BFN=$(basename "$f")
+		g=$(echo $f | sed -e 's#/data/data/com[.]termux#/data/data/vn.vhn.vsc#g')
+		BFN=$(xbasename "$f")
 		if [ ${#BFN} -gt 30 ]; then
 		    BFN=${BFN: -30}
 		fi
 		echo -en "\033[2K\rInstall ${BFN}" >&2
 		if [ -L "$f" ]; then
-			target=$(readlink $f)
-			target_replaced=$(echo $target | sed -e 's#/data/data/com.termux#/data/data/vn.vhn.vsc#g')
+			target=$(xreadlink $f)
+			target_replaced=$(echo $target | sed -e 's#/data/data/com[.]termux#/data/data/vn.vhn.vsc#g')
 			rm -f $g
-			ln -s "$target_replaced" "$g"
+			xln "$target_replaced" "$g"
 		elif [ -d "$f" ]; then
-			mkdir -p "$g"
+			xmkdir "$g"
 			chmod "--reference=$g" "$f"
 		else
 			cp -p $f $g
@@ -46,31 +86,31 @@ if [ "$DPKG_UNPACK" = "1" ]; then
 	rm -rf $DPKG_INSTALL_ROOT/data/data/com.termux
 	find $DPKG_INSTALL_ROOT |  while read f; do
 		g=$(echo $f | sed -e "s#$DPKG_INSTALL_ROOT/#/#g")
-		BFN=$(basename "$f")
+		BFN=$(xbasename "$f")
 		if [ ${#BFN} -gt 30 ]; then
 		    BFN=${BFN: -30}
 		fi
 		echo -en "\033[2K\rUpdate ${BFN}" >&2
 		if [ -L "$f" ]; then
-			target=$(readlink $f)
+			target=$(xreadlink $f)
 			rm -f $g
-			ln -s "$target" "$g"
+			xln "$target" "$g"
 		elif [ -d "$f" ]; then
-			mkdir -p "$g"
+			xmkdir "$g"
 			chmod "--reference=$g" "$f"
 		else
 			cp -p $f $g
-			sed -i'' -e 's#com.termux#vn.vhn.vsc#g' $g
+			sed -i'' -e 's#com[.]termux#vn.vhn.vsc#g' $g
 		fi
 	done
 	find /data/data/vn.vhn.vsc/files/usr/var/lib/dpkg |  while read f; do
-		BFN=$(basename "$f")
+		BFN=$(xbasename "$f")
 		if [ ${#BFN} -gt 30 ]; then
 		    BFN=${BFN: -30}
 		fi
 		echo -en "\033[2K\rUpdate dpkg ${BFN}" >&2
 	  if [ -f "$f" ]; then
-			sed -i'' -e 's#com.termux#vn.vhn.vsc#g' $f
+			sed -i'' -e 's#com[.]termux#vn.vhn.vsc#g' $f
       fi
     done
 else
