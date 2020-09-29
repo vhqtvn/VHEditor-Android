@@ -11,8 +11,8 @@ android {
         applicationId "vn.vhn.vsc"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 16
-        versionName "1.1.13"
+        versionCode 17
+        versionName "1.1.14"
 
         externalNativeBuild {
             ndkBuild {

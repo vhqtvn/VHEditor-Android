@@ -152,6 +152,10 @@ class CodeServerService : Service() {
                 copyRawResource(context, R.raw.dpkg_wrapper, this)
                 File(this).setExecutable(true)
             }
+            "$PREFIX_PATH/boot.sh".apply {
+                copyRawResource(context, R.raw.boot, this)
+                File(this).setExecutable(true)
+            }
             dpkg_mkwrapper_path.apply {
                 copyRawResource(context, R.raw.dpkg_mkwrapper, this)
                 File(this).setExecutable(true)
@@ -567,7 +571,8 @@ class CodeServerService : Service() {
             liveServerStarted.postValue(0)
             process = Runtime.getRuntime().exec(
                 arrayOf(
-                    applicationContext.getFileStreamPath("node").absolutePath,
+                    "${ROOT_PATH}/usr/bin/bash",
+                    applicationContext.getFileStreamPath("boot.sh").absolutePath,
                     "${envHome}/code-server/release-static",
                     "--disable-telemetry"
                 ) + (if (useSSL) arrayOf(
