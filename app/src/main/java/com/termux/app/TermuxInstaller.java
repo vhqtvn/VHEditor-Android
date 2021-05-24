@@ -46,15 +46,6 @@ import vn.vhn.vhscode.R;
  */
 @SuppressWarnings("deprecation")
 public final class TermuxInstaller {
-    static String str_fr = "/data/data/com.termux";
-    static String str_to = "/data/data/vn.vhn.vsc";
-    static byte[] s_fr = str_fr.getBytes();
-    static byte[] s_to = str_to.getBytes();
-    static int s_replen = s_fr.length;
-    static String str_fr_regex = "/data/data/com\\.termux";
-    static String str_to_regex = "/data/data/vn.vhn.vsc";
-
-
     /**
      * Performs setup if necessary.
      */
@@ -102,8 +93,8 @@ public final class TermuxInstaller {
                                     String[] parts = line.split("←");
                                     if (parts.length != 2)
                                         throw new RuntimeException("Malformed symlink line: " + line);
-                                    String oldPath = parts[0].replaceAll(str_fr_regex, str_to_regex);
-                                    String newPath = (STAGING_PREFIX_PATH + "/" + parts[1]).replaceAll(str_fr_regex, str_to_regex);
+                                    String oldPath = parts[0];
+                                    String newPath = (STAGING_PREFIX_PATH + "/" + parts[1]);
                                     symlinks.add(Pair.create(oldPath, newPath));
 
                                     ensureDirectoryExists(new File(newPath).getParentFile());
@@ -117,24 +108,9 @@ public final class TermuxInstaller {
 
                                 if (!isDirectory) {
                                     try (FileOutputStream outStream = new FileOutputStream(targetFile)) {
-                                        int readBytes, bufferEnd = 0;
-                                        if ((readBytes = zipInput.read(buffer, 0, kBufferSize)) != -1) {
-                                            bufferEnd = readBytes;
-                                            while ((readBytes = zipInput.read(buffer, bufferEnd, kBufferSize)) != -1) {
-                                                bufferEnd += readBytes;
-                                                while (bufferEnd >= kBufferSize) {
-                                                    replaceTermuxStringInBuffer(buffer, 0, Math.min(kBufferSize + s_replen, bufferEnd));
-                                                    outStream.write(buffer, 0, kBufferSize);
-                                                    for (int i = kBufferSize; i < bufferEnd; i++)
-                                                        buffer[i-kBufferSize] = buffer[i];
-                                                    bufferEnd -= kBufferSize;
-                                                }
-                                            }
-                                            if (bufferEnd > 0) {
-                                                replaceTermuxStringInBuffer(buffer, 0, bufferEnd);
-                                                outStream.write(buffer, 0, bufferEnd);
-                                            }
-                                        }
+                                        int readBytes;
+                                        while ((readBytes = zipInput.read(buffer)) != -1)
+                                            outStream.write(buffer, 0, readBytes);
                                     }
                                     if (zipEntryName.startsWith("bin/") || zipEntryName.startsWith("libexec") || zipEntryName.startsWith("lib/apt/methods")) {
                                         //noinspection OctalInteger
@@ -185,16 +161,6 @@ public final class TermuxInstaller {
         }.start();
     }
 
-    static void replaceTermuxStringInBuffer(byte[] b, int fr, int to) {
-        for (int i = fr, ie = to - s_replen; i <= ie; i++) {
-            int j = 0;
-            for (j = 0; j < s_replen && b[i + j] == s_fr[j]; j++) ;
-            if (j == s_replen) {
-                for (j = 0; j < s_replen; j++) b[i + j] = s_to[j];
-                i += s_replen - 1;
-            }
-        }
-    }
 
     private static void ensureDirectoryExists(File directory) {
         if (!directory.isDirectory() && !directory.mkdirs()) {
