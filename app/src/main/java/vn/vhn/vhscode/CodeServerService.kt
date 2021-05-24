@@ -134,33 +134,31 @@ class CodeServerService : Service() {
             }
             // region
 
-            // region setup dpkg
-            val dpkg_path = "$PREFIX_PATH/usr/bin/dpkg"
-            val dpkg_mkwrapper_path = "$PREFIX_PATH/usr/bin/dpkg_mkwrapper"
-            val dpkg_orig_path = "$dpkg_path.bin-orig"
+            // region setup trusted gpg
+            "$PREFIX_PATH/usr/etc/apt/trusted.gpg.d/vhnvn.gpg".apply {
+                copyRawResource(context, R.raw.vhnvn, this)
+            }
+            // endregion
 
-            if (!File(dpkg_orig_path).isFile || File(dpkg_path).length() > 5000) {
-                if (File(dpkg_orig_path).exists()) File(dpkg_orig_path).delete()
-                File(dpkg_path).renameTo(File(dpkg_orig_path))
+            // region patch apt sources lists
+            File("$PREFIX_PATH/usr/etc/apt/sources.list.d").listFiles().forEach {
+                if (it.isFile) {
+                    var content = it.bufferedReader().use { it.readText() }
+                    if (content.contains("https://dl.bintray.com/grimler/")) {
+                        content = content.replace(
+                            "https://dl.bintray.com/grimler/",
+                            "https://vsc.vhn.vn/"
+                        )
+                        it.bufferedWriter().use { it.write(content) }
+                    }
+                }
             }
+            // endregion
 
-            dpkg_path.apply {
-                copyRawResource(context, R.raw.dpkg, this)
-                File(this).setExecutable(true)
-            }
-            "$PREFIX_PATH/usr/bin/dpkg.wrapper".apply {
-                copyRawResource(context, R.raw.dpkg_wrapper, this)
-                File(this).setExecutable(true)
-            }
             "$PREFIX_PATH/boot.sh".apply {
                 copyRawResource(context, R.raw.boot, this)
                 File(this).setExecutable(true)
             }
-            dpkg_mkwrapper_path.apply {
-                copyRawResource(context, R.raw.dpkg_mkwrapper, this)
-                File(this).setExecutable(true)
-            }
-            // endregion
 
             "$ROOT_PATH/code-server/release-static/dist/serviceWorker.js".apply {
                 val cs = Charset.forName("utf-8")
@@ -553,6 +551,7 @@ class CodeServerService : Service() {
         env.add("TMPDIR=${PREFIX_PATH}/tmp")
         env.add("PREFIX=${PREFIX_PATH}")
         env.add("SHELL=${PREFIX_PATH}/usr/bin/bash")
+        env.add("TERMUX_PKG_NO_MIRROR_SELECT=1")
 
         Log.d(TAG, "env = " + env.toString())
 

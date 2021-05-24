@@ -10,13 +10,13 @@ android {
     defaultConfig {
         applicationId "vn.vhn.vsc"
         minSdkVersion 24
-        targetSdkVersion 28
-        versionCode 17
-        versionName "1.1.14"
+        targetSdkVersion 29
+        versionCode 18
+        versionName "1.2.0"
 
         externalNativeBuild {
             ndkBuild {
-                cFlags "-std=c11", "-Wall", "-Wextra", "-Werror", "-Os", "-fno-stack-protector", "-Wl,--gc-sections"
+                cFlags "-Wall", "-Wextra", "-Werror", "-Os", "-fno-stack-protector", "-Wl,--gc-sections"
             }
         }
 
@@ -94,7 +94,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
-def downloadBootstrap(String arch, String expectedChecksum, int version) {
+clean {
+    doLast {
+        def tree = fileTree(new File(projectDir, 'src/main/cpp'))
+        tree.include 'bootstrap-*.zip'
+        tree.each { it.delete() }
+    }
+}
+
+def downloadBootstrap(String arch, String expectedChecksum, String version) {
     def digest = java.security.MessageDigest.getInstance("SHA-256")
 
     def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
@@ -116,7 +124,7 @@ def downloadBootstrap(String arch, String expectedChecksum, int version) {
         }
     }
 
-    def remoteUrl = "https://bintray.com/termux/bootstrap/download_file?file_path=bootstrap-" + arch + "-v" + version + ".zip"
+    def remoteUrl = "https://github.com/vhqtvn/termux-packages/releases/download/" + version + "/bootstrap-" + arch + ".zip"
     logger.quiet("Downloading " + remoteUrl + " ...")
 
     file.parentFile.mkdirs()
@@ -135,21 +143,13 @@ def downloadBootstrap(String arch, String expectedChecksum, int version) {
     }
 }
 
-clean {
+task downloadBootstraps() {
     doLast {
-        def tree = fileTree(new File(projectDir, 'src/main/cpp'))
-        tree.include 'bootstrap-*.zip'
-        tree.each { it.delete() }
-    }
-}
-
-task downloadBootstraps(){
-    doLast {
-        def version = 30
-        downloadBootstrap("aarch64", "7a90034285c614d23fa450547a5e2aec77d4242c9891ad662bf0c6fd3bd7ef4e", version)
-        downloadBootstrap("arm",     "f030869ce9a43f84d88560d7ac5153ee4f7e517bca0b37ab01df3e1acba0fe37", version)
-        downloadBootstrap("i686",    "1ea9b63f21602231140d58a5545cfbc6bc2ded56ef2b3c31cba2759d913eef00", version)
-        downloadBootstrap("x86_64",  "a50eb8a4dd02b7898bbd4a9653a25c14b56c1737409ce7f64110fd33c2c69382", version)
+        def version = "repos-592e8f791d5582272a0088c9019c8776f0b5adac"
+        downloadBootstrap("aarch64", "4733399562dc57d57a7708fe6ef863affe26d253a9153f7d9f1bd2d630c109f7", version)
+        downloadBootstrap("arm", "e59a4ef5406c5b768966fedee59fe62ec476d16da44a60660d4359b327afdf1b", version)
+        downloadBootstrap("i686", "cc8f2afab432cf19dec12bd7180bfd727fcc3d69b160e4e36f89142107cbe8cc", version)
+        downloadBootstrap("x86_64", "32a86a1ad1c22d6d59bb260a0be1d859a2fe35522ed5ee14e77f6757186dba2e", version)
     }
 }
 
