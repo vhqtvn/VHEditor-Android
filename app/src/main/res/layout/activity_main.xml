@@ -29,23 +29,38 @@
         android:gravity="center"
         android:text="@string/credit"
         android:textColor="@color/credit"
-        app:layout_constraintBottom_toTopOf="@+id/txtInstalledServerVersion"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/txtAppVersion"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtAppName" />
 
     <TextView
-        android:id="@+id/txtInstalledServerVersion"
+        android:id="@+id/txtAppVersion"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
         android:gravity="center"
         android:text="@string/loading"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/btnInstallServer"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/txtInstalledServerVersion"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/creditLine" />
+
+    <TextView
+        android:id="@+id/txtInstalledServerVersion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/loading"
+        android:textColor="@color/white"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/btnInstallServer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtAppVersion" />
 
     <Button
         android:id="@+id/btnInstallServer"
