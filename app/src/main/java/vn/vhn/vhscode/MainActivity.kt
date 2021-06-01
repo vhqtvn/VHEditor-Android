@@ -11,7 +11,9 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
+import android.text.Html
 import android.text.TextWatcher
+import android.text.method.LinkMovementMethod
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -27,9 +29,9 @@ import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
+import java.io.*
+import java.net.URL
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     var startServerObserver: Observer<Int>? = null
     var serverLogObserver: Observer<String>? = null
     var requestedPermission: Boolean = false
+    var latestRemoteVersion: String? = null
 
     override fun onResume() {
         super.onResume()
@@ -179,10 +182,62 @@ class MainActivity : AppCompatActivity() {
                 sharedPreferences().edit().putString(kPrefRemoteServer, s.toString()).apply()
             }
         })
+
+        creditLine.movementMethod = LinkMovementMethod.getInstance()
+        txtAppVersion.movementMethod = LinkMovementMethod.getInstance()
+
+        checkLatestVersion()
+    }
+
+    private fun checkLatestVersion() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val yahoo = URL("https://github.com/vhqtvn/VHEditor-Android/releases/latest")
+            val br = BufferedReader(
+                InputStreamReader(
+                    yahoo.openStream()
+                )
+            )
+
+            var inputLine: String?
+            var version = ""
+
+            val versionExtractor = Regex("\"/vhqtvn/VHEditor-Android/releases/tag/v([\\d\\.]+)\"")
+
+            while (br.readLine().also { inputLine = it } != null) {
+                if (inputLine != null) {
+                    val matches = versionExtractor.find(inputLine!!)
+                    if (matches != null) {
+                        version = matches!!.groupValues[1]
+                    }
+                }
+            }
+
+            br.close()
+
+            if (version != "" && version != latestRemoteVersion) {
+                latestRemoteVersion = version
+                updateUI()
+            }
+        }
     }
 
     fun updateUI() {
+        if (wrongTargetSDK()) {
+            val intent = Intent(this, GithubReleaseInstallActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
         CoroutineScope(Dispatchers.Main).launch {
+            var txtVersion = "App version: ${BuildConfig.VERSION_NAME}"
+            if (latestRemoteVersion != null) {
+                if (latestRemoteVersion == BuildConfig.VERSION_NAME) {
+                    txtVersion += ", already latest version."
+                } else {
+                    txtVersion += ", latest version: <a href=\"https://github.com/vhqtvn/VHEditor-Android/releases/latest\">${latestRemoteVersion}</a>"
+                }
+            }
+            txtAppVersion.text = Html.fromHtml(txtVersion, 0)
+
             sharedPreferences().apply {
                 chkHardKeyboard.isChecked = getBoolean(kPrefHardKeyboard, false)
                 chkKeepScreenAlive.isChecked = getBoolean(kPrefKeepScreenAlive, false)
@@ -213,6 +268,11 @@ class MainActivity : AppCompatActivity() {
 
             performRequestPermissions()
         }
+    }
+
+    private fun wrongTargetSDK(): Boolean {
+        val targetSdkVersion = applicationContext.applicationInfo.targetSdkVersion
+        return android.os.Build.VERSION.SDK_INT >= 29 && targetSdkVersion != 28
     }
 
     private fun performRequestPermissions() {
