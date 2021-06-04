@@ -35,10 +35,10 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            if (System.env['USE_SPLITBUILD'] != '1' || System.env['GPLAY_BUILD'] == '1' || System.env['CI_BUILD'] == '1') {
-                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            } else if (System.env['GPLAY_BUILD'] != '1' && System.env['CI_BUILD'] != '1') {
+            if (System.env['GPLAY_BUILD'] != '1' && System.env['CI_BUILD'] != '1') {
                 abiFilters 'arm64-v8a'
+            } else if (System.env['USE_SPLITBUILD'] != '1') {
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
             }
         }
     }
