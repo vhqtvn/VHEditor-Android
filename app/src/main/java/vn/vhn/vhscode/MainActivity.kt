@@ -36,13 +36,17 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "202006100100"
+        val kCurrentServerVersion = "3.10.2"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
         val kPrefListenOnAllInterfaces = "listenstar"
         val kPrefUseSSL = "ssl"
         val kPrefRequestedPermission = "requestedpermission"
+
+        val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
+        val kPrefLatestVersionCachedValue = "cached:latestversion:value"
+        val kPrefLatestVersionCachedTime = "cached:latestversion:time"
     }
 
     var startServerObserver: Observer<Int>? = null
@@ -191,10 +195,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkLatestVersion() {
         CoroutineScope(Dispatchers.IO).launch {
-            val yahoo = URL("https://github.com/vhqtvn/VHEditor-Android/releases/latest")
+            if (sharedPreferences().getLong(
+                    kPrefLatestVersionCachedTime,
+                    0
+                ) >= System.currentTimeMillis() - kVersionCheckPeriodMilli
+            ) {
+                latestRemoteVersion = sharedPreferences().getString(kPrefLatestVersionCachedValue, "---")
+                updateUI()
+            }
+
+            val url = URL("https://github.com/vhqtvn/VHEditor-Android/releases/latest")
             val br = BufferedReader(
                 InputStreamReader(
-                    yahoo.openStream()
+                    url.openStream()
                 )
             )
 
@@ -216,6 +229,10 @@ class MainActivity : AppCompatActivity() {
 
             if (version != "" && version != latestRemoteVersion) {
                 latestRemoteVersion = version
+                sharedPreferences().edit()
+                    .putLong(kPrefLatestVersionCachedTime, System.currentTimeMillis())
+                    .putString(kPrefLatestVersionCachedValue, version)
+                    .commit()
                 updateUI()
             }
         }
@@ -256,7 +273,7 @@ class MainActivity : AppCompatActivity() {
                 installedRegionGroup.visibility = View.GONE
             } else {
                 btnStartCode.isEnabled = true
-                if (codeServerVersion < kCurrentServerVersion) {
+                if (codeServerVersion != kCurrentServerVersion) {
                     btnInstallServer.text = getString(R.string.update_server)
                     btnInstallServer.visibility = View.VISIBLE
                 } else {
@@ -316,9 +333,9 @@ class MainActivity : AppCompatActivity() {
             val stream = FileInputStream(versionFile)
             val bytes = stream.readBytes()
             stream.close()
-            return String(bytes, 0, bytes.size)
+            return String(bytes, 0, bytes.size).trim()
         }
-        return "202005250000"
+        return ""
     }
 
     private fun sharedPreferences(): SharedPreferences {
@@ -362,7 +379,7 @@ class MainActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.WRAP_CONTENT
             )
             launch {
-                delay(500)
+                delay(1000)
                 CodeServerService.extractServer(this@MainActivity, progressChannel)
                 updateUI()
                 finished = true

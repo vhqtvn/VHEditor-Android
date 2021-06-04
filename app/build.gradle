@@ -2,9 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+
 android {
     compileSdkVersion 29
     ndkVersion '21.3.6528147'
+
+    lintOptions {
+        lintConfig file("../lint.xml")
+    }
 
     dexOptions {
         javaMaxHeapSize "4G"
@@ -13,13 +18,13 @@ android {
     defaultConfig {
         applicationId "vn.vhn.vsc"
         minSdkVersion 24
-        if (System.env['CI_BUILD'] == '1') {
-            targetSdkVersion 28 // Do not update to 29 - /data/data no longer executable
+        if (System.env['GPLAY_BUILD'] == '1') {
+            defaultConfig.targetSdkVersion 29 // google play require minimum version to be 29
         } else {
-            targetSdkVersion 29 // google play require minimum version to be 29
+            defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 20
-        versionName "1.2.2"
+        versionCode 21
+        versionName "1.3.0"
 
         externalNativeBuild {
             ndkBuild {
@@ -30,8 +35,10 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            if (System.env['USE_SPLITBUILD'] != '1') {
+            if (System.env['USE_SPLITBUILD'] != '1' || System.env['GPLAY_BUILD'] == '1' || System.env['CI_BUILD'] == '1') {
                 abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            } else if (System.env['GPLAY_BUILD'] != '1' && System.env['CI_BUILD'] != '1') {
+                abiFilters 'arm64-v8a'
             }
         }
     }

@@ -160,12 +160,18 @@ class CodeServerService : Service() {
                 File(this).setExecutable(true)
             }
 
-            "$ROOT_PATH/code-server/release-static/dist/serviceWorker.js".apply {
+            listOf<String>(
+                "$ROOT_PATH/code-server/release-static/dist/serviceWorker.js",
+                "$ROOT_PATH/code-server/release-standalone/dist/serviceWorker.js"
+            ).onEach {
                 val cs = Charset.forName("utf-8")
-                val content = File(this).readText(cs)
+                if (!File(it).exists()) {
+                    return@onEach
+                }
+                val content = File(it).readText(cs)
                 val new_content = content.replace("navigator.onLine", "(true)")
                 if (content != new_content) {
-                    File(this).writeText(new_content, cs)
+                    File(it).writeText(new_content, cs)
                     Log.d(TAG, "Clear cache ${context.cacheDir}")
                     clearCacheFolder(context.cacheDir)
                     File("${BASE_PATH}/cache").apply {
@@ -568,11 +574,15 @@ class CodeServerService : Service() {
         try {
             error = null;
             liveServerStarted.postValue(0)
+            val codeServerRoot = listOf(
+                "${envHome}/code-server/release-standalone",
+                "${envHome}/code-server/release-static"
+            ).reduce { x, y -> if (File(y).exists()) y else x }
             process = Runtime.getRuntime().exec(
                 arrayOf(
                     "${ROOT_PATH}/usr/bin/bash",
                     applicationContext.getFileStreamPath("boot.sh").absolutePath,
-                    "${envHome}/code-server/release-static",
+                    codeServerRoot,
                     "--disable-telemetry"
                 ) + (if (useSSL) arrayOf(
                     "--cert", "$HOME_PATH/cert.cert",
