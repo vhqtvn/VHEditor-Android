@@ -30,6 +30,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.*
+import java.lang.Exception
 import java.net.URL
 import java.util.*
 
@@ -200,40 +201,46 @@ class MainActivity : AppCompatActivity() {
                     0
                 ) >= System.currentTimeMillis() - kVersionCheckPeriodMilli
             ) {
-                latestRemoteVersion = sharedPreferences().getString(kPrefLatestVersionCachedValue, "---")
+                latestRemoteVersion =
+                    sharedPreferences().getString(kPrefLatestVersionCachedValue, "---")
                 updateUI()
             }
 
-            val url = URL("https://github.com/vhqtvn/VHEditor-Android/releases/latest")
-            val br = BufferedReader(
-                InputStreamReader(
-                    url.openStream()
+            try {
+                val url = URL("https://github.com/vhqtvn/VHEditor-Android/releases/latest")
+                val br = BufferedReader(
+                    InputStreamReader(
+                        url.openStream()
+                    )
                 )
-            )
 
-            var inputLine: String?
-            var version = ""
+                var inputLine: String?
+                var version = ""
 
-            val versionExtractor = Regex("\"/vhqtvn/VHEditor-Android/releases/tag/v([\\d\\.]+)\"")
+                val versionExtractor =
+                    Regex("\"/vhqtvn/VHEditor-Android/releases/tag/v([\\d\\.]+)\"")
 
-            while (br.readLine().also { inputLine = it } != null) {
-                if (inputLine != null) {
-                    val matches = versionExtractor.find(inputLine!!)
-                    if (matches != null) {
-                        version = matches!!.groupValues[1]
+                while (br.readLine().also { inputLine = it } != null) {
+                    if (inputLine != null) {
+                        val matches = versionExtractor.find(inputLine!!)
+                        if (matches != null) {
+                            version = matches!!.groupValues[1]
+                        }
                     }
                 }
-            }
 
-            br.close()
+                br.close()
 
-            if (version != "" && version != latestRemoteVersion) {
-                latestRemoteVersion = version
-                sharedPreferences().edit()
-                    .putLong(kPrefLatestVersionCachedTime, System.currentTimeMillis())
-                    .putString(kPrefLatestVersionCachedValue, version)
-                    .commit()
-                updateUI()
+                if (version != "" && version != latestRemoteVersion) {
+                    latestRemoteVersion = version
+                    sharedPreferences().edit()
+                        .putLong(kPrefLatestVersionCachedTime, System.currentTimeMillis())
+                        .putString(kPrefLatestVersionCachedValue, version)
+                        .commit()
+                    updateUI()
+                }
+            } catch (e: Exception) {
+                // ignore
             }
         }
     }
