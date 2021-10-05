@@ -17,10 +17,7 @@ import android.text.method.LinkMovementMethod
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import android.widget.CheckBox
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -43,8 +40,8 @@ class MainActivity : AppCompatActivity() {
         val kPrefRemoteServer = "remoteserver"
         val kPrefListenOnAllInterfaces = "listenstar"
         val kPrefUseSSL = "ssl"
+        val kPrefScale = "uiscale"
         val kPrefRequestedPermission = "requestedpermission"
-
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
         val kPrefLatestVersionCachedValue = "cached:latestversion:value"
         val kPrefLatestVersionCachedTime = "cached:latestversion:time"
@@ -54,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     var serverLogObserver: Observer<String>? = null
     var requestedPermission: Boolean = false
     var latestRemoteVersion: String? = null
+
+    private var scaleLabelTextView: TextView? = null
 
     override fun onResume() {
         super.onResume()
@@ -417,6 +416,14 @@ class MainActivity : AppCompatActivity() {
             sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
         dialog.findViewById<CheckBox>(R.id.chkUseSSL).isChecked =
             sharedPreferences().getBoolean(kPrefUseSSL, true)
+
+        // Scaling range 25-300% => 275% seekbar length with 25% steps = 11*25%
+        val scalingFactor = sharedPreferences().getInt(kPrefScale, 3)
+        scaleLabelTextView = dialog.findViewById(R.id.zoomScaleLabel)
+        scaleLabelTextView?.text = resources.getString(R.string.zoomValue, (scalingFactor * 25 + 25))
+        var seekbar = dialog.findViewById<SeekBar>(R.id.zoomScaleSeekBar)
+        seekbar.progress = scalingFactor
+        seekbar.setOnSeekBarChangeListener(seekBarEventListener)
     }
 
     fun onStartRemote(view: View) {
@@ -479,5 +486,18 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences().edit()
             .putBoolean(kPrefUseSSL, (view as CheckBox).isChecked).apply()
 
+    }
+
+    val seekBarEventListener = object : SeekBar.OnSeekBarChangeListener {
+        override fun onStartTrackingTouch(p0: SeekBar?) {}
+
+        override fun onProgressChanged(view: SeekBar, progress: Int, userMade: Boolean) {
+            scaleLabelTextView?.text = resources.getString(R.string.zoomValue, (progress * 25 + 25))
+        }
+
+        override fun onStopTrackingTouch(view: SeekBar) {
+            sharedPreferences().edit()
+                .putInt(kPrefScale, view.progress).apply()
+        }
     }
 }

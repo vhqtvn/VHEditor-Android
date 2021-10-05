@@ -2,6 +2,7 @@ package vn.vhn.vhscode
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -78,6 +79,7 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
+        webView.setInitialScale((sharedPreferences().getInt(MainActivity.kPrefScale, 3) + 1) * 25)
         webView.settings.fixedFontFamily = "vscode-monospace"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (useHardKeyboard) {
@@ -148,5 +150,9 @@ class VSCodeActivity : AppCompatActivity() {
         } else {
             finish()
         }
+    }
+
+    private fun sharedPreferences(): SharedPreferences {
+        return getSharedPreferences("main_settings", Context.MODE_PRIVATE)
     }
 }
