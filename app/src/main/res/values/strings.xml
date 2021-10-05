@@ -35,4 +35,5 @@
     <string name="use_https">Use https</string>
     <string name="link_release"><a href="https://github.com/vhqtvn/VHEditor-Android/releases/latest">github.com/vhqtvn/VHEditor-Android</a></string>
     <string name="wrong_target_sdk"><h1>I\'m sorry!</h1>\nAndroid api version <b>28</b> is required to make termux embedding works.\nBut now Google Play <b>disabled</b> uploading applications with targetSdk 28, devices with <b>Android 10 and later can\'t use VHEditor version installed from Google Play</b>.\nPlease tap the <b>following link</b> to download latest release from VHEditor\'s github repository.</string>
+    <string name="zoomValue">UI Scale: %1$d%%</string>
 </resources>
