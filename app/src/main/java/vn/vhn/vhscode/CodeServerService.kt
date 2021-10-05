@@ -229,6 +229,12 @@ class CodeServerService : Service() {
                 File(ROOT_PATH),
                 progressChannel
             )
+
+            //ensure exec permission of bash scripts in code-server
+            context.getFileStreamPath("code-server")
+                .walk()
+                .filter { it.name.matches(".+\\.sh\$".toRegex()) }
+                .forEach { it.setExecutable(true) }
             context.getFileStreamPath("node").setExecutable(true)
         }
 
