@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.termux.app.TermuxInstaller
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_settings.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.*
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         val kPrefRemoteServer = "remoteserver"
         val kPrefListenOnAllInterfaces = "listenstar"
         val kPrefUseSSL = "ssl"
+        val kPrefUseFullscreen = "fullscreen"
         val kPrefScale = "uiscale"
         val kPrefRequestedPermission = "requestedpermission"
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
@@ -137,9 +139,16 @@ class MainActivity : AppCompatActivity() {
 
     fun startEditor(url: String? = null) {
         val intent = Intent(this, VSCodeActivity::class.java)
+
+        //add sharedPreferences to intent to configure the intent acording to them afterwards
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
+        intent.putExtra(VSCodeActivity.kConfigUseFullscreen,
+            sharedPreferences().getBoolean(kPrefUseFullscreen, true))
+        intent.putExtra(VSCodeActivity.kConfigScale,
+            sharedPreferences().getInt(kPrefScale, 3))
         if (url != null) intent.putExtra(VSCodeActivity.kConfigUrl, url)
         intent.putExtra(VSCodeActivity.kConfigScreenAlive, chkKeepScreenAlive.isChecked)
+
         startActivity(intent)
     }
 
@@ -412,16 +421,20 @@ class MainActivity : AppCompatActivity() {
                 updateUI()
             }
             .show()
+
+        // Set checkboxes to their sharedPreferences setting state
         dialog.findViewById<CheckBox>(R.id.chkListenOnAllInterfaces).isChecked =
             sharedPreferences().getBoolean(kPrefListenOnAllInterfaces, false)
         dialog.findViewById<CheckBox>(R.id.chkUseSSL).isChecked =
             sharedPreferences().getBoolean(kPrefUseSSL, true)
+        dialog.findViewById<CheckBox>(R.id.chkIsFullscreen).isChecked =
+            sharedPreferences().getBoolean(kPrefUseFullscreen, true)
 
         // Scaling range 25-300% => 275% seekbar length with 25% steps = 11*25%
         val scalingFactor = sharedPreferences().getInt(kPrefScale, 3)
         scaleLabelTextView = dialog.findViewById(R.id.zoomScaleLabel)
         scaleLabelTextView?.text = resources.getString(R.string.zoomValue, (scalingFactor * 25 + 25))
-        var seekbar = dialog.findViewById<SeekBar>(R.id.zoomScaleSeekBar)
+        val seekbar = dialog.findViewById<SeekBar>(R.id.zoomScaleSeekBar)
         seekbar.progress = scalingFactor
         seekbar.setOnSeekBarChangeListener(seekBarEventListener)
     }
@@ -486,6 +499,11 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences().edit()
             .putBoolean(kPrefUseSSL, (view as CheckBox).isChecked).apply()
 
+    }
+
+    fun onChkIsFullscreen(view: View) {
+        sharedPreferences().edit()
+            .putBoolean(kPrefUseFullscreen, (view as CheckBox).isChecked).apply()
     }
 
     val seekBarEventListener = object : SeekBar.OnSeekBarChangeListener {

@@ -27,21 +27,29 @@ import vn.vhn.vhscode.generic_dispatcher.IGenericEventDispatcher
 class VSCodeActivity : AppCompatActivity() {
     companion object {
         val kConfigUseHardKeyboard = "use_hardkb";
+        val kConfigUseFullscreen = "fullscreen"
+        val kConfigScale = "uiscale"
         val kConfigUrl = "url";
         val kConfigScreenAlive = "screen_alive";
         val TAG = "VSCodeActivity"
     }
 
-    var useHardKeyboard = false
     var genericMotionEventDispatcher: IGenericEventDispatcher? = null
     var jsInterface = VSCodeJSInterface()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        useHardKeyboard = intent.getBooleanExtra(kConfigUseHardKeyboard, false)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         supportActionBar?.hide()
         setContentView(R.layout.activity_vscode)
+
+
+        //Change window to fullscreen if option enabled
+        if (intent.getBooleanExtra(kConfigUseFullscreen, true))
+            window.decorView.systemUiVisibility = ( View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY )
+
         configureWebView(webView)
         CoroutineScope(Dispatchers.Main).launch {
             Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
@@ -68,6 +76,9 @@ class VSCodeActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView(webView: WebView) {
+        var useHardKeyboard = intent.getBooleanExtra(kConfigUseHardKeyboard, false)
+        var uiScale = intent.getIntExtra(kConfigScale, 3)
+
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.settings.allowContentAccess = true
@@ -79,7 +90,7 @@ class VSCodeActivity : AppCompatActivity() {
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.settings.allowFileAccessFromFileURLs = true
         webView.webChromeClient = VSCodeWebChromeClient()
-        webView.setInitialScale((sharedPreferences().getInt(MainActivity.kPrefScale, 3) + 1) * 25)
+        webView.setInitialScale((uiScale + 1) * 25)
         webView.settings.fixedFontFamily = "vscode-monospace"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (useHardKeyboard) {
@@ -150,9 +161,5 @@ class VSCodeActivity : AppCompatActivity() {
         } else {
             finish()
         }
-    }
-
-    private fun sharedPreferences(): SharedPreferences {
-        return getSharedPreferences("main_settings", Context.MODE_PRIVATE)
     }
 }
