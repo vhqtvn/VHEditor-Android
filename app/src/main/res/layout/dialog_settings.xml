@@ -64,6 +64,16 @@
             android:text="@string/use_https"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/chkListenOnAllInterfaces" />
+
+        <CheckBox
+            android:id="@+id/chkIsFullscreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:onClick="onChkIsFullscreen"
+            android:text="@string/fullscreen_setting"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chkUseSSL" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
