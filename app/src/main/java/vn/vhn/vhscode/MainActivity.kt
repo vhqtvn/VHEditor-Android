@@ -35,7 +35,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "3.11.1"
+        val kCurrentServerVersion = "3.12.0"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
