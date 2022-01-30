@@ -141,13 +141,13 @@ class CodeServerService : Service() {
             // endregion
 
             // region patch apt sources lists
-            File("$PREFIX_PATH/usr/etc/apt/sources.list.d").listFiles().forEach {
+            listOf(File("$PREFIX_PATH/usr/etc/apt/sources.list")).forEach {
                 if (it.isFile) {
                     var content = it.bufferedReader().use { it.readText() }
-                    if (content.contains("https://dl.bintray.com/grimler/")) {
+                    if (content.contains("https://packages.termux.org/apt/termux-main/")) {
                         content = content.replace(
-                            "https://dl.bintray.com/grimler/",
-                            "https://vsc.vhn.vn/"
+                            "https://packages.termux.org/apt/termux-main/",
+                            "https://vsc.vhn.vn/termux-packages-24/"
                         )
                         it.bufferedWriter().use { it.write(content) }
                     }
@@ -185,6 +185,8 @@ class CodeServerService : Service() {
                     }
                 }
             }
+
+            File("$PREFIX_PATH/usr/lib/libc++_shared.so").copyTo(File("$ROOT_PATH/libc++_shared.so"), true)
 
             // region global inject
             "$PREFIX_PATH/globalinject.js".apply {
