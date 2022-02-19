@@ -152,7 +152,7 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
     out.close()
 
     def checksum = new BigInteger(1, digest.digest()).toString(16)
-    if (checksum != expectedChecksum) {
+    if (checksum != expectedChecksum.replaceAll("^0+","")) {
         file.delete()
         throw new GradleException("Wrong checksum for " + remoteUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
     }
@@ -160,11 +160,11 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
 
 task downloadBootstraps() {
     doLast {
-        def version = "bootstrap-2022.01.30-r3"
-        downloadBootstrap("aarch64", "df0a40c6dca5d9bb6511afa6ff536a586a687a3c0bb415f9fba3c8b395f9ecca", version)
-        downloadBootstrap("arm", "16eea17539fa753a8d068a7166a2f9cc1582531103ce7a7f646aaa4c43fcc92f", version)
-        downloadBootstrap("i686", "d8a328e4331a436027d8dba7f406e4fcca76c9d6430e871bbef667f3b8df0b28", version)
-        downloadBootstrap("x86_64", "bc09af02530a0839c86ed216541c36c0f58fb3594a151978415e799797d6e965", version)
+        def version = "bootstrap-2022.02.19-r1"
+        downloadBootstrap("aarch64", "3fa9b783fa32000c2413bc99d473495c81cf462b2351e54e8463dc90b0eb8d0c", version)
+        downloadBootstrap("arm", "061bd9741fd5d1c60a4c7cc213166307a5bb8e57e19a8398c098aebef3e390bf", version)
+        downloadBootstrap("i686", "0d4590bacc65a026f41bacb309336b5669c5eaf29958bb38fc501bcd585433cc", version)
+        downloadBootstrap("x86_64", "7c8681e8cf6cbddcab36dc04bb696d69168d037b10c96b882f99076151c08daf", version)
     }
 }
 

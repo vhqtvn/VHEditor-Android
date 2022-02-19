@@ -31,3 +31,5 @@ Object.defineProperty(window.KeyboardEvent.prototype, 'code', {
         return this._vscodeCode;
     }
 });
+
+navigator.clipboard.read
