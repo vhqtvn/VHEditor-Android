@@ -402,6 +402,35 @@ class CodeServerService : Service() {
                                 setTimeout(local_apply, 100);
                                 return;
                             }
+                            if(typeof _vn_vhn_vscjs_!=='undefined') {
+                                var mkstring;
+                                mkstring = async function(x) {
+                                    let t = typeof x;
+                                    if (t==="undefined") return "";
+                                    if (t!=="object") return t.toString();
+                                    if (Array.isArray(x)) {
+                                        let result = "";
+                                        for(const i of x) result += await mkstring(i);
+                                        return result;
+                                    }
+                                    if(x instanceof ClipboardItem) {
+                                        return await a.getType("text/plain");
+                                    } else {
+                                        return x.toString();
+                                    }
+                                 }
+                                Object.defineProperty(window.navigator,'clipboard',{value:{
+                                    write: async function(data) {
+                                        return _vn_vhn_vscjs_.copyToClipboard(await mkstring(data));
+                                    },
+                                    writeText: function(txt) {
+                                        return _vn_vhn_vscjs_.copyToClipboard(txt);
+                                    },
+                                    readText: function() {
+                                        return _vn_vhn_vscjs_.getClipboard();
+                                    }
+                                }, writable: false});
+                            }
                             Object.defineProperty(window.navigator,'onLine',{value:true, writable: false});
                             $windowScript
                         };

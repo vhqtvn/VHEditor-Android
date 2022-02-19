@@ -35,7 +35,7 @@ class VSCodeActivity : AppCompatActivity() {
     }
 
     var genericMotionEventDispatcher: IGenericEventDispatcher? = null
-    var jsInterface = VSCodeJSInterface()
+    var jsInterface = VSCodeJSInterface(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
