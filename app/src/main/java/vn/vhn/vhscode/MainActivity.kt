@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
@@ -35,7 +36,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "3.12.0"
+        val kCurrentServerVersion = "4.0.2"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
@@ -142,10 +143,14 @@ class MainActivity : AppCompatActivity() {
 
         //add sharedPreferences to intent to configure the intent acording to them afterwards
         intent.putExtra(VSCodeActivity.kConfigUseHardKeyboard, chkHardKeyboard.isChecked)
-        intent.putExtra(VSCodeActivity.kConfigUseFullscreen,
-            sharedPreferences().getBoolean(kPrefUseFullscreen, true))
-        intent.putExtra(VSCodeActivity.kConfigScale,
-            sharedPreferences().getInt(kPrefScale, 3))
+        intent.putExtra(
+            VSCodeActivity.kConfigUseFullscreen,
+            sharedPreferences().getBoolean(kPrefUseFullscreen, true)
+        )
+        intent.putExtra(
+            VSCodeActivity.kConfigScale,
+            sharedPreferences().getInt(kPrefScale, 3)
+        )
         if (url != null) intent.putExtra(VSCodeActivity.kConfigUrl, url)
         intent.putExtra(VSCodeActivity.kConfigScreenAlive, chkKeepScreenAlive.isChecked)
 
@@ -433,7 +438,8 @@ class MainActivity : AppCompatActivity() {
         // Scaling range 25-300% => 275% seekbar length with 25% steps = 11*25%
         val scalingFactor = sharedPreferences().getInt(kPrefScale, 3)
         scaleLabelTextView = dialog.findViewById(R.id.zoomScaleLabel)
-        scaleLabelTextView?.text = resources.getString(R.string.zoomValue, (scalingFactor * 25 + 25))
+        scaleLabelTextView?.text =
+            resources.getString(R.string.zoomValue, (scalingFactor * 25 + 25))
         val seekbar = dialog.findViewById<SeekBar>(R.id.zoomScaleSeekBar)
         seekbar.progress = scalingFactor
         seekbar.setOnSeekBarChangeListener(seekBarEventListener)
