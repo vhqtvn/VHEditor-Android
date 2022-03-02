@@ -675,7 +675,7 @@ class CodeServerService : Service() {
                     Log.d("VHSServerOutput", currentBuffer)
                     if (!serverStarted) {
                         outputBuffer += currentBuffer
-                        if (outputBuffer.indexOf("HTTP server listening on") >= 0) {
+                        if (outputBuffer.indexOf("HTTPS server listening on") >= 0) {
                             serverStarted = true
                             outputBuffer = ""
                             liveServerStarted.postValue(1)
