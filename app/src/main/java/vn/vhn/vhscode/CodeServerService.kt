@@ -142,16 +142,23 @@ class CodeServerService : Service() {
 
             // region patch apt sources lists
             listOf(File("$PREFIX_PATH/usr/etc/apt/sources.list")).forEach {
-                if (it.isFile) {
-                    var content = it.bufferedReader().use { it.readText() }
-                    if (content.contains("https://packages.termux.org/apt/termux-main/")) {
-                        content = content.replace(
-                            "https://packages.termux.org/apt/termux-main/",
-                            "https://vsc.vhn.vn/termux-packages-24/"
-                        )
-                        it.bufferedWriter().use { it.write(content) }
-                    }
-                }
+                it.bufferedWriter().use { it.write("deb https://vsc.vhn.vn/termux-packages-24/ stable main") }
+//                if (it.isFile) {
+//                    var content = it.bufferedReader().use { it.readText() }
+//                    for (toReplace in listOf(
+//                        "https://packages.termux.org/apt/termux-main/",
+//                        "https://packages-cf.termux.org/apt/termux-main/"
+//                    )) {
+//                        if (content.contains(toReplace)) {
+//                            content = content.replace(
+//                                toReplace,
+//                                "https://vsc.vhn.vn/termux-packages-24/"
+//                            )
+//                            it.bufferedWriter().use { it.write(content) }
+//                            break
+//                        }
+//                    }
+//                }
             }
             // endregion
 
@@ -186,7 +193,10 @@ class CodeServerService : Service() {
                 }
             }
 
-            File("$PREFIX_PATH/usr/lib/libc++_shared.so").copyTo(File("$ROOT_PATH/libc++_shared.so"), true)
+            File("$PREFIX_PATH/usr/lib/libc++_shared.so").copyTo(
+                File("$ROOT_PATH/libc++_shared.so"),
+                true
+            )
 
             // region global inject
             "$PREFIX_PATH/globalinject.js".apply {
