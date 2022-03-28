@@ -29,7 +29,7 @@
 
         <activity
             android:name=".VSCodeActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|fontScale|uiMode"
             android:resizeableActivity="true"
         >
             <intent-filter>
