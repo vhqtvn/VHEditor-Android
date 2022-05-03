@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.*
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 
@@ -611,6 +612,10 @@ class CodeServerService : Service() {
                 "${envHome}/code-server/release-standalone",
                 "${envHome}/code-server/release-static"
             ).reduce { x, y -> if (File(y).exists()) y else x }
+
+            try {
+                Runtime.getRuntime().exec("killall node").inputStream.read()
+            }catch (_: java.lang.Exception){}
 
             val cmd = arrayOf(
                 "${ROOT_PATH}/usr/bin/bash",
