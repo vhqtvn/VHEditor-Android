@@ -36,7 +36,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "4.0.2"
+        val kCurrentServerVersion = "4.3.0"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
@@ -475,9 +475,14 @@ class MainActivity : AppCompatActivity() {
             false
         )
         Thread {
-            val runtime = Runtime.getRuntime()
             try {
-                runtime.exec("rm -rf ${CodeServerService.ROOT_PATH}; mkdir ${CodeServerService.ROOT_PATH}")
+                val homeAbsolute = File(CodeServerService.HOME_PATH).absolutePath
+                File(CodeServerService.ROOT_PATH).list()?.forEach {
+                    if (it == "." || it == "..") return@forEach
+                    val f = File(CodeServerService.ROOT_PATH + "/" + it)
+                    if (f.absolutePath == homeAbsolute) return@forEach
+                    if (!f.deleteRecursively()) throw IOException("Remove ${f.name} failed")
+                }
                 runOnUiThread {
                     Toast.makeText(
                         this@MainActivity,

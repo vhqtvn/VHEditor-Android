@@ -23,8 +23,8 @@ android {
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 26
-        versionName "1.7.1"
+        versionCode 27
+        versionName "1.8.0"
 
         externalNativeBuild {
             ndkBuild {
@@ -160,11 +160,11 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
 
 task downloadBootstraps() {
     doLast {
-        def version = "bootstrap-2022.03.27-r7"
-        downloadBootstrap("aarch64", "6f445eda5e2fb5b44cb70e69b14f15de882c8ed11416417682f4aae97a1dad43", version)
-        downloadBootstrap("arm", "c8cc66940ef809d9f6769f5d2a2947ba2d6e84388b50a5c12e370657f22ba419", version)
-        downloadBootstrap("i686", "15f2ffe62be07f6218e0364f6e73120e8c988b7e2b7b6f8c3dff79431b9994c6", version)
-        downloadBootstrap("x86_64", "5e41755b461ac06a0c9e5679b07273205e0cad4dade2da8c82a8bb1d9e76ed25", version)
+        def version = "bootstrap-2022.05.03-r1+apt-android-7"
+        downloadBootstrap("aarch64", "67bb5a9731cea7614048074c061fae084629be65587c4a850aafa5eef7f2e0e1", version)
+        downloadBootstrap("arm", "f2af2623844cf677882da0ad9d72d1c1ac241a713ac64cf9210728973e463f3b", version)
+        downloadBootstrap("i686", "20b412e0b86009a522d0b3ec3917cf1200631a7406ecd619e39164cb52cf7d02", version)
+        downloadBootstrap("x86_64", "533cd4180922225fdda11e2c28653cda8d6a241c7a3338121740de18b78195a2", version)
     }
 }
 

@@ -142,55 +142,41 @@ class CodeServerService : Service() {
 
             // region patch apt sources lists
             listOf(File("$PREFIX_PATH/usr/etc/apt/sources.list")).forEach {
-                it.bufferedWriter().use { it.write("deb https://vsc.vhn.vn/termux-packages-24/ stable main") }
-//                if (it.isFile) {
-//                    var content = it.bufferedReader().use { it.readText() }
-//                    for (toReplace in listOf(
-//                        "https://packages.termux.org/apt/termux-main/",
-//                        "https://packages-cf.termux.org/apt/termux-main/"
-//                    )) {
-//                        if (content.contains(toReplace)) {
-//                            content = content.replace(
-//                                toReplace,
-//                                "https://vsc.vhn.vn/termux-packages-24/"
-//                            )
-//                            it.bufferedWriter().use { it.write(content) }
-//                            break
-//                        }
-//                    }
-//                }
+                it.bufferedWriter()
+                    .use { it.write("deb https://vsc.vhn.vn/termux-packages-24/ stable main") }
             }
+            // endregion
+
+            // region patch for code-server 4.3.0, adding without-connection-token option
+            do {
+                val util_path = "$PREFIX_PATH/code-server/release-standalone/out/node/cli.js"
+                val util_orig_path =
+                    "$PREFIX_PATH/code-server/release-standalone/out/node/cli_orig_vhcode.js"
+                val util = File(util_path)
+                if (!util.exists()) break
+                if (util.readText().contains("without-connection-token")) break
+                try {
+                    File(util_orig_path).delete()
+                } catch (_: Exception) {
+                }
+                util.renameTo(File(util_orig_path))
+                File(util_path).writeText("""
+                    module.exports = require('./cli_orig_vhcode')
+                    Object.assign(
+                        module.exports.options,
+                        {
+                            'without-connection-token': {type: "boolean",desc:'zzz'},
+                            'connection-token': {type: "string",desc:'zzz1'},
+                            'connection-token-file': {type: "string",desc:'zzz2'},
+                        }
+                    )
+                """)
+            } while (false)
             // endregion
 
             "$PREFIX_PATH/boot.sh".apply {
                 copyRawResource(context, R.raw.boot, this)
                 File(this).setExecutable(true)
-            }
-
-            listOf<String>(
-                "$ROOT_PATH/code-server/release-static/dist/serviceWorker.js",
-                "$ROOT_PATH/code-server/release-standalone/dist/serviceWorker.js"
-            ).onEach {
-                val cs = Charset.forName("utf-8")
-                if (!File(it).exists()) {
-                    return@onEach
-                }
-                val content = File(it).readText(cs)
-                val new_content = content.replace("navigator.onLine", "(true)")
-                if (content != new_content) {
-                    File(it).writeText(new_content, cs)
-                    Log.d(TAG, "Clear cache ${context.cacheDir}")
-                    clearCacheFolder(context.cacheDir)
-                    File("${BASE_PATH}/cache").apply {
-                        if (exists()) clearCacheFolder(this)
-                    }
-                    File("${BASE_PATH}/app_webview").apply {
-                        if (exists()) clearCacheFolder(this)
-                    }
-                    context.externalCacheDir?.apply {
-                        if (exists()) clearCacheFolder(this)
-                    }
-                }
             }
 
             File("$PREFIX_PATH/usr/lib/libc++_shared.so").copyTo(
@@ -625,26 +611,32 @@ class CodeServerService : Service() {
                 "${envHome}/code-server/release-standalone",
                 "${envHome}/code-server/release-static"
             ).reduce { x, y -> if (File(y).exists()) y else x }
-            process = Runtime.getRuntime().exec(
-                arrayOf(
-                    "${ROOT_PATH}/usr/bin/bash",
-                    applicationContext.getFileStreamPath("boot.sh").absolutePath,
-                    codeServerRoot,
-                    "--disable-telemetry"
-                ) + (if (useSSL) arrayOf(
-                    "--cert", "$HOME_PATH/cert.cert",
-                    "--cert-key", "$HOME_PATH/cert.key"
-                ) else arrayOf()) +
-                        arrayOf(
-                            "--auth",
-                            "none",
-                            "--host",
-                            if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1",
-                            "--port",
-                            "13337"
-                        ),
-                buildEnv(ctx, listenOnAllInterface)
-            )
+
+            val cmd = arrayOf(
+                "${ROOT_PATH}/usr/bin/bash",
+                applicationContext.getFileStreamPath("boot.sh").absolutePath,
+                codeServerRoot,
+                "--disable-telemetry",
+                "--disable-update-check"
+            ) + (if (useSSL) arrayOf(
+                "--cert", "$HOME_PATH/cert.cert",
+                "--cert-key", "$HOME_PATH/cert.key"
+            ) else arrayOf()) +
+                    arrayOf(
+                        "--auth",
+                        "none",
+                        "--host",
+                        if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1",
+                        "--port",
+                        "13337",
+                        "--without-connection-token"
+                    )
+            val env = buildEnv(ctx, listenOnAllInterface)
+            File("$PREFIX_PATH/run-vs-code.sh").bufferedWriter().use {
+                for (e in env) it.write("$e ")
+                for (c in cmd) it.write("$c ")
+            }
+            process = Runtime.getRuntime().exec(cmd, env)
             val stream = DataInputStream(process!!.inputStream);
             val errStream = DataInputStream(process!!.errorStream);
             val bufSize = kConfigStreamBuferSize
