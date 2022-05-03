@@ -27,8 +27,11 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".VSCodeActivity"
-            android:configChanges="orientation|screenSize">
+        <activity
+            android:name=".VSCodeActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|fontScale|uiMode"
+            android:resizeableActivity="true"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -41,7 +44,10 @@
                     android:scheme="http" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:resizeableActivity="true"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
