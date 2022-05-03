@@ -46,9 +46,9 @@ class VSCodeActivity : AppCompatActivity() {
 
         //Change window to fullscreen if option enabled
         if (intent.getBooleanExtra(kConfigUseFullscreen, true))
-            window.decorView.systemUiVisibility = ( View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY )
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
         configureWebView(webView)
         CoroutineScope(Dispatchers.Main).launch {
@@ -78,6 +78,11 @@ class VSCodeActivity : AppCompatActivity() {
     private fun configureWebView(webView: WebView) {
         var useHardKeyboard = intent.getBooleanExtra(kConfigUseHardKeyboard, false)
         var uiScale = intent.getIntExtra(kConfigScale, 3)
+
+        try {
+            WebView.setWebContentsDebuggingEnabled(true)
+        } catch (_: Exception) {
+        }
 
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true

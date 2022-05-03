@@ -2,6 +2,9 @@ if(!window.vscodeOrigKeyboardEventDescriptorCode) window.vscodeOrigKeyboardEvent
 var codeGetter = window.vscodeOrigKeyboardEventDescriptorCode.get;
 // if(!window.vscodeOrigKeyboardEventDescriptorShift) window.vscodeOrigKeyboardEventDescriptorShift = Object.getOwnPropertyDescriptor(KeyboardEvent.prototype, 'shiftKey');
 // var shiftGetter = window.vscodeOrigKeyboardEventDescriptorShift.get;
+// if(!window.vscodeOrigKeyboardEventDescriptorAlt) window.vscodeOrigKeyboardEventDescriptorAlt = Object.getOwnPropertyDescriptor(KeyboardEvent.prototype, 'altKey');
+// var altGetter = window.vscodeOrigKeyboardEventDescriptorAlt.get;
+
 var customMapper = {
     27: 'Escape'
 };
@@ -31,5 +34,12 @@ Object.defineProperty(window.KeyboardEvent.prototype, 'code', {
         return this._vscodeCode;
     }
 });
+//Object.defineProperty(window.KeyboardEvent.prototype, 'altKey', {
+//    get(){
+//        if (!altGetter.apply(this)) return false;
+//        prepareCustomProps.apply(this);
+//        return this.code === "";
+//    }
+//});
 
-navigator.clipboard.read
+//navigator.clipboard.read
