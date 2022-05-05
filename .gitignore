@@ -1,5 +1,6 @@
 *.iml
 bootstrap*.zip
+cs*.tgz
 .gradle
 /local.properties
 /.idea
