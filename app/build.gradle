@@ -23,8 +23,8 @@ android {
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 27
-        versionName "1.8.0"
+        versionCode 28
+        versionName "1.8.1"
 
         externalNativeBuild {
             ndkBuild {
@@ -117,10 +117,9 @@ clean {
     }
 }
 
-def downloadBootstrap(String arch, String expectedChecksum, String version) {
+def downloadRemoteArchive(String arch, String localUrl, String remoteUrl, String expectedChecksum, String version) {
     def digest = java.security.MessageDigest.getInstance("SHA-256")
 
-    def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
     def file = new File(projectDir, localUrl)
     if (file.exists()) {
         def buffer = new byte[8192]
@@ -139,7 +138,6 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
         }
     }
 
-    def remoteUrl = "https://github.com/vhqtvn/termux-packages/releases/download/" + version + "/bootstrap-" + arch + ".zip"
     logger.quiet("Downloading " + remoteUrl + " ...")
 
     file.parentFile.mkdirs()
@@ -158,6 +156,27 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
     }
 }
 
+def downloadBootstrap(String arch, String expectedChecksum, String version) {
+    downloadRemoteArchive(
+            arch,
+            "src/main/cpp/bootstrap-" + arch + ".zip",
+            "https://github.com/vhqtvn/termux-packages/releases/download/" + version + "/bootstrap-" + arch + ".zip",
+            expectedChecksum,
+            version
+    )
+}
+
+def downloadCodeServer(String arch, String expectedChecksum, String version) {
+    downloadRemoteArchive(
+            arch,
+            "src/main/cpp/cs-" + arch + ".tgz",
+            "https://github.com/vhqtvn/vscode-android-server/releases/download/" + version + "/cs-" + arch + ".tgz",
+            expectedChecksum,
+            version
+    )
+}
+
+
 task downloadBootstraps() {
     doLast {
         def version = "bootstrap-2022.05.03-r3+apt-android-7"
@@ -165,6 +184,12 @@ task downloadBootstraps() {
         downloadBootstrap("arm", "cd5a1f89ab3c34066ddab2136e5f6dfa7cdcfdf137f694007bef03185b503b9c", version)
         downloadBootstrap("i686", "0fba24f2ca881ee5e02eaefee2f8acf518234e1da52847cee207e6af807fc097", version)
         downloadBootstrap("x86_64", "1473cf5aa111112a9167d904fa487269147fffe9e92ab1ec9ff71dc9053533f6", version)
+
+        def csVersion = "cs-2022.05.05-r1"
+        downloadCodeServer("aarch64", "be819b4dabc56ff634b594b042462653daa1bba0fe58216d61ff7e05df7cbf54", csVersion)
+        downloadCodeServer("arm", "a6b0d951c5a2b37b9778e9b8e1fa2c2f89a1a5895ae7ca1f1f310b1e28269eac", csVersion)
+        downloadCodeServer("x86", "43d011eb2930c7a7e4d1b11069301468da048677301a68e1868748b7c727aa27", csVersion)
+        downloadCodeServer("x86_64", "b3f8b8b9065b32f277a8a298fcda7cc300d4a188d72dceba145b85a0b5a28ba7", csVersion)
     }
 }
 

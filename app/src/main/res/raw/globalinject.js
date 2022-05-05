@@ -86,7 +86,7 @@
 
     (function(){
         var _ = function(overwrite) {
-            overwrite.options = Object.assign(
+            if(overwrite && overwrite.options) overwrite.options = Object.assign(
                 overwrite.options,
                 {
                     'without-connection-token': {type: "boolean",desc:'zzz'},
@@ -96,6 +96,5 @@
             );
         }
         _(require('./code-server/release-standalone/out/node/cli.js'));
-        require('./code-server/release-standalone/out/node/util.js').loadAMDModule('');
     })();
 })();
