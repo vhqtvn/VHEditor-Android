@@ -23,8 +23,8 @@ android {
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 28
-        versionName "1.8.1"
+        versionCode 29
+        versionName "1.8.2"
 
         externalNativeBuild {
             ndkBuild {
