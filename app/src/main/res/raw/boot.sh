@@ -31,7 +31,7 @@ if(process.env.EXTENSIONS_GALLERY && JSON.parse(process.env.EXTENSIONS_GALLERY))
 
 if(shouldAddGallery) {
   p.extensionsGallery = extensionsGallery;
-  fs.writeFileSync("./code-server/release-standalone/lib/vscode/product.json", JSON.stringify(p, null, 2));
+  fs.writeFileSync("/data/data/vn.vhn.vsc/files/code-server/release-standalone/lib/vscode/product.json", JSON.stringify(p, null, 2));
 }
 
 console.log("Current extensionsGallery", JSON.parse(fs.readFileSync("/data/data/vn.vhn.vsc/files/code-server/release-standalone/lib/vscode/product.json")).extensionsGallery)
