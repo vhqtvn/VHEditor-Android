@@ -36,7 +36,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "4.3.0-p1"
+        val kCurrentServerVersion = "4.4.0"
         val kPrefHardKeyboard = "hardkb"
         val kPrefKeepScreenAlive = "screenalive"
         val kPrefRemoteServer = "remoteserver"
@@ -373,43 +373,50 @@ class MainActivity : AppCompatActivity() {
                 progressText = findViewById(R.id.progressText)
                 setTitle(R.string.extracting)
             }
-            var currentProgress: Int = 0
-            var progressMax: Int = 0
-            var finished = false
-            launch {
-                var uiProgress: Int = -1
-                var uiProgressMax: Int = -1
-                while (!finished) {
-                    delay(50)
-                    if (uiProgress != currentProgress || uiProgressMax != progressMax) {
-                        uiProgress = currentProgress
-                        uiProgressMax = progressMax
-                        withContext(Dispatchers.Main) {
-                            progressBar.progress =
-                                currentProgress * progressBar.max / maxOf(1, progressMax)
-                            progressText.text = "%d/%d".format(uiProgress, uiProgressMax)
+            try {
+                var currentProgress: Int = 0
+                var progressMax: Int = 0
+                var finished = false
+                launch {
+                    var uiProgress: Int = -1
+                    var uiProgressMax: Int = -1
+                    while (!finished) {
+                        delay(50)
+                        if (uiProgress != currentProgress || uiProgressMax != progressMax) {
+                            uiProgress = currentProgress
+                            uiProgressMax = progressMax
+                            withContext(Dispatchers.Main) {
+                                progressBar.progress =
+                                    currentProgress * progressBar.max / maxOf(1, progressMax)
+                                progressText.text = "%d/%d".format(uiProgress, uiProgressMax)
+                            }
                         }
                     }
                 }
+                val progressChannel = Channel<Pair<Int, Int>>()
+                dialog.show()
+                dialog.window!!.setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT
+                )
+                launch {
+                    delay(1000)
+                    CodeServerService.extractServer(this@MainActivity, progressChannel)
+                    updateUI()
+                    finished = true
+                    progressChannel.close()
+                }
+                for ((progress, max) in progressChannel) {
+                    currentProgress = progress
+                    progressMax = max
+                }
             }
-            val progressChannel = Channel<Pair<Int, Int>>()
-            dialog.show()
-            dialog.window!!.setLayout(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.WRAP_CONTENT
-            )
-            launch {
-                delay(1000)
-                CodeServerService.extractServer(this@MainActivity, progressChannel)
-                updateUI()
-                finished = true
-                progressChannel.close()
+            catch (e: Exception) {
+                Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_LONG).show()
             }
-            for ((progress, max) in progressChannel) {
-                currentProgress = progress
-                progressMax = max
+            finally {
+                dialog.hide()
             }
-            dialog.hide()
         }
     }
 

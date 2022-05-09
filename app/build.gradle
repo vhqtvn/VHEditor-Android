@@ -23,8 +23,8 @@ android {
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 30
-        versionName "1.8.3"
+        versionCode 31
+        versionName "1.9.0"
 
         externalNativeBuild {
             ndkBuild {
@@ -185,11 +185,11 @@ task downloadBootstraps() {
         downloadBootstrap("i686", "0fba24f2ca881ee5e02eaefee2f8acf518234e1da52847cee207e6af807fc097", version)
         downloadBootstrap("x86_64", "1473cf5aa111112a9167d904fa487269147fffe9e92ab1ec9ff71dc9053533f6", version)
 
-        def csVersion = "cs-2022.05.05-r1"
-        downloadCodeServer("aarch64", "be819b4dabc56ff634b594b042462653daa1bba0fe58216d61ff7e05df7cbf54", csVersion)
-        downloadCodeServer("arm", "a6b0d951c5a2b37b9778e9b8e1fa2c2f89a1a5895ae7ca1f1f310b1e28269eac", csVersion)
-        downloadCodeServer("x86", "43d011eb2930c7a7e4d1b11069301468da048677301a68e1868748b7c727aa27", csVersion)
-        downloadCodeServer("x86_64", "b3f8b8b9065b32f277a8a298fcda7cc300d4a188d72dceba145b85a0b5a28ba7", csVersion)
+        def csVersion = "cs-2022.05.09-r1"
+        downloadCodeServer("aarch64", "78088dcb95cd166bd671006b834373159a29105f1d4ec0a0f645bb518a30775b", csVersion)
+        downloadCodeServer("arm", "7c0bd410ccda7da6f319ea193ed17246265a44a0ed907a94521294cee57a645a", csVersion)
+        downloadCodeServer("x86", "423098a2e7e95e6a8982ccc99ea0edff4212b2d66b5c505b1b3c4d3712c2fa97", csVersion)
+        downloadCodeServer("x86_64", "7fb060d9019b354603bc9653c2d9a5ed9301b7562ebb3124c81fc4cbafb74525", csVersion)
     }
 }
 

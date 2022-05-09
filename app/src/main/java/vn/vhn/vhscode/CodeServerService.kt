@@ -21,8 +21,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.io.*
-import java.nio.charset.Charset
-import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 
@@ -161,7 +159,8 @@ class CodeServerService : Service() {
                 } catch (_: Exception) {
                 }
                 util.renameTo(File(util_orig_path))
-                File(util_path).writeText("""
+                File(util_path).writeText(
+                    """
                     module.exports = require('./cli_orig_vhcode')
                     Object.assign(
                         module.exports.options,
@@ -171,7 +170,8 @@ class CodeServerService : Service() {
                             'connection-token-file': {type: "string",desc:'zzz2'},
                         }
                     )
-                """)
+                """
+                )
             } while (false)
             // endregion
 
@@ -281,6 +281,7 @@ class CodeServerService : Service() {
             archiveFile.reset()
             reader = TarArchiveInputStream(GZIPInputStream(archiveFile))
             currentEntry = reader.nextTarEntry
+            val links: ArrayList<Pair<String, String>> = ArrayList(50)
 
             while (currentEntry != null) {
                 currentFileIndex++
@@ -291,6 +292,16 @@ class CodeServerService : Service() {
                 }
                 if (currentEntry.isDirectory) {
                     outputFile.mkdirs()
+                } else if (currentEntry.isSymbolicLink) {
+                    Log.d("SYMLINK", currentEntry.linkName + " <- " + outputFile.absolutePath)
+                    Os.symlink(currentEntry.linkName, outputFile.absolutePath)
+                } else if (currentEntry.isLink) {
+                    links.add(
+                        Pair(
+                            outputDir.absolutePath + "/" + currentEntry.linkName,
+                            outputFile.absolutePath
+                        )
+                    )
                 } else {
                     val outStream = FileOutputStream(outputFile)
                     while (true) {
@@ -301,6 +312,10 @@ class CodeServerService : Service() {
                     outStream.close()
                 }
                 currentEntry = reader.nextTarEntry
+            }
+            for (link in links) {
+                Log.d("Link", link.first + " >> " + link.second)
+                File(link.first).copyTo(File(link.second))
             }
         }
 
@@ -615,7 +630,8 @@ class CodeServerService : Service() {
 
             try {
                 Runtime.getRuntime().exec("killall node").inputStream.read()
-            }catch (_: java.lang.Exception){}
+            } catch (_: java.lang.Exception) {
+            }
 
             val cmd = arrayOf(
                 "${ROOT_PATH}/usr/bin/bash",
