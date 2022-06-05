@@ -219,7 +219,10 @@ class MouseView(
                 MOUSE_ACTION_UPDATE_POINTER -> {
                     val e = mMotionEventToUpdate
                     mMotionEventToUpdate = null
-                    e?.also { performUpdatePointer(it) }
+                    e?.also {
+                        performUpdatePointer(it)
+                        it.recycle()
+                    }
                 }
             }
         }
@@ -336,7 +339,8 @@ class MouseView(
     private var mLastMotionEventForPointerIcon: MotionEvent? = null
 
     private fun performUpdatePointer(e: MotionEvent, pointerIndex: Int = 0) {
-        mLastMotionEventForPointerIcon = e
+        mLastMotionEventForPointerIcon?.apply { recycle() }
+        mLastMotionEventForPointerIcon = MotionEvent.obtain(e)
         val pointer = mTarget.onResolvePointerIcon(e, pointerIndex)
         if (pointer != null && pointer != mLastResolvedPointerIcon) {
             mLastResolvedPointerIcon = pointer
@@ -363,7 +367,7 @@ class MouseView(
         val currentEvent = mMotionEventToUpdate
         val shouldPost = currentEvent == null
         mMotionEventToUpdate?.apply { recycle() }
-        mMotionEventToUpdate = e
+        mMotionEventToUpdate = MotionEvent.obtain(e)
         if (shouldPost) mHandler.sendEmptyMessageDelayed(MOUSE_ACTION_UPDATE_POINTER, 100)
     }
 
