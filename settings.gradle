@@ -1,2 +1,7 @@
 rootProject.name='VHSCode'
 include ':app'
+include 'termux-shared', 'terminal-emulator', 'terminal-view'
+project(':termux-shared').projectDir = file('deps/termux-app/termux-shared')
+project(':terminal-emulator').projectDir = file('deps/termux-app/terminal-emulator')
+project(':terminal-view').projectDir = file('deps/termux-app/terminal-view')
+

@@ -1,15 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 
 android {
-    compileSdkVersion 29
-    ndkVersion '21.3.6528147'
+    compileSdkVersion project.properties.compileSdkVersion.toInteger()
+    ndkVersion System.getenv("JITPACK_NDK_VERSION") ?: project.properties.ndkVersion
 
-    lintOptions {
-        lintConfig file("../lint.xml")
-    }
 
     dexOptions {
         javaMaxHeapSize "4G"
@@ -17,14 +13,14 @@ android {
 
     defaultConfig {
         applicationId "vn.vhn.vsc"
-        minSdkVersion 24
+        minSdkVersion project.properties.minSdkVersion.toInteger()
         if (System.env['GPLAY_BUILD'] == '1') {
             defaultConfig.targetSdkVersion 29 // google play require minimum version to be 29
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 31
-        versionName "1.9.0"
+        versionCode 32
+        versionName "2.0.0"
 
         externalNativeBuild {
             ndkBuild {
@@ -92,6 +88,16 @@ android {
             path "src/main/cpp/Android.mk"
         }
     }
+    lint {
+        lintConfig file('../lint.xml')
+    }
+    namespace 'vn.vhn.vhscode'
+    buildFeatures {
+        viewBinding true
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
@@ -104,6 +110,14 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.0'
     implementation 'com.google.android.material:material:1.3.0'
+    implementation 'com.github.Dimezis:BlurView:version-2.0.0'
+
+    api project(':termux-shared')
+    api project(':terminal-emulator')
+    api project(':terminal-view')
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -129,7 +143,7 @@ def downloadRemoteArchive(String arch, String localUrl, String remoteUrl, String
             if (readBytes < 0) break
             digest.update(buffer, 0, readBytes)
         }
-        def checksum = new BigInteger(1, digest.digest()).toString(16)
+        def checksum = String.format("%1\$64s", new BigInteger(1, digest.digest()).toString(16)).replace(' ', '0')
         if (checksum == expectedChecksum) {
             return
         } else {
@@ -150,9 +164,9 @@ def downloadRemoteArchive(String arch, String localUrl, String remoteUrl, String
     out.close()
 
     def checksum = new BigInteger(1, digest.digest()).toString(16)
-    if (checksum != expectedChecksum.replaceAll("^0+","")) {
+    if (checksum != expectedChecksum.replaceAll("^0+", "")) {
         file.delete()
-        throw new GradleException("Wrong checksum for " + remoteUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
+        throw new Exception("Wrong checksum for " + remoteUrl + ": expected: " + expectedChecksum + ", actual: " + checksum)
     }
 }
 

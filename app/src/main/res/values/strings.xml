@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">VHEditor</string>
+    <string name="new_editor_header">New Editor Server</string>
     <string name="loading">Loading...</string>
     <string name="server_version">Server version: %s</string>
     <string name="not_installed">Not installed</string>
@@ -7,6 +8,7 @@
     <string name="update_server">Update server</string>
     <string name="reinstall_server">Reinstall server</string>
     <string name="start_code">Start Editor</string>
+    <string name="new_terminal">New Terminal</string>
     <string name="stop_code">Stop Server</string>
     <string name="dont_show_this_again">Don\'t show this again</string>
     <string name="credit"><a href="https://github.com/cdr/code-server">code-server</a> by <a href="https://coder.com/">coder</a>\n<a href="https://github.com/termux/termux-app">termux</a> by <a href="https://github.com/termux">termux community</a>\n<a href="https://github.com/vhqtvn/VHSCode-Android">UI &amp; Android version</a> by <a href="www.linkedin.com/in/vhnvn">vhnvn</a>\nIcons by kelian.elbaz44</string>
@@ -37,4 +39,19 @@
     <string name="wrong_target_sdk"><h1>I\'m sorry!</h1>\nAndroid api version <b>28</b> is required to make termux embedding works.\nBut now Google Play <b>disabled</b> uploading applications with targetSdk 28, devices with <b>Android 10 and later can\'t use VHEditor version installed from Google Play</b>.\nPlease tap the <b>following link</b> to download latest release from VHEditor\'s github repository.</string>
     <string name="zoomValue">UI Scale: %1$d%%</string>
     <string name="fullscreen_setting">Fullscreen</string>
+
+    <string name="new_session">New</string>
+
+    <string name="tag_binding">tag_binding</string>
+    <string name="tag_binding_position">tag_binding_position</string>
+
+    <string name="title_max_terminals_reached">Max terminals reached</string>
+    <string name="msg_max_terminals_reached">Close down existing ones before creating new.</string>
+    <string name="title_max_editors_reached">Max Editor reached</string>
+    <string name="msg_max_editors_reached">Close down existing ones before creating new.</string>
+    <string name="title_rename_session">Set session name</string>
+    <string name="action_rename_session_confirm">Set</string>
+    <string name="title_create_named_session">New named session</string>
+    <string name="action_create_named_session_confirm">Create</string>
+    <string name="use_virtual_mouse">Use virtual mouse</string>
 </resources>

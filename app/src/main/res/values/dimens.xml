@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="session_list_view_selected_padding_left">5dp</dimen>
+    <dimen name="session_item_icon_size">32dp</dimen>
+    <dimen name="session_item_text_size">15dp</dimen>
+    <dimen name="drawer_left_width">350dp</dimen>
+</resources>

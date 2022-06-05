@@ -1,0 +1,3 @@
+[submodule "deps/termux-app"]
+	path = deps/termux-app
+	url = https://github.com/termux/termux-app

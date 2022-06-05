@@ -8,10 +8,15 @@ import android.util.Log
 import android.webkit.*
 import androidx.core.content.ContextCompat.startActivity
 import vn.vhn.vhscode.CodeServerService
+import vn.vhn.vhscode.root.fragments.VSCodeFragment
+import vn.vhn.vhscode.service_features.getBootjs
 import java.net.URI
 
 
-class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
+class VSCodeWebClient(
+    val vsCodeFragment: VSCodeFragment,
+    val rootUrl: String,
+) : WebViewClient() {
     companion object {
         val TAG = "VSCodeWebClient"
     }
@@ -22,13 +27,13 @@ class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         super.onPageStarted(view, url, favicon)
         view?.apply {
-            CodeServerService.getBootjs(context)
-            context
-            evaluateJavascript(
-                CodeServerService.getBootjs(context)
-                , null
-            )
+            CodeServerService.getBootjs(context)?.let {
+                evaluateJavascript(
+                    it, null
+                )
+            }
         }
+        vsCodeFragment.onPageStarted(view, url, favicon)
     }
 
     override fun onLoadResource(view: WebView?, url: String?) {
@@ -51,7 +56,7 @@ class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
 
     override fun shouldInterceptRequest(
         view: WebView?,
-        request: WebResourceRequest?
+        request: WebResourceRequest?,
     ): WebResourceResponse? {
         if (request != null && view != null) {
             val url = request.url.toString()
@@ -89,5 +94,10 @@ class VSCodeWebClient(val rootUrl: String) : WebViewClient() {
             }
         }
         return super.shouldOverrideUrlLoading(view, request)
+    }
+
+    override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        vsCodeFragment.onPageFinished(view, url)
     }
 }

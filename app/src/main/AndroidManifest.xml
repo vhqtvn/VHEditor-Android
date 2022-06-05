@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="vn.vhn.vhscode">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -19,41 +18,27 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".GithubReleaseInstallActivity"
-            android:launchMode="singleInstance"></activity>
-
-        <service
-            android:name=".CodeServerService"
-            android:enabled="true"
-            android:exported="true" />
-
+            android:name=".root.NewSessionActivity"
+            android:exported="false"
+            android:launchMode="singleInstance" />
         <activity
-            android:name=".VSCodeActivity"
+            android:name=".root.EditorHostActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|fontScale|uiMode"
-            android:resizeableActivity="true"
-        >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="vhn.vn"
-                    android:pathPrefix="/android/vsc/editor"
-                    android:scheme="http" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".MainActivity"
-            android:resizeableActivity="true"
-        >
+            android:resizeableActivity="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".GithubReleaseInstallActivity"
+            android:launchMode="singleInstance" />
+
+        <service
+            android:name=".CodeServerService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>

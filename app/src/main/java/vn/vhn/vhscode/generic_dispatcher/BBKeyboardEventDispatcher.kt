@@ -178,6 +178,7 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                             }
                         }
                     }
+                    else -> {}
                 }
         }
 
