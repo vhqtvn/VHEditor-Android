@@ -20,7 +20,7 @@ android {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
         versionCode 32
-        versionName "2.0.0"
+        versionName "2.0.2"
 
         externalNativeBuild {
             ndkBuild {

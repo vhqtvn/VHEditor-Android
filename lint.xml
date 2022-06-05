@@ -3,5 +3,8 @@
     <issue id="PackagedPrivateKey">
         <ignore path="app/src/main/res/raw/root_ca.key"/>
     </issue>
+    <issue id="ExpiredTargetSdkVersion">
+        <ignore path="*"/>
+    </issue>
 </lint>
 
