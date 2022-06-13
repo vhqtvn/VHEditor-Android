@@ -1,8 +1,10 @@
 package vn.vhn.vhscode.root
 
 import android.Manifest
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Html
@@ -33,6 +35,7 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.URL
 
+
 class NewSessionActivity : AppCompatActivity() {
     companion object {
         val kCurrentServerVersion = "4.4.0"
@@ -45,12 +48,19 @@ class NewSessionActivity : AppCompatActivity() {
         val kSessionType = "SESSION_TYPE"
         val kSessionTypeTerminal = "SESSION_TYPE_TERMINAL"
         val kSessionTypeCodeEditor = "SESSION_TYPE_CODEEDITOR"
+        val kSessionTypeRemoteCodeEditor = "SESSION_TYPE_REMOTE_CODEEDITOR"
+
+        val kRemoteCodeEditorURL = "REMOTE_CODEEDITOR_URL"
     }
 
     private lateinit var binding: ActivityNewSessionBinding
     lateinit var preferences: EditorHostPrefs
 
     private var latestRemoteVersion: String? = null
+
+    private fun sharedPreferences(): SharedPreferences {
+        return getSharedPreferences("main_settings", Context.MODE_PRIVATE)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +79,7 @@ class NewSessionActivity : AppCompatActivity() {
 
     private fun configureUI() {
         binding.txtAppVersion.movementMethod = LinkMovementMethod.getInstance()
-
+        binding.editTxtRemoteServer.setText(preferences.defaultRemoteEditorURL)
         checkLatestVersion()
     }
 
@@ -82,7 +92,8 @@ class NewSessionActivity : AppCompatActivity() {
         TermuxInstaller.setupIfNeeded(this) {
             CodeServerService.setupIfNeeded(this) {
                 CoroutineScope(Dispatchers.Main).launch {
-                    setResult(RESULT_OK,
+                    setResult(
+                        RESULT_OK,
                         Intent()
                             .putExtra(kSessionType, kSessionTypeCodeEditor)
                             .putExtra(kSessionSSL, preferences.editorUseSSL)
@@ -94,7 +105,15 @@ class NewSessionActivity : AppCompatActivity() {
         }
     }
 
-    fun onStartRemote(view: View) {}
+    fun onStartRemote(view: View) {
+        setResult(
+            RESULT_OK, Intent()
+                .putExtra(kSessionType, kSessionTypeRemoteCodeEditor)
+                .putExtra(kRemoteCodeEditorURL, binding.editTxtRemoteServer.text.toString())
+        )
+        preferences.defaultRemoteEditorURL = binding.editTxtRemoteServer.text.toString()
+        finish()
+    }
 
     private fun checkLatestVersion() {
         CoroutineScope(Dispatchers.IO).launch {

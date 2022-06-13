@@ -10,7 +10,8 @@ import vn.vhn.vhscode.service_features.SessionsHost
 class GlobalSessionsManager() {
     enum class SessionType {
         TERMUX_TERMINAL,
-        CODESERVER_EDITOR;
+        CODESERVER_EDITOR,
+        REMOTE_CODESERVER_EDITOR;
 
         companion object {
             val Count = values().size

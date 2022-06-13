@@ -16,6 +16,7 @@ class EditorHostPrefs(context: Context) {
         val kPrefEditorUseSSL = "editor:use-ssl"
         val kPrefEditorUseVirtualMouse = "editor:use-vmouse"
         val kPrefEditorListenALlInterfaces = "editor:all-interfaces"
+        val kPrefRemoteCodeEditorURL = "editor:remote-url"
 
         val kFlagGuideDrawerShown = "flag:guide-drawer-shown"
         val kFlagGuideEditorSettingsShown = "flag:guide-editor-settings-shown"
@@ -125,6 +126,23 @@ class EditorHostPrefs(context: Context) {
             SharedPreferenceUtils.setBoolean(
                 mSharedPreferences,
                 TermuxPreferenceConstants.TERMUX_APP.KEY_KEEP_SCREEN_ON,
+                value,
+                false
+            )
+        }
+
+    var defaultRemoteEditorURL: String
+        get() =
+            SharedPreferenceUtils.getString(
+                mSharedPreferences,
+                TermuxPreferenceConstants.TERMUX_APP.KEY_SOFT_KEYBOARD_ENABLED,
+                "https://127.0.0.1:13337",
+                false
+            )
+        set(value) {
+            SharedPreferenceUtils.setString(
+                mSharedPreferences,
+                TermuxPreferenceConstants.TERMUX_APP.KEY_SOFT_KEYBOARD_ENABLED,
                 value,
                 false
             )

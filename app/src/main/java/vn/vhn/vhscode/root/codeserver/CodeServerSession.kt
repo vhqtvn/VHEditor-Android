@@ -19,6 +19,8 @@ class CodeServerSession(
     val ctx: Context,
     val listenOnAllInterface: Boolean,
     val useSSL: Boolean,
+    val remote: Boolean = false,
+    var remoteURL: String? = null,
     port: Int? = null,
 ) {
     companion object {
@@ -78,6 +80,10 @@ class CodeServerSession(
     }
 
     fun killIfExecuting(context: Context) {
+        if(remote){
+            onProcessFinished(RunStatus.FINISHED, true)
+            return
+        }
         if (!hasExited()) {
             process?.destroy()
             for (i in 0..30) {
@@ -94,6 +100,10 @@ class CodeServerSession(
     }
 
     private fun _run() {
+        if(remote){
+            status.postValue(RunStatus.RUNNING)
+            return
+        }
         status.postValue(RunStatus.STARTING)
         val nodeBinary = ctx.getFileStreamPath("node")
         val envHome = nodeBinary?.parentFile?.absolutePath
@@ -175,6 +185,10 @@ class CodeServerSession(
     }
 
     private fun hasExited(): Boolean {
+        if(remote){
+            return true
+        }
+
         if (process == null) return true
         return try {
             process?.exitValue()
