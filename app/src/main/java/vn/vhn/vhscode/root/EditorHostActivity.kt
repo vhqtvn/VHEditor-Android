@@ -290,6 +290,16 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                             intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
                         )
                     }
+                    NewSessionActivity.kSessionTypeRemoteCodeEditor -> {
+                        codeServerService?.sessionsHost?.createCodeEditorSession(
+                            GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.REMOTE_CODESERVER_EDITOR),
+                            "RemoteEditor",
+                            false,
+                            false,
+                            true,
+                            intent?.getStringExtra(NewSessionActivity.kRemoteCodeEditorURL)
+                        )
+                    }
                 }
             }
         }

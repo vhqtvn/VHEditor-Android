@@ -6,4 +6,5 @@
             <certificates src="@raw/my_ca" />
         </trust-anchors>
     </domain-config>
+    <base-config cleartextTrafficPermitted="true"/>
 </network-security-config>
