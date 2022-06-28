@@ -2,8 +2,6 @@ package vn.vhn.vhscode.root.codeserver
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import vn.vhn.vhscode.CodeServerService
@@ -12,7 +10,6 @@ import java.io.DataInputStream
 import java.io.File
 import java.net.ServerSocket
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class CodeServerSession(
     val id: Int,
@@ -80,28 +77,29 @@ class CodeServerSession(
     }
 
     fun killIfExecuting(context: Context) {
-        if(remote){
+        if (remote) {
             onProcessFinished(RunStatus.FINISHED, true)
             return
         }
-        if (!hasExited()) {
+        if (!checkIfHasExited()) {
             process?.destroy()
             for (i in 0..30) {
-                if (hasExited()) break
+                if (checkIfHasExited()) break
                 try {
                     Thread.sleep(100)
                 } catch (e: Exception) {
                 }
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (!hasExited()) process?.destroyForcibly()
+                if (!checkIfHasExited()) process?.destroyForcibly()
             }
         }
     }
 
     private fun _run() {
-        if(remote){
+        if (remote) {
             status.postValue(RunStatus.RUNNING)
+            appendLog(OUTPUT_STREAM_STDERR, "Running remote editor: ${remoteURL}\n")
             return
         }
         status.postValue(RunStatus.STARTING)
@@ -184,8 +182,8 @@ class CodeServerSession(
         }
     }
 
-    private fun hasExited(): Boolean {
-        if(remote){
+    private fun checkIfHasExited(): Boolean {
+        if (remote) {
             return true
         }
 
@@ -202,10 +200,13 @@ class CodeServerSession(
         newStatus: RunStatus,
         sure: Boolean = false,
     ) {
-        if (!sure && !hasExited()) return
-        if (hasExited()) {
+        if (!sure && !checkIfHasExited()) return
+        if (checkIfHasExited()) {
             status.postValue(newStatus)
             mTerminated = true
+            if (remote) {
+                appendLog(OUTPUT_STREAM_STDERR, "Finished.\n")
+            }
         }
     }
 

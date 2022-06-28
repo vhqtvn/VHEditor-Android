@@ -7,6 +7,7 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -229,8 +230,8 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     }
 
     @Synchronized
-    fun setSessionsListView() {
-        if (mEditorHostAdapter.dataArray.isNotEmpty()) {
+    fun setSessionsListView(checkExit: Boolean = true) {
+        if (checkExit && mEditorHostAdapter.dataArray.isNotEmpty()) {
             checkIfShouldFinish()
         }
         mEditorHostAdapter.updateSessions(mCodeServerService?.sessionsHost?.getSessions())
@@ -384,8 +385,12 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         relativeDelta: Float,
         absoluteValue: Float,
     ): Boolean {
-        if (mCurrentGestureHandler == GestureHandlerType.TYPE_UP_DOWN) return false
+        if (
+            mCurrentGestureHandler != GestureHandlerType.TYPE_LEFT_RIGHT
+            && mCurrentGestureHandler != GestureHandlerType.TYPE_NONE
+        ) return false
         if (touches == 3) {
+            mCurrentGestureHandler = GestureHandlerType.TYPE_LEFT_RIGHT
             mDrawerLayoutDrawerController?.updateDrawerOffset(absoluteValue)
             return true
         }
@@ -397,8 +402,12 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         relativeDelta: Float,
         absoluteValue: Float,
     ): Boolean {
-        if (mCurrentGestureHandler != GestureHandlerType.TYPE_NONE) return false
+        if (
+            mCurrentGestureHandler != GestureHandlerType.TYPE_UP_DOWN
+            && mCurrentGestureHandler != GestureHandlerType.TYPE_NONE
+        ) return false
         if (touches == 3) {
+            mCurrentGestureHandler = GestureHandlerType.TYPE_UP_DOWN
             if (absoluteValue <= -80 * dipInPixels) {
                 mDrawerLayoutDrawerController?.cancel()
                 mCurrentEditorFragment?.toggleSettings(true)
@@ -414,6 +423,15 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     }
 
     override fun onGestureTap(touches: Int) {
+        if (touches == 3) {
+            binding.drawerLayout.apply {
+                if (isDrawerOpen(Gravity.LEFT)) {
+                    closeDrawers()
+                } else {
+                    openDrawer(Gravity.LEFT)
+                }
+            }
+        }
     }
 
     override fun onGestureEnd(motionEvent: MotionEvent) {
@@ -428,7 +446,10 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     private fun checkIfShouldFinish() {
         runOnUiThread {
             codeServerService?.globalSessionsManager?.sessionsHost?.also { sessionsHost ->
-                if (sessionsHost.sessionsCount <= 1 && !sessionsHost.hasAliveSession()) {
+                if (!sessionsHost.hasAliveSession()) {
+                    sessionsHost.cleanup()
+                    val serviceIntent = Intent(this, CodeServerService::class.java)
+                    stopService(serviceIntent)
                     finish()
                 }
             }

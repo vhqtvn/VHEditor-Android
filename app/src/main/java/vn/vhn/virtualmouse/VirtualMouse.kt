@@ -33,7 +33,7 @@ class VirtualMouse() {
     val isEnabled
         get() = mMouseView?.parent != null
 
-    fun enable(rootView: View, targetView: WebView) {
+    fun enable(rootView: View, targetView: WebView, scaleFactor: Float) {
         if (MouseView.actionButtonOffset < 0) {
             Toast.makeText(rootView.context,
                 "Failed to obtain actionButton offset",
@@ -48,6 +48,7 @@ class VirtualMouse() {
         }
         disable()
         mMouseView = MouseView(rootView.context, targetView)
+        mMouseView!!.cursorScale = scaleFactor
         mMouseView!!.id = View.generateViewId()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mMouseView!!.focusable = View.NOT_FOCUSABLE
@@ -78,9 +79,12 @@ class VirtualMouse() {
         }
     }
 
-    public fun moveMouseTo(x: Float, y: Float) {
+    fun moveMouseTo(x: Float, y: Float) {
         mMouseView?.update(x, y)
         mMouseView?.postInvalidate()
     }
 
+    fun setMouseScale(factor: Float) {
+        mMouseView?.cursorScale = factor
+    }
 }

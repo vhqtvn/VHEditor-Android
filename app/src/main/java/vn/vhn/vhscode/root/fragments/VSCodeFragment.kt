@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.*
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.CheckBox
 import android.widget.SeekBar
 import androidx.core.text.HtmlCompat
@@ -75,6 +76,7 @@ class VSCodeFragment : Fragment() {
     private var mWebViewConfigured = false
     private var genericMotionEventDispatcher: IGenericEventDispatcher? = null
     private var mNewUIScale: Int = 0
+    private var mNewVirtualMouseScaleParam: Int = -1
 
     private val serverLogObserver: Observer<String> = Observer<String> { updateLogView(it) }
     private val statusObserver: Observer<CodeServerSession.Companion.RunStatus> =
@@ -87,6 +89,23 @@ class VSCodeFragment : Fragment() {
         _binding = FragmentVSCodeBinding.inflate(inflater, container, false)
         _binding?.chkUseHardwareKeyboard?.setOnClickListener { onChkUseHardwareKeyboard(it) }
         _binding?.chkUseVirtualMouse?.setOnClickListener { onChkUseVirtualMouse(it) }
+        _binding?.virtualMouseScaleSeekBar?.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
+                mNewVirtualMouseScaleParam = p1
+                val newVirtualMouseScale = host.preferences.calculateEditorVirtualMouseScale(p1)
+                binding.virtualMouseScaleLabel.post {
+                    binding.virtualMouseScaleLabel.text =
+                        resources.getString(R.string.virtualMouseScaleValue, newVirtualMouseScale)
+                }
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+            }
+        })
         _binding?.zoomScaleSeekBar?.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
@@ -117,12 +136,13 @@ class VSCodeFragment : Fragment() {
                 configureHWKeyboardMode(isHWKB)
                 binding.chkUseHardwareKeyboard.isChecked = isHWKB
             }
+            binding.virtualMouseScaleSeekBar.progress = it.editorVirtualMouseScaleParam
             binding.zoomScaleSeekBar.progress = (it.editorUIScale / 25) - 1
         }
         host.onFragmentResume(fragmentId, WeakReference(this))
         val session = host.codeServerService?.sessionsHost?.getVSCodeSessionForId(sid)
         mSession = session
-        session?.liveServerLog?.observeForever(serverLogObserver)
+        session?.liveServerLog?.observeForever(serverLogObserver) // this will trigger any initial value
         session?.status?.observeForever(statusObserver)
         Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
         jsInterface = VSCodeJSInterface(host)
@@ -149,38 +169,50 @@ class VSCodeFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-
+        binding.webView.webChromeClient = null
+        binding.webView.webViewClient = WebViewClient()
         mSession?.also { session ->
             session.liveServerLog.removeObserver(serverLogObserver)
             session.status.removeObserver(statusObserver)
         }
-
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun updateLogView(txt: String) {
-        binding.txtServerLog.post {
-            binding.txtServerLog.setTextKeepState(txt)
-            if (binding.txtServerLog.layout == null) return@post
-            val scrollAmount =
-                binding.txtServerLog.layout.getLineTop(binding.txtServerLog.lineCount) - binding.txtServerLog.height;
-            if (scrollAmount > 0)
-                binding.txtServerLog.scrollTo(0, scrollAmount);
-            else
-                binding.txtServerLog.scrollTo(0, 0);
+        _binding?.txtServerLog?.post {
+            _binding?.also {
+                it.txtServerLog.setTextKeepState(txt)
+                if (it.txtServerLog.layout == null) return@post
+                val scrollAmount =
+                    it.txtServerLog.layout.getLineTop(it.txtServerLog.lineCount) - it.txtServerLog.height;
+                if (scrollAmount > 0)
+                    it.txtServerLog.scrollTo(0, scrollAmount);
+                else
+                    it.txtServerLog.scrollTo(0, 0);
+            }
         }
     }
 
     private fun onServerStatusUpdated(status: CodeServerSession.Companion.RunStatus) {
-        binding.webView.post {
-            if (status == CodeServerSession.Companion.RunStatus.RUNNING) {
-                setLogVisible(false)
-                setEditorVisible(true)
-            } else {
-                setLogVisible(true)
+        _binding?.webView?.post {
+            when (status) {
+                CodeServerSession.Companion.RunStatus.RUNNING -> {
+                    setLogVisible(false)
+                    setEditorVisible(true)
+                }
+                CodeServerSession.Companion.RunStatus.ERROR,
+                CodeServerSession.Companion.RunStatus.FINISHED,
+                -> {
+                    _binding?.also {
+                        it.webView.loadUrl("about:blank")
+                        setLogVisible(true)
+                    }
+                }
+                else -> {
+                    setLogVisible(true)
+                }
             }
-
         }
     }
 
@@ -188,9 +220,20 @@ class VSCodeFragment : Fragment() {
     private var mCurrentLogVisible = true
     private fun setLogVisible(visible: Boolean) {
         if (visible == mCurrentLogVisible) return
-        if (!visible && mNewUIScale > 0 && mNewUIScale != host.preferences.editorUIScale) {
-            host.preferences.editorUIScale = mNewUIScale
-            configureWebView(binding.webView, true)
+
+        if (mSession?.status?.value != CodeServerSession.Companion.RunStatus.RUNNING && !visible) return
+
+        if (!visible) {
+            var shouldConfigureWebview = false
+            if (mNewUIScale > 0 && mNewUIScale != host.preferences.editorUIScale) {
+                host.preferences.editorUIScale = mNewUIScale
+                shouldConfigureWebview = true
+            }
+            if (mNewVirtualMouseScaleParam >= 0 && mNewVirtualMouseScaleParam != host.preferences.editorVirtualMouseScaleParam) {
+                host.preferences.editorVirtualMouseScaleParam = mNewVirtualMouseScaleParam
+                mVirtualMouse.setMouseScale(host.preferences.editorVirtualMouseScale)
+            }
+            if (shouldConfigureWebview) configureWebView(binding.webView, true)
         }
         if (visible) mGuideShowDrawer?.apply {
             host.preferences.guideEditorSettingsShown = true
@@ -245,6 +288,7 @@ class VSCodeFragment : Fragment() {
 
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        webView.settings.databaseEnabled = true
         webView.settings.allowContentAccess = true
         webView.settings.allowFileAccess = true
         webView.settings.allowFileAccessFromFileURLs = true
@@ -259,9 +303,9 @@ class VSCodeFragment : Fragment() {
         val protocol = if (isSSL) "https" else "http"
         val port = mSession?.port ?: throw Error("St wrong, no port obtained")
         val url: String
-        if(mSession?.remote == true){
+        if (mSession?.remote == true) {
             url = mSession?.remoteURL ?: throw Error("No remote url")
-        }else{
+        } else {
             url = protocol + "://127.0.0.1:" + port + "/?_=" + System.currentTimeMillis()
         }
 
@@ -300,7 +344,9 @@ class VSCodeFragment : Fragment() {
 
     fun configureVirtualMouseMode(enable: Boolean) {
         if (enable == mVirtualMouse.isEnabled) return
-        if (enable) mVirtualMouse.enable(binding.webViewContainer, binding.webView)
+        if (enable) mVirtualMouse.enable(binding.webViewContainer,
+            binding.webView,
+            host.preferences.editorVirtualMouseScale)
         else mVirtualMouse.disable()
     }
 
@@ -354,12 +400,14 @@ class VSCodeFragment : Fragment() {
     }
 
     fun onPageFinished(view: WebView?, url: String?) {
-        binding.loading.postDelayed({
-            binding.loading.visibility = View.GONE
-        }, 500)
-        if (url?.startsWith("http") == true)
-            guideEditorSettings()
-        if (mUseHardKeyboard == true && !binding.webView.hasFocus()) binding.webView.requestFocus()
+        _binding?.also {
+            it.loading.postDelayed({
+                _binding?.loading?.visibility = View.GONE
+            }, 500)
+            if (url?.startsWith("http") == true)
+                guideEditorSettings()
+            if (mUseHardKeyboard == true && !it.webView.hasFocus()) it.webView.requestFocus()
+        }
     }
 
     fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {

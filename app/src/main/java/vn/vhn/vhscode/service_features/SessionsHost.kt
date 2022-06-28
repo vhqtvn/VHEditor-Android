@@ -38,7 +38,7 @@ class SessionsHost(
         data class SessionCaseCodeEditor(val session: CodeServerSession?) : SessionWrapper()
 
         private val MAX_TERMINAL_SESSIONS = 10
-        private val MAX_CODESERVER_SESSIONS = 1
+        private val MAX_CODESERVER_LOCAL_SESSIONS = 1
     }
 
     init {
@@ -61,9 +61,9 @@ class SessionsHost(
         listenOnAllInterface: Boolean,
         useSSL: Boolean,
         remote: Boolean = false,
-        remoteURL: String? = null
+        remoteURL: String? = null,
     ): CodeServerSession? {
-        if (mCodeServerSessions.size >= MAX_CODESERVER_SESSIONS) {
+        if (!remote && mCodeServerSessions.filter { it?.remote == false }.size >= MAX_CODESERVER_LOCAL_SESSIONS) {
             mGlobalSessionsManager.notifyMaxCodeEditorSessionsReached()
             return null
         }
@@ -322,6 +322,18 @@ class SessionsHost(
             if (session!!.executionCommand.id == commandId) return session.terminalSession
         }
         return null
+    }
+
+    @Synchronized
+    fun cleanup() {
+        for (session in ArrayList(mTermuxSessions)) {
+            session!!.finish()
+            onTermuxSessionExited(session)
+        }
+        for (session in ArrayList(mCodeServerSessions)) {
+            session!!.killIfExecuting(mContext)
+            onVSCodeSessionExited(session)
+        }
     }
 
     @Synchronized

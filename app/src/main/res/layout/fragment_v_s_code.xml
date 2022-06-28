@@ -85,6 +85,30 @@
                 android:textColor="@color/button"
                 android:tint="@color/button" />
 
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/virtualMouseScaleContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/virtualMouseScaleLabel"
+                    android:layout_width="130sp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/virtualMouseScaleValue"
+                    android:textColor="@color/button"
+                    android:tint="@color/button" />
+
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/virtualMouseScaleSeekBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="20"
+                    android:progressBackgroundTint="@color/button"
+                    android:tint="@color/button" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
             <CheckBox
                 android:id="@+id/chkUseHardwareKeyboard"
                 android:layout_width="match_parent"
@@ -104,7 +128,7 @@
 
                 <TextView
                     android:id="@+id/zoomScaleLabel"
-                    android:layout_width="100sp"
+                    android:layout_width="130sp"
                     android:layout_height="wrap_content"
                     android:text="@string/zoomValue"
                     android:textColor="@color/button"

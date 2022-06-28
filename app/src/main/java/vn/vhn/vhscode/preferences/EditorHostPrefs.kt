@@ -17,6 +17,7 @@ class EditorHostPrefs(context: Context) {
         val kPrefEditorUseVirtualMouse = "editor:use-vmouse"
         val kPrefEditorListenALlInterfaces = "editor:all-interfaces"
         val kPrefRemoteCodeEditorURL = "editor:remote-url"
+        val kPrefVirtualMouseScale = "editor:virtualmousescale"
 
         val kFlagGuideDrawerShown = "flag:guide-drawer-shown"
         val kFlagGuideEditorSettingsShown = "flag:guide-editor-settings-shown"
@@ -111,6 +112,32 @@ class EditorHostPrefs(context: Context) {
                 mSharedPreferences,
                 kPrefEditorUIScale,
                 limitMinMax(value, 25, 300),
+                false
+            )
+        }
+
+    private val editorVirtualMouseScalePowerBase = Math.exp(Math.log(4.0) / 10)
+    fun calculateEditorVirtualMouseScale(param: Int) =
+        Math.pow(editorVirtualMouseScalePowerBase, (param - 10).toDouble()).toFloat()
+
+    val editorVirtualMouseScale: Float
+        get() = calculateEditorVirtualMouseScale(editorVirtualMouseScaleParam)
+
+    var editorVirtualMouseScaleParam: Int
+        get() =
+            limitMinMax(
+                SharedPreferenceUtils.getInt(
+                    mSharedPreferences,
+                    kPrefVirtualMouseScale,
+                    10
+                ),
+                0, 20
+            )
+        set(value) {
+            SharedPreferenceUtils.setInt(
+                mSharedPreferences,
+                kPrefVirtualMouseScale,
+                limitMinMax(value, 0, 20),
                 false
             )
         }

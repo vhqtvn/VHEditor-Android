@@ -27,7 +27,7 @@ fun CodeServerService.Companion.getBootjs(ctx: Context): String? {
                         link.media = "screen,print";
                         document.getElementsByTagName( "head" )[0].appendChild( link );
                     })();
-            """.trimIndent() + String(windowScriptBytes)
+            """.trimIndent() + String(windowScriptBytes) + "\n"
     windowScript += """
                 (function(){
                     if(!window.vscodeOrigKeyboardEventDescriptorShiftKey) window.vscodeOrigKeyboardEventDescriptorShiftKey = Object.getOwnPropertyDescriptor(window.KeyboardEvent.prototype, 'shiftKey');
