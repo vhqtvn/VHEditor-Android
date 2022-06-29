@@ -60,7 +60,7 @@
         android:background="@drawable/button_bg"
         android:onClick="onInstallServerClick"
         android:text="@string/install_server"
-        android:textColor="@color/button"
+        android:textColor="@color/button_important"
         app:layout_constraintBottom_toTopOf="@+id/installedRegionGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

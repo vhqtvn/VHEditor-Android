@@ -38,7 +38,7 @@ import java.net.URL
 
 class NewSessionActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "4.4.0"
+        val kCurrentServerVersion = "4.4.0-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 
@@ -188,7 +188,8 @@ class NewSessionActivity : AppCompatActivity() {
             } else {
                 binding.btnStartCode.isEnabled = true
                 if (codeServerVersion != kCurrentServerVersion) {
-                    binding.btnInstallServer.text = getString(R.string.update_server)
+                    binding.btnInstallServer.text =
+                        getString(R.string.update_server) + " (" + kCurrentServerVersion + ")"
                     binding.btnInstallServer.visibility = View.VISIBLE
                 } else {
                     binding.btnInstallServer.text = getString(R.string.reinstall_server)
@@ -248,7 +249,16 @@ class NewSessionActivity : AppCompatActivity() {
             val stream = FileInputStream(versionFile)
             val bytes = stream.readBytes()
             stream.close()
-            return String(bytes, 0, bytes.size).trim()
+            var csVersion = String(bytes, 0, bytes.size).trim()
+            val buildFile = File("$dataHome/code-server/CSBUILD_VERSION")
+            if (buildFile.exists()) {
+                val stream = FileInputStream(buildFile)
+                val bytes = stream.readBytes()
+                stream.close()
+                var csBuildVersion = String(bytes, 0, bytes.size).trim()
+                csVersion += "-$csBuildVersion"
+            }
+            return csVersion
         }
         return ""
     }
@@ -290,7 +300,7 @@ class NewSessionActivity : AppCompatActivity() {
 
     fun onInstallServerClick(v: View) {
         CodeServerManager.runInstallServer(this) {
-
+            updateUI()
         }
     }
 }

@@ -59,7 +59,7 @@ class CodeServerManager {
                     launch {
                         delay(1000)
                         CodeServerService.extractServer(context, progressChannel)
-                        onFinished()
+                        CoroutineScope(Dispatchers.Main).launch { onFinished() }
                         finished = true
                         progressChannel.close()
                     }
@@ -70,7 +70,7 @@ class CodeServerManager {
                 } catch (e: Exception) {
                     Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show()
                 } finally {
-                    dialog.hide()
+                    dialog.dismiss()
                 }
             }
         }

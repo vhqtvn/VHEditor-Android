@@ -1,6 +1,20 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+def bootstrapVersion = "bootstrap-2022.06.26-r1+apt-android-7"
+def bootstrapHashes = parseHashes("""
+1af72cdf3bc82302affb3d8aa7a5058b9b167442d2cf42986a05ac63798b8602  bootstrap-aarch64.zip
+cdea13196c9f9cfcb18234aa7d133417082f68dbce5c257b6cad781aa083306f  bootstrap-arm.zip
+8bb6bf639534ad99cdd36c23006de34bc0e7904d6d22a50326dcdfd952650cd4  bootstrap-i686.zip
+9b646b31c64f91f89b0ee3bc87856325dec68111c8091cff4d99b80613d0800f  bootstrap-x86_64.zip
+""")
+def csVersion = "cs-2022.06.28-r1"
+def csHashes = parseHashes("""
+fc42667116d0ce8ae25f562a435eb76379d18256578293b9ffc76b6d49c5f63c  cs-aarch64.tgz
+2993b8bd753ab5f62976833667e22ab49c4e92dbfaec4d728306cb48f375bad8  cs-arm.tgz
+485ceebe3561e7c91fce2c6b8993f241ac5ef83171e074a916f5d75537568411  cs-x86.tgz
+02fd953ca96328c4fcc03a24f03f1163b1d47007fde513681ecd977862cd5a4f  cs-x86_64.tgz
+""")
 
 android {
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
@@ -19,8 +33,8 @@ android {
         } else {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
-        versionCode 33
-        versionName "2.0.3"
+        versionCode 34
+        versionName "2.1.0"
 
         externalNativeBuild {
             ndkBuild {
@@ -37,6 +51,9 @@ android {
                 abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
             }
         }
+
+        buildConfigField "String", "BOOTSTRAP_VERSION", "\"${bootstrapVersion}\""
+        buildConfigField "String", "CS_VERSION", "\"${csVersion}\""
     }
 
     if (System.env['USE_SPLITBUILD'] == '1') {
@@ -190,20 +207,26 @@ def downloadCodeServer(String arch, String expectedChecksum, String version) {
     )
 }
 
+def parseHashes(String hashesStr) {
+    Map<String,String> m = [:]
+    for (String line in hashesStr.trim().split("\n")) {
+        String[] parts = line.trim().split(" +")
+        m[parts[1].trim()] = parts[0].trim()
+    }
+    return m
+}
 
 task downloadBootstraps() {
     doLast {
-        def version = "bootstrap-2022.05.03-r3+apt-android-7"
-        downloadBootstrap("aarch64", "f4bc63df9e0f6a332ce0d117b9b49b6937abf4fad164102dba231e57098a2852", version)
-        downloadBootstrap("arm", "cd5a1f89ab3c34066ddab2136e5f6dfa7cdcfdf137f694007bef03185b503b9c", version)
-        downloadBootstrap("i686", "0fba24f2ca881ee5e02eaefee2f8acf518234e1da52847cee207e6af807fc097", version)
-        downloadBootstrap("x86_64", "1473cf5aa111112a9167d904fa487269147fffe9e92ab1ec9ff71dc9053533f6", version)
+        downloadBootstrap("aarch64", bootstrapHashes["bootstrap-aarch64.zip"], bootstrapVersion)
+        downloadBootstrap("arm", bootstrapHashes["bootstrap-arm.zip"], bootstrapVersion)
+        downloadBootstrap("i686", bootstrapHashes["bootstrap-i686.zip"], bootstrapVersion)
+        downloadBootstrap("x86_64", bootstrapHashes["bootstrap-x86_64.zip"], bootstrapVersion)
 
-        def csVersion = "cs-2022.05.09-r1"
-        downloadCodeServer("aarch64", "78088dcb95cd166bd671006b834373159a29105f1d4ec0a0f645bb518a30775b", csVersion)
-        downloadCodeServer("arm", "7c0bd410ccda7da6f319ea193ed17246265a44a0ed907a94521294cee57a645a", csVersion)
-        downloadCodeServer("x86", "423098a2e7e95e6a8982ccc99ea0edff4212b2d66b5c505b1b3c4d3712c2fa97", csVersion)
-        downloadCodeServer("x86_64", "7fb060d9019b354603bc9653c2d9a5ed9301b7562ebb3124c81fc4cbafb74525", csVersion)
+        downloadCodeServer("aarch64", csHashes["cs-aarch64.tgz"], csVersion)
+        downloadCodeServer("arm", csHashes["cs-arm.tgz"], csVersion)
+        downloadCodeServer("x86", csHashes["cs-x86.tgz"], csVersion)
+        downloadCodeServer("x86_64", csHashes["cs-x86_64.tgz"], csVersion)
     }
 }
 

@@ -100,6 +100,8 @@ class CodeServerService() : Service() {
                 .filter { it.name.matches(".+\\.sh\$".toRegex()) }
                 .forEach { it.setExecutable(true) }
             context.getFileStreamPath("node").setExecutable(true)
+            File(context.getFileStreamPath("code-server"), "CSBUILD_VERSION")
+                .writeText(BuildConfig.CS_VERSION)
         }
 
         fun copyRawResource(context: Context, resource_id: Int, output_path: String) {
