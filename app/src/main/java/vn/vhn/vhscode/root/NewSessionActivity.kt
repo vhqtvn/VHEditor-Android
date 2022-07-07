@@ -85,9 +85,11 @@ class NewSessionActivity : AppCompatActivity() {
 
     fun onNewTerminal(view: View) {
         TermuxInstaller.setupIfNeeded(this) {
-            CoroutineScope(Dispatchers.Main).launch {
-                setResult(RESULT_OK, Intent().putExtra(kSessionType, kSessionTypeTerminal))
-                finish()
+            CodeServerService.setupIfNeeded(this) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    setResult(RESULT_OK, Intent().putExtra(kSessionType, kSessionTypeTerminal))
+                    finish()
+                }
             }
         }
     }

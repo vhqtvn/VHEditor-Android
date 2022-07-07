@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
-def bootstrapVersion = "bootstrap-2022.06.26-r1+apt-android-7"
+def bootstrapVersion = "bootstrap-2022.07.07-r3+apt-android-7"
 def bootstrapHashes = parseHashes("""
-1af72cdf3bc82302affb3d8aa7a5058b9b167442d2cf42986a05ac63798b8602  bootstrap-aarch64.zip
-cdea13196c9f9cfcb18234aa7d133417082f68dbce5c257b6cad781aa083306f  bootstrap-arm.zip
-8bb6bf639534ad99cdd36c23006de34bc0e7904d6d22a50326dcdfd952650cd4  bootstrap-i686.zip
-9b646b31c64f91f89b0ee3bc87856325dec68111c8091cff4d99b80613d0800f  bootstrap-x86_64.zip
+99ef83742f97a778cd081d0ec4fc2ec7bccb09ba52048983f32935afe5c9199f  bootstrap-aarch64.zip
+548c1ab834ee44b2f5550f7ecdc6b7ca1cf235702da9e6c713c327d7dc705df4  bootstrap-arm.zip
+925fb4a39a24c2944fdaeeacb1ce73018a1e02b3ea7c423118de2be6629aaf66  bootstrap-i686.zip
+b3855fe0a37f57879c99451f1163348bbf7ab973982146141452b31cc32d028d  bootstrap-x86_64.zip
 """)
 def csVersion = "cs-2022.06.28-r1"
 def csHashes = parseHashes("""
