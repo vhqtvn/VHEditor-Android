@@ -1,17 +1,14 @@
 package vn.vhn.vhscode.root.terminal
 
-import android.annotation.SuppressLint
-import android.graphics.Typeface
-import android.util.Log
-import com.termux.shared.interact.TextInputDialogUtils
-import com.termux.shared.settings.properties.TermuxSharedProperties
+import android.R.attr
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.text.TextUtils
 import com.termux.shared.shell.TermuxSession
 import com.termux.shared.terminal.TermuxTerminalSessionClientBase
-import com.termux.shared.termux.TermuxConstants
-import com.termux.terminal.TerminalColors
 import com.termux.terminal.TerminalSession
 import com.termux.terminal.TextStyle
-import vn.vhn.vhscode.R
 import vn.vhn.vhscode.root.fragments.TerminalFragment
 
 
@@ -77,18 +74,35 @@ class TermuxTerminalSingleSessionClient(fragment: TerminalFragment) :
     }
 
     override fun onCopyTextToClipboard(session: TerminalSession, text: String) {
+        val clipboard: ClipboardManager? =
+            mFragment.context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
+        clipboard?.setPrimaryClip(ClipData(null,
+            arrayOf("text/plain"),
+            ClipData.Item(attr.text.toString())))
+
     }
 
     override fun onPasteTextFromClipboard(session: TerminalSession) {
+        if (!mFragment.userVisible) return
+
+        val clipData =
+            (mFragment.context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)?.primaryClip
+        if (clipData != null) {
+            val paste = clipData.getItemAt(0).coerceToText(mFragment.context)
+            if (!TextUtils.isEmpty(paste)) mFragment.terminalView.mEmulator.paste(paste.toString())
+        }
     }
 
     override fun onBell(session: TerminalSession) {
     }
 
     override fun onColorsChanged(changedSession: TerminalSession) {
+        updateBackgroundColor();
     }
 
     override fun onTerminalCursorStateChange(enabled: Boolean) {
+        if (!mFragment.userVisible) return
+        mFragment.terminalView.setTerminalCursorBlinkerState(enabled, false)
     }
 
 //    fun notifyOfSessionChange() {
@@ -194,9 +208,11 @@ class TermuxTerminalSingleSessionClient(fragment: TerminalFragment) :
 
     fun updateBackgroundColor() {
         if (!mFragment.userVisible) return
-//        mFragment.terminalView.mTermSession?.emulator?.apply {
-//            mFragment.terminalView.background = mColors.mCurrentColors[TextStyle.COLOR_INDEX_BACKGROUND]
-//        }
+        mFragment.terminalView.mTermSession?.emulator?.apply {
+            mFragment.terminalView.setBackgroundColor(
+                mColors.mCurrentColors[TextStyle.COLOR_INDEX_BACKGROUND]
+            )
+        }
     }
 
 }
