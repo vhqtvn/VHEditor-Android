@@ -66,8 +66,17 @@ class CodeServerSession(
     val port: Int
         get() = mPort
 
-    public val liveServerLog: MutableLiveData<String> =
+    val liveServerLog: MutableLiveData<String> =
         MutableLiveData<String>().apply { postValue("") }
+
+    val url: String
+        get() {
+            return if (remote) (remoteURL ?: "")
+            else (
+                    (if (useSSL) "https://" else "http://")
+                            + (if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1")
+                            + ":${mPort}")
+        }
 
     @Synchronized
     fun start() {

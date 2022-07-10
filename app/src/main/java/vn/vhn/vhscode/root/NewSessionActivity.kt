@@ -16,6 +16,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
+import com.google.android.material.textfield.TextInputEditText
 import com.termux.app.TermuxInstaller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +53,8 @@ class NewSessionActivity : AppCompatActivity() {
         val kSessionTypeRemoteCodeEditor = "SESSION_TYPE_REMOTE_CODEEDITOR"
 
         val kRemoteCodeEditorURL = "REMOTE_CODEEDITOR_URL"
+
+        val kIsInitialStart = "INITIAL_START"
     }
 
     private lateinit var binding: ActivityNewSessionBinding
@@ -75,6 +79,12 @@ class NewSessionActivity : AppCompatActivity() {
         super.onResume()
         preferences = EditorHostPrefs(this)
         configureUI()
+        if (intent.getBooleanExtra(kIsInitialStart, false))
+            when (preferences.startupTool) {
+                EditorHostPrefs.StartupTool.EDITOR -> {
+                    onStartCode(binding.root)
+                }
+            }
     }
 
     private fun configureUI() {
@@ -275,7 +285,12 @@ class NewSessionActivity : AppCompatActivity() {
 
     fun onChkUseSSLClick(view: View) {
         preferences.editorUseSSL = (view as CheckBox).isChecked
+    }
 
+    fun onChkInitialStartEditorClick(view: View) {
+        preferences.startupTool =
+            if ((view as CheckBox).isChecked) EditorHostPrefs.StartupTool.EDITOR
+            else EditorHostPrefs.StartupTool.NONE
     }
 
     fun onSettingsClick(view: View) {
@@ -297,14 +312,50 @@ class NewSessionActivity : AppCompatActivity() {
             preferences.editorListenAllInterfaces
         dialog.findViewById<CheckBox>(R.id.chkUseSSL)?.isChecked =
             preferences.editorUseSSL
+        dialog.findViewById<CheckBox>(R.id.chkInitialStartEditor)?.isChecked =
+            preferences.startupTool == EditorHostPrefs.StartupTool.EDITOR
+        dialog.findViewById<TextInputEditText>(R.id.txtSettingsLocalServerListenPort)?.apply {
+            setText(preferences.editLocalServerListenPort)
+            doOnTextChanged { text, start, count, after ->
+                preferences.editLocalServerListenPort = text.toString()
+            }
+        }
     }
 
 
     fun onResetRootFS(v: View) {
-        CodeServerManager.onResetRootFS(this)
+        AlertDialog.Builder(this)
+            .setCancelable(true)
+            .setMessage(R.string.confirm_reset_rootfs)
+            .setPositiveButton(android.R.string.ok) { dialog, id ->
+                dialog.dismiss()
+                CodeServerManager.onResetRootFS(this) {
+                    updateUI()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, id ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     fun onInstallServerClick(v: View) {
+        if (v.id == R.id.btnSettingsInstallServer) {
+            AlertDialog.Builder(this)
+                .setCancelable(true)
+                .setMessage(R.string.confirm_reinstall_server)
+                .setPositiveButton(android.R.string.ok) { dialog, id ->
+                    dialog.dismiss()
+                    CodeServerManager.runInstallServer(this) {
+                        updateUI()
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel) { dialog, id ->
+                    dialog.dismiss()
+                }
+                .show()
+            return
+        }
         CodeServerManager.runInstallServer(this) {
             updateUI()
         }

@@ -1,68 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<vn.vhn.vhscode.ui.ShrinkingScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <Button
-        android:id="@+id/btnSettingsInstallServer"
-        style="?android:attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/button_bg"
-        android:onClick="onInstallServerClick"
-        android:text="@string/reinstall_server"
-        app:layout_constraintBottom_toTopOf="@+id/btnSettingsResetRootFS"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btnSettingsResetRootFS"
-        style="?android:attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/button_bg"
-        android:onClick="onResetRootFS"
-        android:text="@string/reset_root_fs"
-        app:layout_constraintBottom_toTopOf="@+id/chkBoxAdvancedConfigGroup"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnSettingsInstallServer" />
+    android:layout_height="match_parent"
+    tools:context=".root.NewSessionActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/chkBoxAdvancedConfigGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnSettingsResetRootFS"
-        app:layout_constraintVertical_chainStyle="packed">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <CheckBox
-            android:id="@+id/chkListenOnAllInterfaces"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/btnSettingsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintBottom_toTopOf="@+id/chkBoxAdvancedConfigGroup"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <Button
+                android:id="@+id/btnSettingsInstallServer"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_bg"
+                android:onClick="onInstallServerClick"
+                android:text="@string/reinstall_server"
+                android:textColor="@color/button_important" />
+
+            <Button
+                android:id="@+id/btnSettingsResetRootFS"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_bg"
+                android:onClick="onResetRootFS"
+                android:text="@string/reset_root_fs"
+                android:textColor="@color/button_important" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/chkBoxAdvancedConfigGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:onClick="onChkListenOnAllInterfacesClick"
-            android:text="@string/server_listen_on_all_interfaces"
-            app:layout_constraintBottom_toTopOf="@+id/chkUseSSL"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/btnSettingsGroup"
+            app:layout_constraintVertical_chainStyle="packed">
 
-        <CheckBox
-            android:id="@+id/chkUseSSL"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:onClick="onChkUseSSLClick"
-            android:text="@string/use_https"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/chkListenOnAllInterfaces" />
+            <CheckBox
+                android:id="@+id/chkListenOnAllInterfaces"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:onClick="onChkListenOnAllInterfacesClick"
+                android:text="@string/server_listen_on_all_interfaces" />
+
+            <CheckBox
+                android:id="@+id/chkUseSSL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:onClick="onChkUseSSLClick"
+                android:text="@string/use_https" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    app:helperTextEnabled="true"
+                    app:helperText="@string/local_server_listen_port_help"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/txtSettingsLocalServerListenPort"
+                        android:hint="@string/local_server_listen_port"
+                        android:inputType="number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <CheckBox
+                android:id="@+id/chkInitialStartEditor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:onClick="onChkInitialStartEditorClick"
+                android:text="@string/initial_start_editor" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</vn.vhn.vhscode.ui.ShrinkingScrollView>

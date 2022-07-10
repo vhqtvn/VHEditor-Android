@@ -55,4 +55,12 @@
     <string name="action_create_named_session_confirm">Create</string>
     <string name="use_virtual_mouse">Use virtual mouse</string>
     <string name="virtualMouseScaleValue">Mouse Scale: x%1$.2f</string>
+    <string name="overlay_btn_menu"> Menu</string>
+    <string name="overlay_btn_settings">&#xf085; Config</string>
+    <string name="initial_start_editor">Start editor by default</string>
+
+    <string name="confirm_reinstall_server">CodeServer will be reinstalled, installed packages and user files wont be deleted. Do you want to continue?</string>
+    <string name="confirm_reset_rootfs">Everything except home folder will be deleted. Do you want to continue?</string>
+    <string name="local_server_listen_port">Local server listen port</string>
+    <string name="local_server_listen_port_help">0 or empty for random</string>
 </resources>

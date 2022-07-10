@@ -75,7 +75,7 @@ class CodeServerManager {
             }
         }
 
-        fun onResetRootFS(context: Activity) {
+        fun onResetRootFS(context: Activity, whenDone: (() -> Unit)?) {
             context.runOnUiThread {
                 @Suppress("DEPRECATION")
                 val progress = ProgressDialog.show(
@@ -108,6 +108,7 @@ class CodeServerManager {
                     } finally {
                         context.runOnUiThread {
                             progress.dismiss()
+                            if (whenDone != null) whenDone()
                         }
                     }
                 }.start()

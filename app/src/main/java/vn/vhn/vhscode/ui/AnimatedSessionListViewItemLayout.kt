@@ -4,40 +4,40 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import android.widget.LinearLayout
+import androidx.transition.*
 import vn.vhn.vhscode.R
+import vn.vhn.vhscode.ui.transtion.ChangePadding
 
 
 class AnimatedSessionListViewItemLayout(
     context: Context?,
-    attrs: AttributeSet?
+    attrs: AttributeSet?,
 ) : LinearLayout(context, attrs) {
-    val mPaddingLeftOnActivated =
-        resources.getDimensionPixelSize(R.dimen.session_list_view_selected_padding_left)
-    private var mCurrentAnimator: ValueAnimator? = null
+    val mPaddingLeftOnActivated = resources.getDimensionPixelSize(R.dimen.session_list_view_selected_padding_left)
     override fun setActivated(activated: Boolean) {
         if (activated == this.isActivated) return
+        TransitionManager.beginDelayedTransition(
+            this,
+            TransitionSet()
+                .setDuration(200)
+                .addTransition(ChangeBounds())
+                .addTransition(Fade())
+                .addTransition(ChangePadding())
+        )
         super.setActivated(activated)
-        animatePaddingLeft(if (activated) mPaddingLeftOnActivated else 0)
-    }
-
-    @Synchronized
-    private fun animatePaddingLeft(target: Int) {
-        if (mCurrentAnimator != null) {
-            mCurrentAnimator?.cancel()
+        alpha = if (activated) 1.0f else 0.35f
+        setPadding(
+            if (activated) mPaddingLeftOnActivated else 0,
+            paddingTop,
+            paddingRight,
+            paddingBottom
+        )
+        if (activated) {
+            findViewById<View>(R.id.session_meta).visibility = View.VISIBLE
+        } else {
+            findViewById<View>(R.id.session_meta).visibility = View.GONE
         }
-        val animator = ValueAnimator.ofInt(paddingLeft, target)
-        mCurrentAnimator = animator
-        animator.addUpdateListener { valueAnimator ->
-            setPadding(
-                valueAnimator.animatedValue as Int,
-                paddingTop,
-                paddingRight,
-                paddingBottom
-            )
-        }
-        animator.duration = 200
-        animator.start()
-
     }
 }

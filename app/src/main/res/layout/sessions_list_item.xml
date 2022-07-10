@@ -33,4 +33,16 @@
             android:textSize="@dimen/session_item_text_size" />
     </LinearLayout>
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/session_meta"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="marquee"
+        android:gravity="start|center_vertical"
+        android:padding="6dip"
+        android:textColor="@color/white"
+        android:textSize="@dimen/session_item_text_size" />
+
 </vn.vhn.vhscode.ui.AnimatedSessionListViewItemLayout>

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.IBinder
 import android.util.TypedValue
@@ -34,8 +35,6 @@ import vn.vhn.vhscode.root.fragments.VSCodeFragment
 import vn.vhn.vhscode.root.gesture_recognizer.EditorHostGestureRecognizer
 import vn.vhn.vhscode.root.helpers.DrawerLayoutDrawerController
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
-import vn.vhn.vhscode.ui.OverlayGuideView
-import vn.vhn.virtualmouse.VirtualMouse
 import java.lang.ref.WeakReference
 import kotlin.math.abs
 import kotlin.math.min
@@ -53,6 +52,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     private lateinit var binding: ActivityEditorHostBinding
 
     private var mIsVisible = false
+    private var mInitialResume = true
     private var mIsOnResumeAfterOnCreate = false
     private var mIsActivityRecreated = false
 
@@ -69,7 +69,6 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     private var mCurrentTerminalFragment: TerminalFragment? = null
     private val mVisibleFragments = HashMap<Long, WeakReference<Fragment>>()
     private var dipInPixels by Delegates.notNull<Float>()
-    private var mGuideShowDrawer: OverlayGuideView? = null
 
     private val mOnViewPagerPageChange = object : OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
@@ -97,6 +96,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 mCurrentEditorFragmentId = fragmentId
                 mCurrentTerminalFragment = null
                 mCurrentTerminalFragmentId = null
+                binding.overlayControlButtonSettings.visibility = View.VISIBLE
                 hasSet = true
             }
             is TerminalFragment -> {
@@ -104,6 +104,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 mCurrentEditorFragmentId = null
                 mCurrentTerminalFragment = fragment
                 mCurrentTerminalFragmentId = fragmentId
+                binding.overlayControlButtonSettings.visibility = View.GONE
                 hasSet = true
             }
         }
@@ -171,37 +172,15 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         )
 
         binding.drawerLayout.addDrawerListener(drawerListener)
+
     }
 
     override fun onResume() {
         super.onResume()
 
+        mInitialResume = mIsOnResumeAfterOnCreate
+
         mIsOnResumeAfterOnCreate = false
-
-        if (!guideDrawer()) {
-            if ((codeServerService?.globalSessionsManager?.sessionsHost?.sessionsCount ?: 0) == 0) {
-                binding.viewPager.postDelayed({
-                    if ((codeServerService?.globalSessionsManager?.sessionsHost?.sessionsCount
-                            ?: 0) == 0
-                    ) guideDrawer(true)
-                }, 1000)
-            }
-        }
-    }
-
-    private fun guideDrawer(force: Boolean = false): Boolean {
-        if (mGuideShowDrawer == null) {
-            mGuideShowDrawer = OverlayGuideView(this, binding.mainContainer).apply {
-                textView.text =
-                    HtmlCompat.fromHtml("Swipe right using 3 fingers to show sessions list",
-                        HtmlCompat.FROM_HTML_MODE_COMPACT)
-            }
-        }
-        if (!preferences.guideDrawerShown || force) {
-            mGuideShowDrawer!!.show()
-            return true
-        }
-        return false
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -225,8 +204,56 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_MOVE -> {
+                binding.fnView.visibility = View.VISIBLE
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                binding.fnView.visibility = View.INVISIBLE
+            }
+        }
+        if (binding.fnView.visibility == View.VISIBLE) {
+            var selfScreenLoc = IntArray(2)
+            var screenLoc = IntArray(2)
+            var rectSize = Rect()
+            binding.fnView.getLocationOnScreen(screenLoc)
+            binding.fnView.getDrawingRect(rectSize)
+            rectSize.offset(screenLoc[0], screenLoc[1])
+            var fnHover = false
+            for (i in 0 until event.pointerCount) {
+                //FIXME: what's the coordinate for this event?
+                var x = event.getX(i).toInt()
+                var y = event.getY(i).toInt()
+                if (rectSize.contains(x, y)) {
+                    fnHover = true
+                    break
+                }
+            }
+            if (fnHover) {
+                setFNVisible(true)
+                binding.fnView.alpha = 0.5f;
+            } else {
+                setFNVisible(false)
+                binding.fnView.alpha = 0.1f;
+            }
+        } else {
+            setFNVisible(false)
+        }
         if (mEditorHostGestureRecognizer.dispatchTouchEvent(event)) return true
         return super.dispatchTouchEvent(event)
+    }
+
+    private var isFnVisible: Boolean = false
+    private fun setFNVisible(b: Boolean) {
+        runOnUiThread {
+            if (isFnVisible == b) return@runOnUiThread
+            isFnVisible = b
+            if (isFnVisible) {
+                binding.overlayControlView.visibility = View.VISIBLE
+            } else {
+                binding.overlayControlView.visibility = View.GONE
+            }
+        }
     }
 
     @Synchronized
@@ -259,9 +286,10 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     fun startNewSessionActivityIfRequired() {
         if (mCodeServerService == null) return
         if (!mIsVisible) return
-//        if (mCodeServerService?.sessionsHost?.isSessionsEmpty == true) {
-//            startNewSessionActivity()
-//        }
+        if (!mInitialResume) return
+        if (mCodeServerService?.sessionsHost?.isSessionsEmpty == true) {
+            startNewSessionActivity()
+        }
     }
 
     private val startForResult =
@@ -289,6 +317,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                             intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
                                 true),
                             intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
+                            port = preferences.editLocalServerListenPort.toIntOrNull()
                         )
                     }
                     NewSessionActivity.kSessionTypeRemoteCodeEditor -> {
@@ -311,7 +340,9 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 binding.drawerLayout.closeDrawers()
             } catch (e: Exception) {
             }
-            startForResult.launch(Intent(this, NewSessionActivity::class.java))
+            val intent = Intent(this, NewSessionActivity::class.java)
+            intent.putExtra(NewSessionActivity.kIsInitialStart, mInitialResume)
+            startForResult.launch(intent)
         }
     }
 
@@ -368,7 +399,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 if (idx >= 0) {
                     binding.viewPager.setCurrentItem(idx, false)
                     binding.sessions.setItemChecked(idx, true)
-                    binding.drawerLayout.closeDrawers()
+//                    binding.drawerLayout.closeDrawers()
                 }
             }
         }
@@ -483,6 +514,10 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         mCurrentEditorFragment?.also {
             if (it.onBackPressed()) return
         }
+        if (!binding.drawerLayout.isDrawerOpen(binding.leftDrawer)) {
+            binding.drawerLayout.openDrawer(binding.leftDrawer)
+            return
+        }
         finish()
     }
 
@@ -510,10 +545,6 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         }
 
         override fun onDrawerOpened(drawerView: View) {
-            mGuideShowDrawer?.apply {
-                preferences.guideDrawerShown = true
-                dismiss()
-            }
             if (mEditorHostAdapter.itemCount > 0) {
                 binding.overlayContainer.visibility = View.VISIBLE
                 configureOverlayView()
@@ -576,5 +607,18 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         binding.viewPager.postDelayed({
             setSessionsListView()
         }, 300)
+    }
+
+    fun toggleSidebar(view: View) {
+        runOnUiThread {
+            binding.drawerLayout.apply {
+                if (!isDrawerOpen(binding.leftDrawer)) openDrawer(binding.leftDrawer)
+                else closeDrawers()
+            }
+        }
+    }
+
+    fun onOverlaySettingsClick(view: View) {
+        mCurrentEditorFragment?.toggleSettings();
     }
 }

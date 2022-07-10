@@ -62,6 +62,7 @@ class SessionsHost(
         useSSL: Boolean,
         remote: Boolean = false,
         remoteURL: String? = null,
+        port: Int? = null
     ): CodeServerSession? {
         if (!remote && mCodeServerSessions.filter { it?.remote == false }.size >= MAX_CODESERVER_LOCAL_SESSIONS) {
             mGlobalSessionsManager.notifyMaxCodeEditorSessionsReached()
@@ -73,7 +74,8 @@ class SessionsHost(
             listenOnAllInterface,
             useSSL,
             remote,
-            remoteURL
+            remoteURL,
+            port
         )
         newEditorSession.start()
         mCodeServerSessions.add(newEditorSession)

@@ -26,7 +26,6 @@ import vn.vhn.vhscode.generic_dispatcher.BBKeyboardEventDispatcher
 import vn.vhn.vhscode.generic_dispatcher.IGenericEventDispatcher
 import vn.vhn.vhscode.root.EditorHostActivity
 import vn.vhn.vhscode.root.codeserver.CodeServerSession
-import vn.vhn.vhscode.ui.OverlayGuideView
 import vn.vhn.virtualmouse.VirtualMouse
 import java.lang.ref.WeakReference
 
@@ -58,7 +57,6 @@ class VSCodeFragment : Fragment() {
     private var fragmentId: Long? = null
     private var jsInterface: VSCodeJSInterface? = null
     private var mUseHardKeyboard: Boolean? = null
-    private var mGuideShowDrawer: OverlayGuideView? = null
 
     private var mVirtualMouse: VirtualMouse = VirtualMouse()
 
@@ -235,10 +233,6 @@ class VSCodeFragment : Fragment() {
             }
             if (shouldConfigureWebview) configureWebView(binding.webView, true)
         }
-        if (visible) mGuideShowDrawer?.apply {
-            host.preferences.guideEditorSettingsShown = true
-            dismiss()
-        }
         mCurrentLogVisible = visible
         mCurrentLogAnimator?.cancel()
         val view = binding.overlay
@@ -350,8 +344,8 @@ class VSCodeFragment : Fragment() {
         else mVirtualMouse.disable()
     }
 
-    fun toggleSettings(newValue: Boolean) {
-        setLogVisible(newValue)
+    fun toggleSettings(newValue: Boolean? = null) {
+        setLogVisible(newValue ?: !mCurrentLogVisible)
     }
 
     fun configureHWKeyboardMode(enable: Boolean) {
@@ -381,6 +375,10 @@ class VSCodeFragment : Fragment() {
     }
 
     fun onBackPressed(): Boolean {
+        if (mCurrentLogVisible) {
+            setLogVisible(false)
+            return true
+        }
         if (binding.webView.canGoBack()) {
             binding.webView.goBack()
             return true
@@ -388,24 +386,11 @@ class VSCodeFragment : Fragment() {
         return false
     }
 
-    private fun guideEditorSettings() {
-        if (!host.preferences.guideEditorSettingsShown && mGuideShowDrawer == null) {
-            mGuideShowDrawer = OverlayGuideView(host, binding.root).apply {
-                textView.text =
-                    HtmlCompat.fromHtml("Swipe up/down using 3 fingers to show/hide settings",
-                        HtmlCompat.FROM_HTML_MODE_COMPACT)
-                show()
-            }
-        }
-    }
-
     fun onPageFinished(view: WebView?, url: String?) {
         _binding?.also {
             it.loading.postDelayed({
                 _binding?.loading?.visibility = View.GONE
             }, 500)
-            if (url?.startsWith("http") == true)
-                guideEditorSettings()
             if (mUseHardKeyboard == true && !it.webView.hasFocus()) it.webView.requestFocus()
         }
     }

@@ -4,8 +4,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
+import android.text.style.*
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -14,6 +13,7 @@ import android.widget.Toast
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.databinding.SessionsListItemBinding
 import vn.vhn.vhscode.root.codeserver.CodeServerSession
+import java.lang.reflect.Type
 
 const val kTagBinding = R.string.tag_binding
 const val kTagBindingPosition = R.string.tag_binding_position
@@ -22,6 +22,10 @@ val ColorDEADGRAY = 0xFF666666.toInt()
 val spanNumberRunning = ForegroundColorSpan(Color.GREEN)
 val spanNumberStopped = ForegroundColorSpan(ColorDEADGRAY)
 val spanName = StyleSpan(Typeface.BOLD)
+val spanNameExt = listOf(
+    StyleSpan(Typeface.NORMAL),
+    ForegroundColorSpan(Color.parseColor("#cfd8dc"))
+)
 val spanTitle = StyleSpan(Typeface.ITALIC)
 
 class SessionsListAdapter(
@@ -80,6 +84,8 @@ class SessionsListAdapter(
 
         ic.setTag(kTagBindingPosition, position)
 
+        var nameHasExtPart = false
+
         val item = getItem(position)
         when (item) {
             null -> {
@@ -108,16 +114,23 @@ class SessionsListAdapter(
                 icIcon = R.drawable.icon_vscode
                 val (id) = item
                 val session = activity.codeServerService?.sessionsHost?.getVSCodeSessionForId(id)
-                txtPartName = "Editor"
-                txtPartTitle = session?.title ?: ""
-                running = session?.mTerminated != true
+                if (session != null) {
+                    txtPartName = "Editor (${session.url})"
+                    nameHasExtPart = true
+                    txtPartTitle = session.title
+                    running = session.mTerminated != true
+                } else {
+                    txtPartName = "Editor"
+                    txtPartTitle = ""
+                    running = false
+                }
             }
             else -> {
                 throw Exception("Invalid type")
             }
         }
 
-        txtPartName = " " + txtPartName
+        txtPartName = " $txtPartName"
         if (txtPartTitle.isNotEmpty()) txtPartTitle = "\n" + txtPartTitle
 
         tv.text = SpannableString(
@@ -131,12 +144,31 @@ class SessionsListAdapter(
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             start += txtPartNumber.length
-            it.setSpan(
-                spanName,
-                start,
-                start + txtPartName.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
+            var needStylingName = false
+            if (nameHasExtPart) {
+                val idx = txtPartName.indexOf('(')
+                if (idx >= 0) {
+                    it.setSpan(spanName,
+                        start,
+                        start + idx,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    spanNameExt.forEach { sp ->
+                        it.setSpan(sp,
+                            start + idx,
+                            start + txtPartName.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                    needStylingName = false
+                }
+            }
+            if (needStylingName) {
+                it.setSpan(
+                    spanName,
+                    start,
+                    start + txtPartName.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
             start += txtPartName.length
             it.setSpan(
                 spanTitle,
@@ -153,6 +185,8 @@ class SessionsListAdapter(
             ic.setImageResource(R.drawable.icon_trash)
             ic.setColorFilter(Color.RED)
         }
+
+        binding!!.root.dispatchSetActivated(item == activity.currentItem)
 
         return sessionRowView
     }

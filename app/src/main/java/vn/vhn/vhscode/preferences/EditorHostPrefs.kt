@@ -18,9 +18,9 @@ class EditorHostPrefs(context: Context) {
         val kPrefEditorListenALlInterfaces = "editor:all-interfaces"
         val kPrefRemoteCodeEditorURL = "editor:remote-url"
         val kPrefVirtualMouseScale = "editor:virtualmousescale"
+        val kPrefLocalServerListenPort = "editor:listen-port"
 
-        val kFlagGuideDrawerShown = "flag:guide-drawer-shown"
-        val kFlagGuideEditorSettingsShown = "flag:guide-editor-settings-shown"
+        val kPrefInitialTool = "startup:tool"
 
         val kRequestedPermissions = "requested-permissions"
 
@@ -247,6 +247,19 @@ class EditorHostPrefs(context: Context) {
             )
         }
 
+    var editLocalServerListenPort: String
+        get() = SharedPreferenceUtils.getString(
+            mSharedPreferences, kPrefLocalServerListenPort, "", true
+        )
+        set(value) {
+            SharedPreferenceUtils.setString(
+                mSharedPreferences,
+                kPrefLocalServerListenPort,
+                if (value == "0") "" else value,
+                false
+            )
+        }
+
 
     var hardwareKeyboardMode: Boolean
         get() =
@@ -328,35 +341,28 @@ class EditorHostPrefs(context: Context) {
             )
         }
 
-    var guideDrawerShown: Boolean
-        get() =
-            SharedPreferenceUtils.getBoolean(
-                mSharedPreferences,
-                kFlagGuideDrawerShown,
-                false
-            )
-        set(value) {
-            SharedPreferenceUtils.setBoolean(
-                mSharedPreferences,
-                kFlagGuideDrawerShown,
-                value,
-                true
-            )
-        }
+    public enum class StartupTool {
+        NONE,
+        EDITOR,
+    }
 
-    var guideEditorSettingsShown: Boolean
+    var startupTool: StartupTool
         get() =
-            SharedPreferenceUtils.getBoolean(
-                mSharedPreferences,
-                kFlagGuideEditorSettingsShown,
-                false
-            )
+            try {
+                StartupTool.valueOf(SharedPreferenceUtils.getString(
+                    mSharedPreferences,
+                    kPrefInitialTool,
+                    "", true
+                ))
+            } catch (e: Exception) {
+                StartupTool.NONE
+            }
         set(value) {
-            SharedPreferenceUtils.setBoolean(
+            SharedPreferenceUtils.setString(
                 mSharedPreferences,
-                kFlagGuideEditorSettingsShown,
-                value,
-                true
+                kPrefInitialTool,
+                value.toString(),
+                false
             )
         }
 }

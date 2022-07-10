@@ -10,4 +10,6 @@
     <color name="button_important">#f50057</color>
     <color name="buttonBackground">#30FFFFFF</color>
     <color name="log">#AAAAAA</color>
+    <color name="overlay_button_bg">#20000000</color>
+    <color name="overlay_button_color">#000000</color>
 </resources>
