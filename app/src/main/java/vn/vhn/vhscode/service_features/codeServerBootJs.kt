@@ -18,14 +18,16 @@ fun CodeServerService.Companion.getBootjs(ctx: Context): String? {
     stream.close()
     var windowScript = """
                     (function(){
-                        if (document.querySelector("#vscode_font_css")) return;
-                        var link = document.createElement( "link" );
-                        link.href = "${ASSET_PREFIX}fonts/$fontname/font.css";
-                        link.type = "text/css";
-                        link.rel = "stylesheet";
-                        link.id = "vscode_font_css";
-                        link.media = "screen,print";
-                        document.getElementsByTagName( "head" )[0].appendChild( link );
+                        window.addEventListener("DOMContentLoaded", function(){
+                            if (document.querySelector("#vscode_font_css")) return;
+                            var link = document.createElement( "link" );
+                            link.href = "${ASSET_PREFIX}fonts/$fontname/font.css";
+                            link.type = "text/css";
+                            link.rel = "stylesheet";
+                            link.id = "vscode_font_css";
+                            link.media = "screen,print";
+                            document.getElementsByTagName( "head" )[0].appendChild( link );
+                        }, false);
                     })();
             """.trimIndent() + String(windowScriptBytes) + "\n"
     windowScript += """
