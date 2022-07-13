@@ -13,3 +13,4 @@ cs*.tgz
 *.apk
 .history
 **/root_ca.key
+node_modules
