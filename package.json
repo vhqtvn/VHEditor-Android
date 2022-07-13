@@ -8,6 +8,9 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "standard-version": {
+    "header": "# VHEditor Changelog"
+  },
   "name": "vheditor-android-ci",
   "description": "VHEditor Android",
   "version": "2.2.1",
@@ -87,7 +90,7 @@
     "micromatch": "^4.0.5",
     "mimic-fn": "^1.2.0",
     "minimatch": "^3.1.2",
-    "minimist": "^1.2.5",
+    "minimist": ">=1.2.6",
     "mute-stream": "^0.0.7",
     "once": "^1.4.0",
     "onetime": "^2.0.1",
