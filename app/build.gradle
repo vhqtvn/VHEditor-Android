@@ -34,7 +34,7 @@ android {
             defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
         }
         versionCode 35
-        versionName "2.2.0"
+        versionName System.getenv("CI_VERSION_NAME") ?: "999.999.999"
 
         externalNativeBuild {
             ndkBuild {
