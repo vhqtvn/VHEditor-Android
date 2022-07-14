@@ -1,4 +1,16 @@
 # VHEditor Changelog
+### [2.4.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.0...v2.4.1) (2022-07-14)
+
+
+### Features
+
+* **editor:** allow the webview to be hardward-accelerated ([5c106c2](https://github.com/vhqtvn/VHEditor-Android/commit/5c106c2746a3bd650509714a5c40d4b5c18e5057))
+
+
+### Bug Fixes
+
+* **ci:** remove 'refs/tags' from version name ([200bd6d](https://github.com/vhqtvn/VHEditor-Android/commit/200bd6ddeb1e3838faef2550b4adf554834780a6))
+
 ## [2.4.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.3.0...v2.4.0) (2022-07-14)
 
 
