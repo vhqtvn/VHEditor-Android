@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.4.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.1...v2.4.2) (2022-07-14)
+
+
+### Bug Fixes
+
+* **ci:** version name again ([2995290](https://github.com/vhqtvn/VHEditor-Android/commit/2995290ba9e13fc3c6a9fc9d03213ece08d48905))
+
 ### [2.4.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.0...v2.4.1) (2022-07-14)
 
 
