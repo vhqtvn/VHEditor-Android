@@ -17,7 +17,7 @@ jobs:
           java-version: '12.x'
       - name: "Build"
         run: |
-          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME=${{ github.ref }} ./gradlew assembleRelease
+          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="$(basename ${{ github.ref }})" ./gradlew assembleRelease
       - name: "Changelog"
         run: |
            git diff -U0 HEAD~1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
