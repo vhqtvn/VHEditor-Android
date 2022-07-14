@@ -81,7 +81,6 @@
                             android:onClick="onNewSession"
                             android:text="@string/new_session"
                             android:textColor="@color/button" />
-
                     </LinearLayout>
 
                 </LinearLayout>

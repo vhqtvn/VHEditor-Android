@@ -11,6 +11,7 @@ class EditorHostPrefs(context: Context) {
     companion object {
         val kPrefLatestVersionCachedValue = "cached:latestversion:value"
         val kPrefLatestVersionCachedTime = "cached:latestversion:time"
+        val kPrefFullScreen = "fullscreen"
         val kPrefHardwareKeyboardMode = "hwkeyboard"
         val kPrefEditorHWAcceleration = "editor:hwa"
         val kPrefEditorUIScale = "editor:uiscale"
@@ -154,6 +155,22 @@ class EditorHostPrefs(context: Context) {
             SharedPreferenceUtils.setBoolean(
                 mSharedPreferences,
                 TermuxPreferenceConstants.TERMUX_APP.KEY_KEEP_SCREEN_ON,
+                value,
+                false
+            )
+        }
+
+    var fullScreen: Boolean
+        get() =
+            SharedPreferenceUtils.getBoolean(
+                mSharedPreferences,
+                kPrefFullScreen,
+                false
+            )
+        set(value) {
+            SharedPreferenceUtils.setBoolean(
+                mSharedPreferences,
+                kPrefFullScreen,
                 value,
                 false
             )

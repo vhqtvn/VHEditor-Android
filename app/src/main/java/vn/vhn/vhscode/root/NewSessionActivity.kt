@@ -10,6 +10,7 @@ import android.text.method.LinkMovementMethod
 import android.view.View
 import android.view.Window
 import android.widget.CheckBox
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -58,6 +59,7 @@ class NewSessionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNewSessionBinding
     lateinit var preferences: EditorHostPrefs
     private var mCanAutoRun: Boolean = false
+    private var mIgnoreAutoRunNotified: Boolean = false
 
     private var latestRemoteVersion: String? = null
 
@@ -227,10 +229,18 @@ class NewSessionActivity : AppCompatActivity() {
     }
 
     private fun checkAndAutoRun() {
-        if (!mCanAutoRun) return
         if (intent.getBooleanExtra(kIsInitialStart, false))
             when (preferences.startupTool) {
                 EditorHostPrefs.StartupTool.EDITOR -> {
+                    if (!mCanAutoRun) {
+                        if (!mIgnoreAutoRunNotified) {
+                            mIgnoreAutoRunNotified = true
+                            Toast.makeText(baseContext,
+                                R.string.ignore_auto_start_notification,
+                                Toast.LENGTH_SHORT).show()
+                        }
+                        return
+                    }
                     onStartCode(binding.root)
                 }
             }
@@ -298,6 +308,10 @@ class NewSessionActivity : AppCompatActivity() {
         return ""
     }
 
+    fun onChkFullScreenClick(view: View) {
+        preferences.fullScreen = (view as CheckBox).isChecked
+    }
+
     fun onChkListenOnAllInterfacesClick(view: View) {
         preferences.editorListenAllInterfaces = (view as CheckBox).isChecked
     }
@@ -327,6 +341,8 @@ class NewSessionActivity : AppCompatActivity() {
             .show()
 
         // Set checkboxes to their sharedPreferences setting state
+        dialog.findViewById<CheckBox>(R.id.chkFullScreen)?.isChecked =
+            preferences.fullScreen
         dialog.findViewById<CheckBox>(R.id.chkListenOnAllInterfaces)?.isChecked =
             preferences.editorListenAllInterfaces
         dialog.findViewById<CheckBox>(R.id.chkUseSSL)?.isChecked =
@@ -379,4 +395,5 @@ class NewSessionActivity : AppCompatActivity() {
             updateUI()
         }
     }
+
 }

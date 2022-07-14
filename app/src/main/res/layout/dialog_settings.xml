@@ -51,11 +51,17 @@
             app:layout_constraintVertical_chainStyle="packed">
 
             <CheckBox
-                android:id="@+id/chkListenOnAllInterfaces"
+                android:id="@+id/chkFullScreen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:onClick="onChkFullScreenClick"
+                android:text="@string/fullscreen_setting" />
+
+            <CheckBox
+                android:id="@+id/chkListenOnAllInterfaces"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:onClick="onChkListenOnAllInterfacesClick"
                 android:text="@string/server_listen_on_all_interfaces" />
 
@@ -63,8 +69,6 @@
                 android:id="@+id/chkUseSSL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
                 android:onClick="onChkUseSSLClick"
                 android:text="@string/use_https" />
 
@@ -92,7 +96,6 @@
                 android:id="@+id/chkInitialStartEditor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:onClick="onChkInitialStartEditorClick"
                 android:text="@string/initial_start_editor" />

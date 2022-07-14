@@ -5,18 +5,15 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.TypedValue
-import android.view.Gravity
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.widget.AdapterView
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.text.HtmlCompat
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -181,6 +178,22 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         mInitialResume = mIsOnResumeAfterOnCreate
 
         mIsOnResumeAfterOnCreate = false
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (preferences.fullScreen) {
+                window.insetsController?.hide(WindowInsets.Type.statusBars())
+            } else {
+                window.insetsController?.show(WindowInsets.Type.statusBars())
+            }
+        } else {
+            val attrs: WindowManager.LayoutParams = window.attributes
+            if (preferences.fullScreen) {
+                attrs.flags = attrs.flags or WindowManager.LayoutParams.FLAG_FULLSCREEN
+            } else {
+                attrs.flags = attrs.flags and WindowManager.LayoutParams.FLAG_FULLSCREEN.inv()
+            }
+            window.attributes = attrs
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -620,5 +633,9 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
     fun onOverlaySettingsClick(view: View) {
         mCurrentEditorFragment?.toggleSettings();
+    }
+
+    fun onGlobalSettings(view: View) {
+
     }
 }

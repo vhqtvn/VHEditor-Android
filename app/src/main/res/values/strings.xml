@@ -60,6 +60,7 @@
     <string name="overlay_btn_settings">&#xf085; Config</string>
     <string name="initial_start_editor">Start editor by default</string>
 
+    <string name="ignore_auto_start_notification">Autostart setting is ignored. Check if the server need to be updated.</string>
     <string name="confirm_reinstall_server">CodeServer will be reinstalled, installed packages and user files wont be deleted. Do you want to continue?</string>
     <string name="confirm_reset_rootfs">Everything except home folder will be deleted. Do you want to continue?</string>
     <string name="local_server_listen_port">Local server listen port</string>
