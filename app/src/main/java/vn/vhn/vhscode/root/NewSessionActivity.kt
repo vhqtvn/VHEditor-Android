@@ -1,10 +1,8 @@
 package vn.vhn.vhscode.root
 
 import android.Manifest
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Html
@@ -40,7 +38,7 @@ import java.net.URL
 
 class NewSessionActivity : AppCompatActivity() {
     companion object {
-        val kCurrentServerVersion = "4.4.0-" + BuildConfig.CS_VERSION
+        val kCurrentServerVersion = "4.5.0-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 
@@ -59,12 +57,9 @@ class NewSessionActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityNewSessionBinding
     lateinit var preferences: EditorHostPrefs
+    private var mCanAutoRun: Boolean = false
 
     private var latestRemoteVersion: String? = null
-
-    private fun sharedPreferences(): SharedPreferences {
-        return getSharedPreferences("main_settings", Context.MODE_PRIVATE)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,18 +68,14 @@ class NewSessionActivity : AppCompatActivity() {
 
         binding = ActivityNewSessionBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        mResultSet = false
     }
 
     override fun onResume() {
         super.onResume()
         preferences = EditorHostPrefs(this)
         configureUI()
-        if (intent.getBooleanExtra(kIsInitialStart, false))
-            when (preferences.startupTool) {
-                EditorHostPrefs.StartupTool.EDITOR -> {
-                    onStartCode(binding.root)
-                }
-            }
     }
 
     private fun configureUI() {
@@ -104,7 +95,11 @@ class NewSessionActivity : AppCompatActivity() {
         }
     }
 
+    private var mResultSet = false
+
     fun onStartCode(view: View) {
+        if (mResultSet) return
+        mResultSet = true
         TermuxInstaller.setupIfNeeded(this) {
             CodeServerService.setupIfNeeded(this) {
                 CoroutineScope(Dispatchers.Main).launch {
@@ -122,6 +117,8 @@ class NewSessionActivity : AppCompatActivity() {
     }
 
     fun onStartRemote(view: View) {
+        if (mResultSet) return
+        mResultSet = true
         setResult(
             RESULT_OK, Intent()
                 .putExtra(kSessionType, kSessionTypeRemoteCodeEditor)
@@ -179,12 +176,15 @@ class NewSessionActivity : AppCompatActivity() {
             finish()
         }
         CoroutineScope(Dispatchers.Main).launch {
+            var canAutoRun = true
             var txtVersion = "App version: ${BuildConfig.VERSION_NAME}"
             if (latestRemoteVersion != null) {
                 if (latestRemoteVersion == BuildConfig.VERSION_NAME) {
                     txtVersion += ", already latest version."
                 } else {
                     txtVersion += ", latest version: <a href=\"https://github.com/vhqtvn/VHEditor-Android/releases/latest\">${latestRemoteVersion}</a>"
+                    txtVersion += " (<a href=\"https://github.com/vhqtvn/VHEditor-Android/blob/master/CHANGELOG.md\">ChangeLog</a>)"
+                    canAutoRun = false
                 }
             }
             binding.txtAppVersion.text = Html.fromHtml(txtVersion, 0)
@@ -201,12 +201,14 @@ class NewSessionActivity : AppCompatActivity() {
                     getString(R.string.install_server)
                 binding.btnInstallServer.visibility = View.VISIBLE
                 binding.installedRegionGroup.visibility = View.GONE
+                canAutoRun = false
             } else {
                 binding.btnStartCode.isEnabled = true
                 if (codeServerVersion != kCurrentServerVersion) {
                     binding.btnInstallServer.text =
                         getString(R.string.update_server) + " (" + kCurrentServerVersion + ")"
                     binding.btnInstallServer.visibility = View.VISIBLE
+                    canAutoRun = false
                 } else {
                     binding.btnInstallServer.text = getString(R.string.reinstall_server)
                     binding.btnInstallServer.visibility = View.GONE
@@ -214,6 +216,7 @@ class NewSessionActivity : AppCompatActivity() {
                 binding.installedRegionGroup.visibility = View.VISIBLE
             }
 
+            mCanAutoRun = canAutoRun
             performRequestPermissions()
         }
     }
@@ -223,10 +226,23 @@ class NewSessionActivity : AppCompatActivity() {
         return android.os.Build.VERSION.SDK_INT >= 29 && targetSdkVersion != 28
     }
 
+    private fun checkAndAutoRun() {
+        if (!mCanAutoRun) return
+        if (intent.getBooleanExtra(kIsInitialStart, false))
+            when (preferences.startupTool) {
+                EditorHostPrefs.StartupTool.EDITOR -> {
+                    onStartCode(binding.root)
+                }
+            }
+    }
+
     var requestedPermission: Boolean = false
     private fun performRequestPermissions() {
         CoroutineScope(Dispatchers.Main).launch {
-            if (requestedPermission) return@launch
+            if (requestedPermission) {
+                checkAndAutoRun()
+                return@launch
+            }
             requestedPermission = true
             preferences.requestedPermissions = true
             val listPermissionsNeeded = mutableListOf<String>()
@@ -244,6 +260,8 @@ class NewSessionActivity : AppCompatActivity() {
                     listPermissionsNeeded.toTypedArray(),
                     0
                 )
+            } else {
+                checkAndAutoRun()
             }
         }
     }
@@ -254,6 +272,7 @@ class NewSessionActivity : AppCompatActivity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        checkAndAutoRun()
     }
 
     suspend fun getCurrentCodeServerVersion(): String? {
