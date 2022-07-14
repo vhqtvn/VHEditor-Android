@@ -18,6 +18,9 @@ jobs:
       - name: "Build"
         run: |
           USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME=${{ github.ref }} ./gradlew assembleRelease
+      - name: "Changelog"
+        run: |
+           git diff -U0 HEAD~1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -26,6 +29,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
+          body_path: CHANGELOG_current.md
           draft: false
           prerelease: false
       - name: Upload arm64 release
