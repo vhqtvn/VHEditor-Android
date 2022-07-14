@@ -1,4 +1,16 @@
 # VHEditor Changelog
+## [2.4.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.3.0...v2.4.0) (2022-07-14)
+
+
+### Features
+
+* auto start editor only after latest version confirmed ([9ecd8bc](https://github.com/vhqtvn/VHEditor-Android/commit/9ecd8bcfc1e1e8392338afe8c0aceb40673d4cc6))
+
+
+### Bug Fixes
+
+* **editor:** maybe this is the actual fix for blurry problem ([4362303](https://github.com/vhqtvn/VHEditor-Android/commit/436230333578ee662017eb7251b710ac2471fc37))
+
 ## [2.3.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.2.1...v2.3.0) (2022-07-14)
 
 
