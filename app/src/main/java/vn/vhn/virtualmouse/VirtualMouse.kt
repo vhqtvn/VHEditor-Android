@@ -19,6 +19,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.view.ViewCompat
 import vn.vhn.vhscode.R
 
 
@@ -47,33 +48,35 @@ class VirtualMouse() {
             return
         }
         disable()
-        mMouseView = MouseView(rootView.context, targetView)
-        mMouseView!!.cursorScale = scaleFactor
-        mMouseView!!.id = View.generateViewId()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mMouseView!!.focusable = View.NOT_FOCUSABLE
+        mMouseView = MouseView(rootView.context, targetView).also {
+            it.setLayerType(View. LAYER_TYPE_SOFTWARE, null)
+            it.cursorScale = scaleFactor
+            it.id = View.generateViewId()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                it.focusable = View.NOT_FOCUSABLE
+            }
+            val params = ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_PARENT,
+                ConstraintLayout.LayoutParams.MATCH_PARENT
+            )
+            rootView.addView(it, params)
+            it.initialize()
+            val cons = ConstraintSet()
+            cons.clone(rootView)
+            for (dir in listOf(
+                ConstraintSet.LEFT,
+                ConstraintSet.TOP,
+                ConstraintSet.RIGHT,
+                ConstraintSet.BOTTOM
+            ))
+                cons.connect(it.id, dir, ConstraintSet.PARENT_ID, dir, 0)
+            cons.applyTo(rootView)
         }
-        val params = ConstraintLayout.LayoutParams(
-            ConstraintLayout.LayoutParams.MATCH_PARENT,
-            ConstraintLayout.LayoutParams.MATCH_PARENT
-        )
-        rootView.addView(mMouseView, params)
-        mMouseView!!.initialize()
-        val cons = ConstraintSet()
-        cons.clone(rootView)
-        for (dir in listOf(
-            ConstraintSet.LEFT,
-            ConstraintSet.TOP,
-            ConstraintSet.RIGHT,
-            ConstraintSet.BOTTOM
-        ))
-            cons.connect(mMouseView!!.id, dir, ConstraintSet.PARENT_ID, dir, 0)
-        cons.applyTo(rootView)
     }
 
     fun disable() {
-        if (mMouseView != null) {
-            val parent = mMouseView?.parent as? ViewGroup
+        mMouseView?.also {
+            val parent = it.parent as? ViewGroup
             parent?.removeView(mMouseView)
             mMouseView = null
         }

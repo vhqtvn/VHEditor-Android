@@ -10,6 +10,7 @@ import android.util.TypedValue
 import android.view.*
 import android.view.MotionEvent.PointerCoords
 import android.webkit.WebView
+import androidx.core.view.ViewCompat
 import java.lang.Long.max
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -316,7 +317,7 @@ class MouseView(
     }
 
     private val cursorBitmapPaint = Paint().apply {
-        isAntiAlias = false
+        isAntiAlias = true
         isFilterBitmap = false
     }
 
