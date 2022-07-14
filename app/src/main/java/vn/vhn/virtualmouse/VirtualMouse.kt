@@ -1,26 +1,12 @@
 package vn.vhn.virtualmouse
 
-import android.Manifest.permission.SYSTEM_ALERT_WINDOW
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.PixelFormat
 import android.os.Build
-import android.provider.Settings
-import android.util.Log
-import android.view.*
+import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.view.ViewCompat
-import vn.vhn.vhscode.R
 
 
 class VirtualMouse() {
@@ -49,7 +35,7 @@ class VirtualMouse() {
         }
         disable()
         mMouseView = MouseView(rootView.context, targetView).also {
-            it.setLayerType(View. LAYER_TYPE_SOFTWARE, null)
+            it.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             it.cursorScale = scaleFactor
             it.id = View.generateViewId()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -77,7 +63,7 @@ class VirtualMouse() {
     fun disable() {
         mMouseView?.also {
             val parent = it.parent as? ViewGroup
-            parent?.removeView(mMouseView)
+            parent?.removeView(it)
             mMouseView = null
         }
     }

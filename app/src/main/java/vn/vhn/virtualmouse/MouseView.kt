@@ -332,7 +332,6 @@ class MouseView(
         }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
         val bitmap = mCurrentMouseBitmap
         if (bitmap == null) {
             canvas.drawCircle(cx, cy, mMouseSize / 2, cursorPaint)
