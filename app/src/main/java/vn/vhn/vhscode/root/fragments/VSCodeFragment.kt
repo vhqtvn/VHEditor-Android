@@ -14,7 +14,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.CheckBox
 import android.widget.SeekBar
-import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import vn.vhn.vhscode.R
@@ -87,6 +86,7 @@ class VSCodeFragment : Fragment() {
         _binding = FragmentVSCodeBinding.inflate(inflater, container, false)
         _binding?.chkUseHardwareKeyboard?.setOnClickListener { onChkUseHardwareKeyboard(it) }
         _binding?.chkUseVirtualMouse?.setOnClickListener { onChkUseVirtualMouse(it) }
+        _binding?.chkUseHWA?.setOnClickListener { onChkUseHWA(it) }
         _binding?.virtualMouseScaleSeekBar?.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
@@ -133,6 +133,10 @@ class VSCodeFragment : Fragment() {
             it.hardwareKeyboardMode.also { isHWKB ->
                 configureHWKeyboardMode(isHWKB)
                 binding.chkUseHardwareKeyboard.isChecked = isHWKB
+            }
+            it.editorUseHWAccelerator.also { isHWAW ->
+                configureWebViewHWAMode(isHWAW)
+                binding.chkUseHWA.isChecked = isHWAW
             }
             binding.virtualMouseScaleSeekBar.progress = it.editorVirtualMouseScaleParam
             binding.zoomScaleSeekBar.progress = (it.editorUIScale / 25) - 1
@@ -278,6 +282,8 @@ class VSCodeFragment : Fragment() {
         } catch (_: Exception) {
         }
 
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
 //        webView.onResolvePointerIcon()
 
         webView.settings.javaScriptEnabled = true
@@ -348,6 +354,14 @@ class VSCodeFragment : Fragment() {
         setLogVisible(newValue ?: !mCurrentLogVisible)
     }
 
+    fun configureWebViewHWAMode(hardware: Boolean) {
+        if (hardware) {
+            binding.webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            binding.webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+    }
+
     fun configureHWKeyboardMode(enable: Boolean) {
         if (mUseHardKeyboard == enable) return
         mUseHardKeyboard = enable
@@ -371,6 +385,13 @@ class VSCodeFragment : Fragment() {
         (view as CheckBox).isChecked.also {
             host.preferences.editorVirtualMouse = it
             configureVirtualMouseMode(it)
+        }
+    }
+
+    fun onChkUseHWA(view: View) {
+        (view as CheckBox).isChecked.also {
+            host.preferences.editorUseHWAccelerator = it
+            configureWebViewHWAMode(it)
         }
     }
 

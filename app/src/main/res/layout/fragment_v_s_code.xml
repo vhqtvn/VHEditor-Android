@@ -74,10 +74,20 @@
             app:layout_constraintVertical_chainStyle="packed">
 
             <CheckBox
-                android:id="@+id/chkUseVirtualMouse"
+                android:id="@+id/chkUseHWA"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:buttonTint="@color/button"
+                android:minHeight="48dp"
+                android:text="@string/use_hw_accelerate_webview"
+                android:textColor="@color/button"
+                android:tint="@color/button" />
+
+            <CheckBox
+                android:id="@+id/chkUseVirtualMouse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:buttonTint="@color/button"
                 android:minHeight="48dp"

@@ -12,6 +12,7 @@ class EditorHostPrefs(context: Context) {
         val kPrefLatestVersionCachedValue = "cached:latestversion:value"
         val kPrefLatestVersionCachedTime = "cached:latestversion:time"
         val kPrefHardwareKeyboardMode = "hwkeyboard"
+        val kPrefEditorHWAcceleration = "editor:hwa"
         val kPrefEditorUIScale = "editor:uiscale"
         val kPrefEditorUseSSL = "editor:use-ssl"
         val kPrefEditorUseVirtualMouse = "editor:use-vmouse"
@@ -288,6 +289,22 @@ class EditorHostPrefs(context: Context) {
             SharedPreferenceUtils.setBoolean(
                 mSharedPreferences,
                 kPrefEditorUseSSL,
+                value,
+                false
+            )
+        }
+
+    var editorUseHWAccelerator: Boolean
+        get() =
+            SharedPreferenceUtils.getBoolean(
+                mSharedPreferences,
+                kPrefEditorHWAcceleration,
+                true
+            )
+        set(value) {
+            SharedPreferenceUtils.setBoolean(
+                mSharedPreferences,
+                kPrefEditorHWAcceleration,
                 value,
                 false
             )
