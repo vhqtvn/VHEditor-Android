@@ -21,11 +21,14 @@ var prepareCustomProps = function() {
         this._vscodeCode = "";
     } else if (this.key === 'Shift') {
         this._vscodeCode = "ShiftLeft";
+    } else if (this.key.match(/^F[0-9]+$/)) {
+        this._vscodeCode = this.key;
     } else if (this.which in customMapper) {
         this._vscodeCode = customMapper[this.which];
     } else if (orig === "" && typeof this.key === "string" && this.key.length) {
         if (this.key in customKeyRemapper) this._vscodeCode = customKeyRemapper[this.key];
         else if(this.key>="a" && this.key<="z") this._vscodeCode = "Key" + this.key.toUpperCase();
+        else if(this.key>="A" && this.key<="Z") this._vscodeCode = "Key" + this.key;
     } else this._vscodeCode = orig;
 }
 Object.defineProperty(window.KeyboardEvent.prototype, 'code', {
