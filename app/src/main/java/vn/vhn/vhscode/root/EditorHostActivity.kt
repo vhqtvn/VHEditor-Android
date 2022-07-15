@@ -2,6 +2,7 @@ package vn.vhn.vhscode.root
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Rect
@@ -10,6 +11,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.TypedValue
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -635,7 +637,17 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         mCurrentEditorFragment?.toggleSettings();
     }
 
-    fun onGlobalSettings(view: View) {
+    fun onOverlayButtonKeyboardClick(view: View) {
+        mCurrentEditorFragment?.webView?.also {
+            if (it.requestFocus()) {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.toggleSoftInputFromWindow(
+                    it.applicationWindowToken,
+                    InputMethodManager.SHOW_FORCED,
+                    InputMethodManager.HIDE_NOT_ALWAYS
+                )
 
+            }
+        }
     }
 }

@@ -164,6 +164,17 @@
             android:onClick="onOverlaySettingsClick"
             android:text="@string/overlay_btn_settings"
             android:textColor="@color/overlay_button_color" />
+        <Button
+            style="?android:attr/borderlessButtonStyle"
+            android:id="@+id/overlayControlButtonKeyboard"
+            android:layout_marginTop="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/overlay_button_bg"
+            android:fontFamily="@font/fa_solid_900"
+            android:onClick="onOverlayButtonKeyboardClick"
+            android:text="@string/overlay_btn_keyboard"
+            android:textColor="@color/overlay_button_color" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.LinearLayoutCompat

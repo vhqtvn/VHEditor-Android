@@ -57,6 +57,7 @@
     <string name="use_virtual_mouse">Use virtual mouse</string>
     <string name="virtualMouseScaleValue">Mouse Scale: x%1$.2f</string>
     <string name="overlay_btn_menu"> Menu</string>
+    <string name="overlay_btn_keyboard">Keyboard</string>
     <string name="overlay_btn_settings">&#xf085; Config</string>
     <string name="initial_start_editor">Start editor by default</string>
 

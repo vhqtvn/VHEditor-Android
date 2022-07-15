@@ -79,6 +79,9 @@ class VSCodeFragment : Fragment() {
     private val statusObserver: Observer<CodeServerSession.Companion.RunStatus> =
         Observer<CodeServerSession.Companion.RunStatus> { onServerStatusUpdated(it) }
 
+    public val webView: WebView
+        get() = binding.webView
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
