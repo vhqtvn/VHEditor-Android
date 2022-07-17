@@ -20,7 +20,7 @@ jobs:
           USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="$(basename ${{ github.ref }} | sed 's/^v//')" ./gradlew assembleRelease
       - name: "Changelog"
         run: |
-           git diff -U0 HEAD~1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
+           git log -p -n1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
