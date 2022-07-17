@@ -6,13 +6,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Settings
+import android.util.Log
 import android.util.TypedValue
 import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -25,8 +29,11 @@ import eightbitlab.com.blurview.RenderScriptBlur
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import vn.vhn.pckeyboard.orientation.IScreenOrientationLocker
+import vn.vhn.pckeyboard.orientation.createScreenOrientationLocker
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
+import vn.vhn.vhscode.compat.OrientationCompat
 import vn.vhn.vhscode.databinding.ActivityEditorHostBinding
 import vn.vhn.vhscode.preferences.EditorHostPrefs
 import vn.vhn.vhscode.root.fragments.TerminalFragment
@@ -81,6 +88,18 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
             }, 100)
         }
     }
+
+    private var mOrientationLockerCreationTries = 0
+    private var mOrientationLockerImpl: IScreenOrientationLocker? = null
+    private val orientationLocker: IScreenOrientationLocker?
+        get() {
+            //there should be no race here
+            if (mOrientationLockerImpl == null && mOrientationLockerCreationTries <= 5) {
+                mOrientationLockerCreationTries++
+                mOrientationLockerImpl = createScreenOrientationLocker(this)
+            }
+            return mOrientationLockerImpl
+        }
 
     @Synchronized
     private fun updateCurrentFragment(position: Int): Boolean {
@@ -174,10 +193,19 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
     }
 
+    private var mCurrentDefaultKeyboard: String? = null
     override fun onResume() {
         super.onResume()
 
-        mInitialResume = mIsOnResumeAfterOnCreate
+        preferences.lockedKeyboard?.also {
+            try {
+                val currentKB = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+                Settings.Secure.putString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD, it)
+                mCurrentDefaultKeyboard = currentKB
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.failed_to_set_keyboard, Toast.LENGTH_SHORT).show()
+            }
+        }
 
         mIsOnResumeAfterOnCreate = false
 
@@ -196,11 +224,45 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
             }
             window.attributes = attrs
         }
+
+        updateLockOrientationFromPreferences()
+        updateLockKeyboardLabel()
+    }
+
+    private var mSavedAccelerometerRotationEnabled: Boolean? = null
+    private fun updateLockOrientationFromPreferences() {
+        val screenOrientation = preferences.lockedOrientation
+        if (screenOrientation == null) {
+            binding.overlayControlButtonLockOrientation.text =
+                resources.getString(R.string.overlay_btn_lock_orientation_unlocked)
+            mOrientationLockerImpl?.unlock()
+        } else {
+            var lockSuccess = false
+            try {
+                if (orientationLocker?.lock(screenOrientation) == true) {
+                    binding.overlayControlButtonLockOrientation.text =
+                        resources.getString(R.string.overlay_btn_lock_orientation_locked)
+                    lockSuccess = true
+                }
+            } catch (e: Exception) {
+            }
+            if (!lockSuccess)
+                Toast.makeText(this, R.string.failed_to_lock_orientation, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(ARG_ACTIVITY_RECREATED, true)
+    }
+git
+    override fun onPause() {
+        super.onPause()
+        mOrientationLockerImpl?.unlock()
+        mCurrentDefaultKeyboard?.also {
+            Settings.Secure.putString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD, it)
+            mCurrentDefaultKeyboard = null
+        }
     }
 
     override fun onDestroy() {
@@ -648,6 +710,45 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 )
 
             }
+        }
+    }
+
+    fun onOverlayButtonLockOrientationClick(view: View) {
+        val orientation = preferences.lockedOrientation
+        if (orientation == null) {
+            preferences.lockedOrientation = OrientationCompat.getCurrentRotation(this)
+        } else {
+            preferences.lockedOrientation = null
+        }
+        updateLockOrientationFromPreferences()
+    }
+
+    fun onOverlayButtonLockKeyboardClick(view: View) {
+        val resolver = contentResolver
+        val sKey = Settings.Secure.DEFAULT_INPUT_METHOD
+        val currentKeyboard: String = Settings.Secure.getString(resolver, sKey)
+        try {
+            if (currentKeyboard == preferences.lockedKeyboard)
+                preferences.lockedKeyboard = null
+            else {
+                Settings.Secure.putString(resolver, sKey, currentKeyboard)
+                preferences.lockedKeyboard = currentKeyboard
+            }
+            updateLockKeyboardLabel()
+        } catch (e: Exception) {
+            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                data =
+                    Uri.parse("https://github.com/vhqtvn/VHEditor-Android/wiki/How-to-grant-write-secure-permissions-to-VHEditor")
+            })
+        }
+    }
+
+    private fun updateLockKeyboardLabel() {
+        if (preferences.lockedKeyboard == null) {
+            binding.overlayControlButtonLockKeyboard.setText(R.string.overlay_btn_lock_keyboard)
+        } else {
+            binding.overlayControlButtonLockKeyboard.text =
+                resources.getString(R.string.use_keyboard, preferences.lockedKeyboard)
         }
     }
 }

@@ -57,8 +57,10 @@
     <string name="use_virtual_mouse">Use virtual mouse</string>
     <string name="virtualMouseScaleValue">Mouse Scale: x%1$.2f</string>
     <string name="overlay_btn_menu"> Menu</string>
-    <string name="overlay_btn_keyboard">Keyboard</string>
+    <string name="overlay_btn_keyboard">&#xf11c; Toggle keyboard</string>
     <string name="overlay_btn_settings">&#xf085; Config</string>
+    <string name="overlay_btn_lock_orientation_unlocked">&#xf3c1; Orientation not locking</string>
+    <string name="overlay_btn_lock_orientation_locked">&#xf023; Orientation locked</string>
     <string name="initial_start_editor">Start editor by default</string>
 
     <string name="ignore_auto_start_notification">Autostart setting is ignored. Check if the server need to be updated.</string>
@@ -66,4 +68,9 @@
     <string name="confirm_reset_rootfs">Everything except home folder will be deleted. Do you want to continue?</string>
     <string name="local_server_listen_port">Local server listen port</string>
     <string name="local_server_listen_port_help">0 or empty for random</string>
+
+    <string name="failed_to_lock_orientation">Failed to lock orientation</string>
+    <string name="overlay_btn_lock_keyboard">Auto select current keyboard</string>
+    <string name="use_keyboard">Use KB: %s</string>
+    <string name="failed_to_set_keyboard">Failed to set keyboard</string>
 </resources>

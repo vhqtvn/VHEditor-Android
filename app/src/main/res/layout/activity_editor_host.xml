@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".root.EditorHostActivity">
+
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
@@ -103,8 +104,8 @@
             android:id="@+id/btnGroupBlurView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="80dp"
             android:layout_marginStart="@dimen/drawer_left_width"
+            android:layout_marginBottom="80dp"
             app:blurOverlayColor="#40FFFFFF"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -135,64 +136,104 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/overlayControlView"
-        android:visibility="gone"
-        android:orientation="vertical"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:paddingLeft="5dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="5dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
         <Button
-            style="?android:attr/borderlessButtonStyle"
             android:id="@+id/overlayControlButtonMenu"
-            android:layout_width="wrap_content"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/overlay_button_bg"
             android:fontFamily="@font/fa_solid_900"
             android:onClick="toggleSidebar"
             android:text="@string/overlay_btn_menu"
+            android:textAlignment="viewStart"
             android:textColor="@color/overlay_button_color" />
+
         <Button
-            style="?android:attr/borderlessButtonStyle"
             android:id="@+id/overlayControlButtonSettings"
-            android:layout_marginTop="5dp"
-            android:layout_width="wrap_content"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:background="@drawable/overlay_button_bg"
             android:fontFamily="@font/fa_solid_900"
             android:onClick="onOverlaySettingsClick"
             android:text="@string/overlay_btn_settings"
+            android:textAlignment="viewStart"
             android:textColor="@color/overlay_button_color" />
+
         <Button
+            android:id="@+id/overlayControlButtonLockOrientation"
             style="?android:attr/borderlessButtonStyle"
-            android:id="@+id/overlayControlButtonKeyboard"
-            android:layout_marginTop="5dp"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:background="@drawable/overlay_button_bg"
             android:fontFamily="@font/fa_solid_900"
-            android:onClick="onOverlayButtonKeyboardClick"
-            android:text="@string/overlay_btn_keyboard"
+            android:onClick="onOverlayButtonLockOrientationClick"
+            android:text="@string/overlay_btn_lock_orientation_locked"
+            android:textAlignment="viewStart"
             android:textColor="@color/overlay_button_color" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/overlayControlButtonKeyboard"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@drawable/overlay_button_bg"
+                android:fontFamily="@font/fa_solid_900"
+                android:onClick="onOverlayButtonKeyboardClick"
+                android:text="@string/overlay_btn_keyboard"
+                android:textAlignment="viewStart"
+                android:textColor="@color/overlay_button_color" />
+
+            <Button
+                android:id="@+id/overlayControlButtonLockKeyboard"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5dp"
+                android:background="@drawable/overlay_button_bg"
+                android:fontFamily="@font/fa_solid_900"
+                android:onClick="onOverlayButtonLockKeyboardClick"
+                android:text="@string/overlay_btn_lock_keyboard"
+                android:textAlignment="viewStart"
+                android:textColor="@color/overlay_button_color" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/fnView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:focusableInTouchMode="false"
         android:visibility="invisible"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        app:layout_constraintRight_toRightOf="parent">
+
         <TextView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:gravity="center"
             android:background="@color/black"
+            android:gravity="center"
+            android:text="Fn"
             android:textColor="@color/button"
-            android:textSize="30dp"
-            android:text="Fn"></TextView>
+            android:textSize="30dp"></TextView>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

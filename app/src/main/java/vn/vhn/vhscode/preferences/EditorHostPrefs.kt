@@ -13,6 +13,7 @@ class EditorHostPrefs(context: Context) {
         val kPrefLatestVersionCachedTime = "cached:latestversion:time"
         val kPrefFullScreen = "fullscreen"
         val kPrefHardwareKeyboardMode = "hwkeyboard"
+        val kPrefLockedKeyboardId = "locked-kb"
         val kPrefEditorHWAcceleration = "editor:hwa"
         val kPrefEditorUIScale = "editor:uiscale"
         val kPrefEditorUseSSL = "editor:use-ssl"
@@ -21,6 +22,8 @@ class EditorHostPrefs(context: Context) {
         val kPrefRemoteCodeEditorURL = "editor:remote-url"
         val kPrefVirtualMouseScale = "editor:virtualmousescale"
         val kPrefLocalServerListenPort = "editor:listen-port"
+
+        val kPrefLockedOrientation = "locked-orientation"
 
         val kPrefInitialTool = "startup:tool"
 
@@ -70,6 +73,22 @@ class EditorHostPrefs(context: Context) {
             SharedPreferenceUtils.setString(
                 mSharedPreferences,
                 TermuxPreferenceConstants.TERMUX_APP.KEY_CURRENT_SESSION,
+                value,
+                false
+            )
+        }
+
+    var lockedKeyboard: String?
+        get() = SharedPreferenceUtils.getString(
+            mSharedPreferences,
+            kPrefLockedKeyboardId,
+            null,
+            true
+        )
+        set(value) {
+            SharedPreferenceUtils.setString(
+                mSharedPreferences,
+                kPrefLockedKeyboardId,
                 value,
                 false
             )
@@ -261,6 +280,20 @@ class EditorHostPrefs(context: Context) {
                 mSharedPreferences,
                 kPrefLatestVersionCachedTime,
                 System.currentTimeMillis(),
+                false
+            )
+        }
+
+    private val lockedOrientationUndef = -1337
+    var lockedOrientation: Int?
+        get() = SharedPreferenceUtils.getInt(
+            mSharedPreferences, kPrefLockedOrientation, lockedOrientationUndef
+        ).takeIf { it != lockedOrientationUndef }
+        set(value) {
+            SharedPreferenceUtils.setInt(
+                mSharedPreferences,
+                kPrefLockedOrientation,
+                value ?: lockedOrientationUndef,
                 false
             )
         }

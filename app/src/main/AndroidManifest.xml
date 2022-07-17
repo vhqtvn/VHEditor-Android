@@ -20,6 +20,9 @@
         <activity
             android:name=".root.NewSessionActivity"
             android:exported="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|fontScale|uiMode"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleInstance" />
         <activity
             android:name=".root.EditorHostActivity"
