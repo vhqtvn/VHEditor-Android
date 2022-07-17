@@ -13,7 +13,7 @@
   },
   "name": "vheditor-android-ci",
   "description": "VHEditor Android",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "main": "ci/ci.js",
   "dependencies": {
     "acorn": "^8.7.1",

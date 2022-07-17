@@ -1,4 +1,15 @@
 # VHEditor Changelog
+## [2.5.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.2...v2.5.0) (2022-07-17)
+
+
+### Features
+
+* add fullscreen setting ([fc7c290](https://github.com/vhqtvn/VHEditor-Android/commit/fc7c2908639fd073b9eceb84f5cbb3620b563715)), closes [#132](https://github.com/vhqtvn/VHEditor-Android/issues/132)
+* add VHEditor's own keyboard (based on HackerKeyboard) ([5b3cfcd](https://github.com/vhqtvn/VHEditor-Android/commit/5b3cfcdc9af26e1cef417310da1981fee4c1c8fd))
+* allow locking orientation while using the app ([26242ce](https://github.com/vhqtvn/VHEditor-Android/commit/26242ce1a18908972abfc7f308fef1f4516121b4))
+* allow to configure current keyboard as the keyboard to be used when starting app ([7310d37](https://github.com/vhqtvn/VHEditor-Android/commit/7310d3713f1c113c1371f874c824860567324699))
+* **editor:** allow to force-open keyboard ([c2a577c](https://github.com/vhqtvn/VHEditor-Android/commit/c2a577c44685b13510a6feb131486f57d775ea89))
+
 ### [2.4.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.1...v2.4.2) (2022-07-14)
 
 
