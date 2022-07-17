@@ -255,7 +255,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         super.onSaveInstanceState(outState)
         outState.putBoolean(ARG_ACTIVITY_RECREATED, true)
     }
-git
+
     override fun onPause() {
         super.onPause()
         mOrientationLockerImpl?.unlock()
