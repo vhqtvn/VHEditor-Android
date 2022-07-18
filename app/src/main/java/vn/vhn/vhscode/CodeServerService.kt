@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
+import james.crasher.Crasher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -257,6 +258,7 @@ class CodeServerService() : Service() {
     }
 
     override fun onCreate() {
+        Crasher(applicationContext)
         super.onCreate()
         instance = this
     }
