@@ -193,6 +193,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
         binding.drawerLayout.addDrawerListener(drawerListener)
 
+        mOrientationLockerNeedsRelock = true
     }
 
     private var mCurrentDefaultKeyboard: String? = null
@@ -201,7 +202,8 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
         preferences.lockedKeyboard?.also {
             try {
-                val currentKB = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+                val currentKB =
+                    Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
                 Settings.Secure.putString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD, it)
                 mCurrentDefaultKeyboard = currentKB
             } catch (e: Exception) {
@@ -227,11 +229,16 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
             window.attributes = attrs
         }
 
-        updateLockOrientationFromPreferences()
+        if (mOrientationLockerNeedsRelock) {
+            updateLockOrientationFromPreferences()
+        }
+        mOrientationLockerSkipRelease = false
         updateLockKeyboardLabel()
     }
 
     private var mSavedAccelerometerRotationEnabled: Boolean? = null
+    private var mOrientationLockerNeedsRelock = true
+    private var mOrientationLockerSkipRelease = false
     private fun updateLockOrientationFromPreferences() {
         val screenOrientation = preferences.lockedOrientation
         if (screenOrientation == null) {
@@ -260,7 +267,10 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
     override fun onPause() {
         super.onPause()
-        mOrientationLockerImpl?.unlock()
+        if (!mOrientationLockerSkipRelease) {
+            mOrientationLockerNeedsRelock = true
+            mOrientationLockerImpl?.unlock()
+        }
         mCurrentDefaultKeyboard?.also {
             Settings.Secure.putString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD, it)
             mCurrentDefaultKeyboard = null
@@ -415,6 +425,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
 
     private fun startNewSessionActivity() {
         binding.drawerLayout.post {
+            mOrientationLockerSkipRelease = true
             try {
                 binding.drawerLayout.closeDrawers()
             } catch (e: Exception) {
