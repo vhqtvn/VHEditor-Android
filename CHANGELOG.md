@@ -1,4 +1,12 @@
 # VHEditor Changelog
+## [2.6.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.5.0...v2.6.0) (2022-07-18)
+
+
+### Features
+
+* add Crasher to capture exceptions ([8fecb25](https://github.com/vhqtvn/VHEditor-Android/commit/8fecb25beae682c668cf4ebdc9ec256591dd82d7))
+* keep the orientation when starting NewSession Activity ([2d55e35](https://github.com/vhqtvn/VHEditor-Android/commit/2d55e354fea72f8c531e329851004694d0699ff4))
+
 ## [2.5.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.4.2...v2.5.0) (2022-07-17)
 
 
