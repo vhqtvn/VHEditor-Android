@@ -1,4 +1,13 @@
 # VHEditor Changelog
+## [2.7.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.6.0...v2.7.0) (2022-07-18)
+
+
+### Features
+
+* disable code minimize for release build ([e9fbdad](https://github.com/vhqtvn/VHEditor-Android/commit/e9fbdade0be66f61a25ce765911738f39bacb4e7))
+* reenable minify but disable proguard rename ([7009953](https://github.com/vhqtvn/VHEditor-Android/commit/7009953f244d7c33e28069a63208da5c7966b9fb))
+* **terminal:** use Literation Mono Powerline font for terminal ([89b8090](https://github.com/vhqtvn/VHEditor-Android/commit/89b8090e39860a72faf4308da63cc246e218deae))
+
 ## [2.6.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.5.0...v2.6.0) (2022-07-18)
 
 
