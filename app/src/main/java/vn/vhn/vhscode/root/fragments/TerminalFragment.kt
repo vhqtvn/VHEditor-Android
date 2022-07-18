@@ -2,6 +2,7 @@ package vn.vhn.vhscode.root.fragments
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
@@ -27,6 +28,8 @@ private const val ARG_COMMAND_ID = "command_id"
 class TerminalFragment : Fragment() {
     companion object {
         private final val TAG = "TerminalFragment"
+
+        private var consoleFont: Typeface? = null
 
         @JvmStatic
         fun newInstance(
@@ -117,6 +120,11 @@ class TerminalFragment : Fragment() {
         val term = terminalView
         if (term.currentSession != null) return
         term.setTextSize(30)
+        if (consoleFont == null) {
+            consoleFont = Typeface.createFromAsset(host.applicationContext.assets,
+                "fonts/powerline/Literation Mono Powerline/Literation Mono Powerline.ttf")
+        }
+        term.setTypeface(consoleFont)
         term.attachSession(
             host.codeServerService?.sessionsHost?.getTerminalSessionForCommandId(
                 commandId
