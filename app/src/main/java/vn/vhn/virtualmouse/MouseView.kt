@@ -10,10 +10,10 @@ import android.util.TypedValue
 import android.view.*
 import android.view.MotionEvent.PointerCoords
 import android.webkit.WebView
-import androidx.core.view.ViewCompat
 import java.lang.Long.max
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
@@ -29,6 +29,7 @@ class MouseView(
         val MOUSE_ACTION_CLICK_AFTER_TAP = 0x1001
         val MOUSE_ACTION_FLING = 0x1002
         val MOUSE_ACTION_UPDATE_POINTER = 0x1003
+        val PERFORM_HOVER = 0x1004
 
         val TAP_MS = ViewConfiguration.getTapTimeout()
         val DOUBLE_TAP_MS = ViewConfiguration.getDoubleTapTimeout()
@@ -226,6 +227,9 @@ class MouseView(
                     }
                     postUpdateMousePointer(100, true)
                 }
+                PERFORM_HOVER -> {
+                    performHoverEvent()
+                }
             }
         }
     }
@@ -278,6 +282,11 @@ class MouseView(
         val e = mouseObtainEvent(t, t, MotionEvent.ACTION_HOVER_MOVE, cx, cy)
         updatePointer(e)
         e.recycle()
+
+        if (mCurrentMouseBitmap == null) {
+            val icon = PointerIcon.getSystemIcon(context, PointerIcon.TYPE_DEFAULT)
+            if (icon != null) updatePointer(icon)
+        }
     }
 
     public fun update(x: Float, y: Float) {
@@ -291,23 +300,24 @@ class MouseView(
     val mMouseBottom: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.height - mCurrentMouseHotspotY
 
     public fun updateDeltaTimed(triggerTime: Long, x: Float, y: Float) {
-        var left = cx
-        var right = cx
-        var top = cy
-        var bottom = cy
+//        var left = cx
+//        var right = cx
+//        var top = cy
+//        var bottom = cy
         cx += x
         cy += y
-        if (cx < 0) cx = 0.0F
-        if (cx > width) cx = width.toFloat()
-        if (cy < 0) cy = 0.0F
-        if (cy > height) cy = height.toFloat()
-        if (cx > left) right = cx else left = cx
-        if (cy > top) bottom = cy else top = cy
-        left = maxOf(0f, left - mMouseLeft)
-        right = minOf(width.toFloat(), right + mMouseRight)
-        top = maxOf(0f, top - mMouseTop)
-        bottom = minOf(height.toFloat(), bottom + mMouseBottom)
-        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
+//        if (cx < 0) cx = 0.0F
+//        if (cx > width) cx = width.toFloat()
+//        if (cy < 0) cy = 0.0F
+//        if (cy > height) cy = height.toFloat()
+//        if (cx > left) right = cx else left = cx
+//        if (cy > top) bottom = cy else top = cy
+//        left = maxOf(0f, left - mMouseLeft)
+//        right = minOf(width.toFloat(), right + mMouseRight)
+//        top = maxOf(0f, top - mMouseTop)
+//        bottom = minOf(height.toFloat(), bottom + mMouseBottom)
+//        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
+        postInvalidate()
     }
 
     private val cursorPaint = Paint().apply {
@@ -357,27 +367,32 @@ class MouseView(
     private var mMotionEventToUpdate: AtomicReference<MotionEvent?> = AtomicReference(null)
     private var mLastMotionEventForPointerIcon: MotionEvent? = null
 
+    private fun updatePointer(pointer: PointerIcon) {
+        try {
+            val type = hackPointerTypeField!!.get(pointer) as Int
+            Log.d(TAG, "Resolved to $type")
+            if (type != mCurrentMouseType) {
+                val loadedPointer = hackPointerLoadMethod!!.invoke(pointer, context)
+                mCurrentMouseType = type
+                mCurrentMouseBitmap = hackPointerBitmapField!!.get(loadedPointer) as Bitmap
+                mCurrentMouseHotspotX = hackPointerHotpotXField!!.get(loadedPointer) as Float
+                mCurrentMouseHotspotY = hackPointerHotpotYField!!.get(loadedPointer) as Float
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error: ${e}")
+            mCurrentMouseType = -1
+            mCurrentMouseBitmap = null
+        }
+    }
+
     private fun performUpdatePointer(e: MotionEvent, pointerIndex: Int = 0) {
         mLastMotionEventForPointerIcon?.apply { recycle() }
         mLastMotionEventForPointerIcon = MotionEvent.obtain(e)
-        val pointer = mTarget.onResolvePointerIcon(e, pointerIndex)
+        mTarget.onResolvePointerIcon(e, e.actionIndex)
+        val pointer = mTarget.pointerIcon
         if (pointer != null && pointer != mLastResolvedPointerIcon) {
             mLastResolvedPointerIcon = pointer
-            try {
-                val type = hackPointerTypeField!!.get(pointer) as Int
-                Log.d(TAG, "Resolved to $type")
-                if (type != mCurrentMouseType) {
-                    val loadedPointer = hackPointerLoadMethod!!.invoke(pointer, context)
-                    mCurrentMouseType = type
-                    mCurrentMouseBitmap = hackPointerBitmapField!!.get(loadedPointer) as Bitmap
-                    mCurrentMouseHotspotX = hackPointerHotpotXField!!.get(loadedPointer) as Float
-                    mCurrentMouseHotspotY = hackPointerHotpotYField!!.get(loadedPointer) as Float
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error: ${e}")
-                mCurrentMouseType = -1
-                mCurrentMouseBitmap = null
-            }
+            updatePointer(pointer)
             postInvalidate()
         }
     }
@@ -390,8 +405,8 @@ class MouseView(
             if (updateMotionEvent) {
                 mMotionEventToUpdate.getAndUpdate {
                     it
-                        ?: if (mLastMotionEvent != null) {
-                            MotionEvent.obtain(mLastMotionEvent!!)
+                        ?: if (mLastMotionEventForPointerIcon != null) {
+                            MotionEvent.obtain(mLastMotionEventForPointerIcon!!)
                         } else null
                 }
             }
@@ -401,6 +416,7 @@ class MouseView(
 
     private fun updatePointer(e: MotionEvent, pointerIndex: Int = 0) {
         if (canResolvePointerIcons != true) return
+        e.action = MotionEvent.ACTION_HOVER_ENTER
         val ec = MotionEvent.obtain(e)
         mMotionEventToUpdate.getAndUpdate { currentEvent ->
             if (currentEvent == null) {
@@ -412,7 +428,10 @@ class MouseView(
         }
     }
 
-    private fun dispatchHoverEvent(action: Int) {
+    private var performHoverEventAction = AtomicInteger(-1)
+    private fun performHoverEvent() {
+        val action = performHoverEventAction.getAndSet(-1)
+        if (action == -1) return
         var buttonState = 0
         if (mLeftMouseDown) buttonState = buttonState.or(MotionEvent.BUTTON_PRIMARY)
         val e = mouseObtainEvent(
@@ -423,6 +442,15 @@ class MouseView(
         mTarget.onHoverEvent(e)
         updatePointer(e)
         e.recycle()
+    }
+
+    private fun dispatchHoverEvent(action: Int) {
+        performHoverEventAction.getAndUpdate {
+            if (it == -1) {
+                mHandler.sendEmptyMessageDelayed(PERFORM_HOVER, 150)
+            }
+            action
+        }
     }
 
     private fun dispatchMouseAction(action: Int) {

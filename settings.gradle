@@ -7,4 +7,5 @@ project(':terminal-view').projectDir = file('deps/termux-app/terminal-view')
 
 include 'vhkeyboard'
 project(':vhkeyboard').projectDir = file('deps/vhkeyboard/app')
-
+project(':vhkeyboard').properties.compileSdkVersion = properties.compileSdkVersion
+project(':vhkeyboard').properties.targetSdkVersion = properties.targetSdkVersion
