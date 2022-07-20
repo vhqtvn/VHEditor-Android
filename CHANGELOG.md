@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.7.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.0...v2.7.1) (2022-07-20)
+
+
+### Bug Fixes
+
+* **virtualmouse:** fix blurry problem ([2ea189c](https://github.com/vhqtvn/VHEditor-Android/commit/2ea189c71b6f5076abec770cd0247486209978ef)), closes [#163](https://github.com/vhqtvn/VHEditor-Android/issues/163)
+
 ## [2.7.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.6.0...v2.7.0) (2022-07-18)
 
 
