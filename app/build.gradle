@@ -16,6 +16,9 @@ a6ef37c96c0ae9d88ce581054b22857415ee0cb7481dcdc8028b6b0a650a8b45  cs-x86.tgz
 a69ed089800ae130873abbb2b43c92669b0f14e3cdc59e0e7958aa08ba25046f  cs-x86_64.tgz
 """)
 
+def packageJsonFile = new File(projectDir, "../package.json")
+def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonFile.text)
+
 android {
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
     ndkVersion System.getenv("JITPACK_NDK_VERSION") ?: project.properties.ndkVersion
@@ -35,7 +38,7 @@ android {
             buildConfigField "Boolean", "GOOGLEPLAY_BUILD", "false"
             defaultConfig.targetSdkVersion 28 // Dont update - /data/data no longer executable
         }
-        versionCode 36
+        versionCode packageJson.config.versionCode
         versionName System.getenv("CI_VERSION_NAME") ?: "git describe --tags --abbrev=0".execute().text.trim()
 
         externalNativeBuild {
@@ -213,7 +216,7 @@ def downloadCodeServer(String arch, String expectedChecksum, String version) {
 }
 
 def parseHashes(String hashesStr) {
-    Map<String,String> m = [:]
+    Map<String, String> m = [:]
     for (String line in hashesStr.trim().split("\n")) {
         String[] parts = line.trim().split(" +")
         m[parts[1].trim()] = parts[0].trim()
