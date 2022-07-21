@@ -21,6 +21,9 @@ jobs:
       - name: "Changelog"
         run: |
            git log -p -n1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
+      - name: "Check is prerelease"
+        run: |
+           echo ::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -31,7 +34,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           body_path: CHANGELOG_current.md
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.vars.outputs.is_prerelease }}
       - name: Upload arm64 release
         uses: actions/upload-release-asset@v1
         env:
