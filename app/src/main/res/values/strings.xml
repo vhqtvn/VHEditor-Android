@@ -20,7 +20,7 @@
     <string name="error_title">Error</string>
     <string name="error_not_primary_user_message">Base data can only be installed on the primary user account</string>
     <string name="failed_to_run_server">Failed to run server, got exception %s</string>
-    <string name="bootstrap_installer_body">Installing…</string>
+    <string name="bootstrap_installer_body">Installing Termux bootstrap…</string>
     <string name="bootstrap_error_title">Unable to install</string>
     <string name="bootstrap_error_body">Termux was unable to install the bootstrap packages.</string>
     <string name="bootstrap_error_abort">Abort</string>
@@ -73,4 +73,7 @@
     <string name="overlay_btn_lock_keyboard">Auto select current keyboard</string>
     <string name="use_keyboard">Use KB: %s</string>
     <string name="failed_to_set_keyboard">Failed to set keyboard</string>
+    <string name="error_failed_to_extract">Failed to extract!</string>
+    <string name="copied_to_clipboard">Copied!</string>
+    <string name="long_press_to_copy_full">Tap and hold to copy to clipboard.</string>
 </resources>

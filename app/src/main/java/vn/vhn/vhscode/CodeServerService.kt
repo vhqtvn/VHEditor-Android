@@ -6,28 +6,25 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
-import android.os.*
+import android.os.Binder
+import android.os.Build
+import android.os.IBinder
+import android.os.UserManager
 import android.system.Os
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MutableLiveData
 import james.crasher.Crasher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import vn.vhn.vhscode.root.EditorHostActivity
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
 import vn.vhn.vhscode.service_features.SessionsHost
 import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.lang.Process
+import java.io.IOException
 import java.util.zip.GZIPInputStream
 
 
@@ -49,13 +46,6 @@ class CodeServerService() : Service() {
         const val channelId = "VSCodeServer"
         const val channelName = "VSCodeServer"
         var instance: CodeServerService? = null
-        private var isServerStarting = false
-        private val kPrefListenOnAllInterfaces = "listenstar"
-        private val kPreUseSSL = "ssl"
-
-        fun isServerStarting(): Boolean {
-            return isServerStarting
-        }
 
         // region CodeServer setup
 
@@ -66,7 +56,10 @@ class CodeServerService() : Service() {
 
         external fun getZip(): ByteArray?
 
-        suspend fun extractServer(context: Context, progressChannel: Channel<Pair<Int, Int>>) {
+        suspend fun extractServer(
+            context: Context,
+            progressChannel: Channel<Pair<Pair<Int, Int>?, String?>>,
+        ) {
             val userService: UserManager =
                 context.getSystemService(Context.USER_SERVICE) as UserManager
             val isPrimaryUser =
@@ -81,6 +74,7 @@ class CodeServerService() : Service() {
                     }).setPositiveButton(android.R.string.ok, null).show()
                 return
             }
+            progressChannel.send(Pair(Pair(0, 1), "Removing old installation..."))
             with(context.getFileStreamPath("code-server")) {
                 if (exists()) deleteRecursively()
             }
@@ -109,7 +103,7 @@ class CodeServerService() : Service() {
             val inStream = context.resources.openRawResource(resource_id)
             val targetFile = File(output_path)
             if (targetFile.parentFile?.exists() == false) {
-                targetFile.parentFile?.mkdirs()
+                targetFile.parentFile?.mkdirs2()
             }
             val outStream = FileOutputStream(targetFile)
 
@@ -128,13 +122,14 @@ class CodeServerService() : Service() {
         suspend fun extractTarGz(
             archiveFile: ByteArrayInputStream,
             outputDir: File,
-            progressChannel: Channel<Pair<Int, Int>>,
+            progressChannel: Channel<Pair<Pair<Int, Int>?, String?>>,
         ) {
             val bufSize: Int = 4096
             val buffer = ByteArray(bufSize)
 
             var total = 0
 
+            progressChannel.send(Pair(Pair(0, 1), "Preparing..."))
             archiveFile.mark(0)
             var reader = TarArchiveInputStream(GZIPInputStream(archiveFile))
             var currentEntry = reader.nextTarEntry
@@ -143,7 +138,7 @@ class CodeServerService() : Service() {
                 currentEntry = reader.nextTarEntry
             }
 
-            progressChannel.send(Pair(0, total))
+            progressChannel.send(Pair(Pair(0, total), "Total entry: $total"))
 
             var currentFileIndex = 0
             archiveFile.reset()
@@ -153,17 +148,25 @@ class CodeServerService() : Service() {
 
             while (currentEntry != null) {
                 currentFileIndex++
-                progressChannel.send(Pair(currentFileIndex, total))
+                progressChannel.send(Pair(Pair(currentFileIndex, total), null))
                 val outputFile = File(outputDir.absolutePath + "/" + currentEntry.name)
                 if (!outputFile.parentFile!!.exists()) {
-                    outputFile.parentFile!!.mkdirs()
+                    val result = outputFile.parentFile!!.mkdirs2()
+                    progressChannel.send(Pair(null,
+                        "RDIRECTORY ${outputFile.parentFile}: $result -> ${outputFile.parentFile!!.exists()}"))
                 }
                 if (currentEntry.isDirectory) {
-                    outputFile.mkdirs()
+                    val result = outputFile.mkdirs2()
+                    progressChannel.send(Pair(null,
+                        "DIRECTORY $outputFile: $result -> ${outputFile.exists()}"))
                 } else if (currentEntry.isSymbolicLink) {
                     Log.d("SYMLINK", currentEntry.linkName + " <- " + outputFile.absolutePath)
+                    progressChannel.send(Pair(null,
+                        "SYMLINK ${currentEntry.linkName} <- ${outputFile.absolutePath}"))
                     Os.symlink(currentEntry.linkName, outputFile.absolutePath)
                 } else if (currentEntry.isLink) {
+                    progressChannel.send(Pair(null,
+                        "LINK ${currentEntry.linkName} <- ${outputFile.absolutePath}"))
                     links.add(
                         Pair(
                             outputDir.absolutePath + "/" + currentEntry.linkName,
@@ -171,6 +174,8 @@ class CodeServerService() : Service() {
                         )
                     )
                 } else {
+                    progressChannel.send(Pair(null,
+                        "FILE ${outputFile.absolutePath}"))
                     val outStream = FileOutputStream(outputFile)
                     while (true) {
                         val size = reader.read(buffer)
@@ -235,13 +240,13 @@ class CodeServerService() : Service() {
     }
 
     private val mGlobalSessionsManager = GlobalSessionsManager()
-    public val globalSessionsManager = mGlobalSessionsManager
+    val globalSessionsManager = mGlobalSessionsManager
     private val mSessionHost = SessionsHost(this, mGlobalSessionsManager)
-    public val sessionsHost = mSessionHost
+    val sessionsHost = mSessionHost
 
     /** This service is only bound from inside the same process and never uses IPC.  */
     internal class LocalBinder(self: CodeServerService) : Binder() {
-        public val service = self
+        val service = self
     }
 
     private val mBinder: IBinder = LocalBinder(this)
@@ -317,7 +322,7 @@ class CodeServerService() : Service() {
 
         val notificationBuilder =
             NotificationCompat.Builder(this, channelId)
-        val notification = notificationBuilder.setOngoing(true)
+        @Suppress("DEPRECATION") val notification = notificationBuilder.setOngoing(true)
             .setSmallIcon(R.drawable.logo_b)
             .setContentTitle("VHEditor is running, ${mGlobalSessionsManager.sessionsHost?.mTermuxSessions?.size} terminal, ${mGlobalSessionsManager.sessionsHost?.mCodeServerSessions?.size} editor session(s)${ext}.")
             .setPriority(Notification.PRIORITY_LOW)
@@ -333,4 +338,17 @@ class CodeServerService() : Service() {
         notificationManager.notify(1, notificationBuilder.build())
         startForeground(1, notification)
     }
+}
+
+
+fun File.mkdirs2(): Boolean {
+    if (exists()) {
+        if (!canonicalFile.isDirectory) throw IOException("Trying to create directory ${path} (${canonicalPath}), it exists but is not a directory?")
+        return true
+    }
+    if (parentFile?.mkdirs2() == false) return false
+    if (!mkdir()) {
+        throw IOException("Failed to create directory $path")
+    }
+    return true
 }

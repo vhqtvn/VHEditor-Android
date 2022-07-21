@@ -61,7 +61,9 @@ public final class TermuxInstaller {
         }
 
         final File PREFIX_FILE = new File(TermuxService.PREFIX_PATH);
-        if (PREFIX_FILE.isDirectory()) {
+        // update for issue #161
+        final File LIBCPP_SHARED = new File(TermuxService.PREFIX_PATH + "/lib/libc++_shared.so");
+        if (PREFIX_FILE.isDirectory() && LIBCPP_SHARED.isFile()) {
             whenDone.run();
             return;
         }
@@ -141,9 +143,9 @@ public final class TermuxInstaller {
                                         dialog.dismiss();
                                         activity.finish();
                                     }).setPositiveButton(R.string.bootstrap_error_try_again, (dialog, which) -> {
-                                dialog.dismiss();
-                                TermuxInstaller.setupIfNeeded(activity, whenDone);
-                            }).show();
+                                        dialog.dismiss();
+                                        TermuxInstaller.setupIfNeeded(activity, whenDone);
+                                    }).show();
                         } catch (WindowManager.BadTokenException e1) {
                             // Activity already dismissed - ignore.
                         }

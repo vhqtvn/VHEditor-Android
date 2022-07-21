@@ -88,13 +88,17 @@ class NewSessionActivity : AppCompatActivity() {
         checkLatestVersion()
     }
 
-    fun onNewTerminal(view: View) {
+    private fun ensureSetup(whenDone: () -> Unit) {
         TermuxInstaller.setupIfNeeded(this) {
-            CodeServerService.setupIfNeeded(this) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    setResult(RESULT_OK, Intent().putExtra(kSessionType, kSessionTypeTerminal))
-                    finish()
-                }
+            CodeServerService.setupIfNeeded(this, whenDone)
+        }
+    }
+
+    fun onNewTerminal(view: View) {
+        ensureSetup {
+            CoroutineScope(Dispatchers.Main).launch {
+                setResult(RESULT_OK, Intent().putExtra(kSessionType, kSessionTypeTerminal))
+                finish()
             }
         }
     }
@@ -104,18 +108,16 @@ class NewSessionActivity : AppCompatActivity() {
     fun onStartCode(view: View) {
         if (mResultSet) return
         mResultSet = true
-        TermuxInstaller.setupIfNeeded(this) {
-            CodeServerService.setupIfNeeded(this) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    setResult(
-                        RESULT_OK,
-                        Intent()
-                            .putExtra(kSessionType, kSessionTypeCodeEditor)
-                            .putExtra(kSessionSSL, preferences.editorUseSSL)
-                            .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
-                    )
-                    finish()
-                }
+        ensureSetup {
+            CoroutineScope(Dispatchers.Main).launch {
+                setResult(
+                    RESULT_OK,
+                    Intent()
+                        .putExtra(kSessionType, kSessionTypeCodeEditor)
+                        .putExtra(kSessionSSL, preferences.editorUseSSL)
+                        .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
+                )
+                finish()
             }
         }
     }
@@ -377,24 +379,27 @@ class NewSessionActivity : AppCompatActivity() {
     }
 
     fun onInstallServerClick(v: View) {
+        val run = {
+            CodeServerManager.runInstallServer(this) {
+                TermuxInstaller.setupIfNeeded(this) {
+                    updateUI()
+                }
+            }
+        }
         if (v.id == R.id.btnSettingsInstallServer) {
             AlertDialog.Builder(this)
                 .setCancelable(true)
                 .setMessage(R.string.confirm_reinstall_server)
-                .setPositiveButton(android.R.string.ok) { dialog, id ->
+                .setPositiveButton(android.R.string.ok) { dialog, _ ->
                     dialog.dismiss()
-                    CodeServerManager.runInstallServer(this) {
-                        updateUI()
-                    }
+                    run()
                 }
-                .setNegativeButton(android.R.string.cancel) { dialog, id ->
+                .setNegativeButton(android.R.string.cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .show()
-            return
-        }
-        CodeServerManager.runInstallServer(this) {
-            updateUI()
+        } else {
+            run()
         }
     }
 
