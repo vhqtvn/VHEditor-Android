@@ -6,7 +6,8 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
-    }
+    },
+    "versionCode": 36
   },
   "standard-version": {
     "header": "# VHEditor Changelog"
@@ -134,6 +135,8 @@
   },
   "scripts": {
     "release": "standard-version",
+    "play": "env GPLAY_BUILD=1 ./gradlew bundleRelease",
+    "postbump": "./ci/inc-version-code",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

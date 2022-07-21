@@ -258,7 +258,8 @@ class CodeServerService() : Service() {
     }
 
     override fun onCreate() {
-        Crasher(applicationContext)
+        if (!BuildConfig.GOOGLEPLAY_BUILD)
+            Crasher(applicationContext)
         super.onCreate()
         instance = this
     }

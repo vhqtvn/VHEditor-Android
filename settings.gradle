@@ -1,4 +1,4 @@
-rootProject.name='VHSCode'
+rootProject.name = 'VHSCode'
 include ':app'
 include 'termux-shared', 'terminal-emulator', 'terminal-view'
 project(':termux-shared').projectDir = file('deps/termux-app/termux-shared')
@@ -9,3 +9,8 @@ include 'vhkeyboard'
 project(':vhkeyboard').projectDir = file('deps/vhkeyboard/app')
 project(':vhkeyboard').properties.compileSdkVersion = properties.compileSdkVersion
 project(':vhkeyboard').properties.targetSdkVersion = properties.targetSdkVersion
+if (System.env['GPLAY_BUILD'] == '1') {
+    project(':vhkeyboard').properties.googlePlayBuild = "true"
+} else {
+    project(':vhkeyboard').properties.googlePlayBuild = "false"
+}

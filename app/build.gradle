@@ -29,12 +29,14 @@ android {
         applicationId "vn.vhn.vsc"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         if (System.env['GPLAY_BUILD'] == '1') {
-            defaultConfig.targetSdkVersion 29 // google play require minimum version to be 29
+            buildConfigField "Boolean", "GOOGLEPLAY_BUILD", "true"
+            defaultConfig.targetSdkVersion 30 // google play require minimum version to be 30
         } else {
-            defaultConfig.targetSdkVersion 28 // Dont update to 29 - /data/data no longer executable
+            buildConfigField "Boolean", "GOOGLEPLAY_BUILD", "false"
+            defaultConfig.targetSdkVersion 28 // Dont update - /data/data no longer executable
         }
         versionCode 36
-        versionName System.getenv("CI_VERSION_NAME") ?: "999.999.999"
+        versionName System.getenv("CI_VERSION_NAME") ?: "git describe --tags --abbrev=0".execute().text.trim()
 
         externalNativeBuild {
             ndkBuild {

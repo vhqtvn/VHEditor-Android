@@ -32,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import vn.vhn.pckeyboard.orientation.IScreenOrientationLocker
 import vn.vhn.pckeyboard.orientation.createScreenOrientationLocker
+import vn.vhn.vhscode.BuildConfig
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.compat.OrientationCompat
@@ -141,7 +142,8 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Crasher(applicationContext)
+        if (!BuildConfig.GOOGLEPLAY_BUILD)
+            Crasher(applicationContext)
         mIsOnResumeAfterOnCreate = true
 
         if (savedInstanceState != null)
