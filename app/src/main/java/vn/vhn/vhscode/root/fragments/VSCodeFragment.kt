@@ -82,6 +82,25 @@ class VSCodeFragment : Fragment() {
     public val webView: WebView
         get() = binding.webView
 
+    val mOnLayoutChangeListener: View.OnLayoutChangeListener =
+        object : View.OnLayoutChangeListener {
+            override fun onLayoutChange(
+                v: View?,
+                left: Int,
+                top: Int,
+                right: Int,
+                bottom: Int,
+                oldLeft: Int,
+                oldTop: Int,
+                oldRight: Int,
+                oldBottom: Int,
+            ) {
+                if (mCurrentLogVisible)
+                    setLogVisible(mCurrentLogVisible)
+            }
+
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -128,6 +147,7 @@ class VSCodeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.root.addOnLayoutChangeListener(mOnLayoutChangeListener)
         host.preferences.also {
             it.editorVirtualMouse.also { useVirtualMouse ->
                 configureVirtualMouseMode(useVirtualMouse)
@@ -169,6 +189,7 @@ class VSCodeFragment : Fragment() {
     }
 
     override fun onPause() {
+        binding.root.removeOnLayoutChangeListener(mOnLayoutChangeListener)
         host.onFragmentPause(fragmentId)
         super.onPause()
     }
@@ -223,12 +244,11 @@ class VSCodeFragment : Fragment() {
 
     private var mCurrentLogAnimator: ValueAnimator? = null
     private var mCurrentLogVisible = true
+    private var mLastLogVisibleHeight = -1
     private fun setLogVisible(visible: Boolean) {
-        if (visible == mCurrentLogVisible) return
-
         if (mSession?.status?.value != CodeServerSession.Companion.RunStatus.RUNNING && !visible) return
 
-        if (!visible) {
+        if (!visible && mCurrentLogVisible != visible) {
             var shouldConfigureWebview = false
             if (mNewUIScale > 0 && mNewUIScale != host.preferences.editorUIScale) {
                 host.preferences.editorUIScale = mNewUIScale
@@ -240,13 +260,15 @@ class VSCodeFragment : Fragment() {
             }
             if (shouldConfigureWebview) configureWebView(binding.webView, true)
         }
+        val newHeight =
+            if (visible) binding.root.height
+            else 1
+        if (newHeight == mLastLogVisibleHeight && mCurrentLogVisible && visible) return
+        mLastLogVisibleHeight = newHeight
         mCurrentLogVisible = visible
         mCurrentLogAnimator?.cancel()
         val view = binding.overlay
         view.visibility = View.VISIBLE
-        val newHeight =
-            if (visible) binding.root.height
-            else 1
         val animator = ValueAnimator.ofInt(view.measuredHeight, newHeight)
         mCurrentLogAnimator = animator
         animator.addUpdateListener {

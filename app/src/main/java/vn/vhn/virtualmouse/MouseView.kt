@@ -193,10 +193,10 @@ class MouseView(
                     hackPointerLoadMethod =
                         PointerIcon::class.java.getDeclaredMethod("load", Context::class.java)
                 } else {
-                    Log.d(TAG, "Cant resolve pointer fields")
+                    Log.e(TAG, "Cant resolve pointer fields")
                 }
             } catch (e: SecurityException) {
-                Log.d(TAG, "Cant resolve pointer fields: ${e}")
+                Log.e(TAG, "Cant resolve pointer fields", e)
             }
         }
     }
