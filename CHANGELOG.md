@@ -1,4 +1,13 @@
 # VHEditor Changelog
+### [2.7.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.1...v2.7.2) (2022-07-21)
+
+
+### Bug Fixes
+
+* **editor:** update settings overlay on resize ([c83d71e](https://github.com/vhqtvn/VHEditor-Android/commit/c83d71eea33da8d3060a28d99cd819d45b4e9398))
+* **installer:** verify the extraction step and report errors ([69bdd6a](https://github.com/vhqtvn/VHEditor-Android/commit/69bdd6ac12a6a0c2c465f320cb45ba18815a516a))
+* **virtualmouse:** fix mouse pointer not updating on some devices ([4f7630b](https://github.com/vhqtvn/VHEditor-Android/commit/4f7630be362eb100280e7484c91156b30862aea4))
+
 ### [2.7.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.0...v2.7.1) (2022-07-20)
 
 
