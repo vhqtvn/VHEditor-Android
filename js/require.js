@@ -1,3 +1,7 @@
+import { NativeModules } from 'react-native';
+
+const { VHERNFile } = NativeModules;
+
 var RNFS = require('react-native-fs');
 
 const normalize = function (url, base) {
@@ -64,7 +68,11 @@ export const reqm = (function CommonJS() {
         return load(content, path)
     }
 
-    gmodule.require = (path, base) => require_cache(gmodule, normalize(path, (base || BASEDIR) + "/"), base)
+    gmodule.require = (path, base) => require_cache(gmodule, normalize(path, (base || BASEDIR) + "/"), () => {
+        // throw new Error(\`Not supported yet (require(\${path}))\`)
+        let content = VHERNFile.readText(normalize(path, (base || BASEDIR) + "/"))
+        return load(content, path)
+    })
 
     return gmodule;
 }());

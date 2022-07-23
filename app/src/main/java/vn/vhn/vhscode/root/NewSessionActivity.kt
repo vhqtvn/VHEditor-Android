@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import vn.vhn.reactnative.modules.VHEReactNativePackage
 import vn.vhn.vhscode.BuildConfig
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.GithubReleaseInstallActivity
@@ -99,6 +100,7 @@ class NewSessionActivity : AppCompatActivity() {
             .setBundleAssetName("loader.bundled.js")
             .setJSMainModulePath("loader")
             .addPackages(packages)
+            .addPackage(VHEReactNativePackage())
             .setUseDeveloperSupport(false && BuildConfig.DEBUG)
             .setInitialLifecycleState(LifecycleState.RESUMED)
             .build()

@@ -27,5 +27,5 @@ export function main() {
     }
   });
 
-  return HelloWorld
+  return HelloWorld()
 }

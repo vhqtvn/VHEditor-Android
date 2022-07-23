@@ -189,8 +189,8 @@ preload_fns["@babel/runtime/helpers/esm/wrapAsyncGenerator"] = ()=>require("@bab
 preload_fns["@babel/runtime/helpers/esm/wrapNativeSuper"] = ()=>require("@babel/runtime/helpers/esm/wrapNativeSuper")
 preload_fns["@babel/runtime/helpers/esm/wrapRegExp"] = ()=>require("@babel/runtime/helpers/esm/wrapRegExp")
 preload_fns["@babel/runtime/helpers/esm/writeOnlyError"] = ()=>require("@babel/runtime/helpers/esm/writeOnlyError")
-module.exports = function (gmodule, path, base) {
+module.exports = function (gmodule, path, def) {
   if(gmodule._cache[path]) return gmodule._cache[path]
   if(preload_fns[path]) return gmodule._cache[path]=preload_fns[path]()
-  throw new Error(`Not supported yet (require(${path}))`)
+  return def()
 }
