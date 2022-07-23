@@ -38,6 +38,7 @@ class CodeServerService() : Service() {
         const val BASE_PATH = "/data/data/vn.vhn.vsc"
         const val ROOT_PATH = "${BASE_PATH}/files"
         const val HOME_PATH = "${ROOT_PATH}/home"
+        const val VHEMOD_PATH = "${HOME_PATH}/vhe-modules/"
         const val TMP_PATH = "${ROOT_PATH}/tmp"
         const val PREFIX_PATH = ROOT_PATH
         const val BOOTJS = ".vsboot.js"

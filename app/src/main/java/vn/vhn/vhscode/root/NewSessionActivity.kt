@@ -17,7 +17,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
+import com.facebook.react.PackageList
+import com.facebook.react.ReactInstanceManager
+import com.facebook.react.ReactPackage
+import com.facebook.react.ReactRootView
+import com.facebook.react.common.LifecycleState
+import com.facebook.soloader.SoLoader
 import com.google.android.material.textfield.TextInputEditText
+import com.rnfs.RNFSPackage
 import com.termux.app.TermuxInstaller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,8 +71,13 @@ class NewSessionActivity : AppCompatActivity() {
 
     private var latestRemoteVersion: String? = null
 
+    private lateinit var reactRootView: ReactRootView
+    private lateinit var reactInstanceManager: ReactInstanceManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         supportActionBar?.hide()
 
@@ -73,6 +85,28 @@ class NewSessionActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         mResultSet = false
+
+
+        initializeVHEMod()
+
+
+        SoLoader.init(this, false)
+        reactRootView = ReactRootView(this)
+        val packages: List<ReactPackage> = PackageList(application).packages
+        reactInstanceManager = ReactInstanceManager.builder()
+            .setApplication(application)
+            .setCurrentActivity(this)
+            .setBundleAssetName("loader.bundled.js")
+            .setJSMainModulePath("loader")
+            .addPackages(packages)
+            .setUseDeveloperSupport(false && BuildConfig.DEBUG)
+            .setInitialLifecycleState(LifecycleState.RESUMED)
+            .build()
+        reactRootView.startReactApplication(reactInstanceManager, "VHERoot", Bundle().also {
+            it.putString("mod", "${CodeServerService.VHEMOD_PATH}/new-session")
+        })
+        binding.customTerminalReactHost.addView(reactRootView)
+
     }
 
     override fun onResume() {
@@ -201,14 +235,8 @@ class NewSessionActivity : AppCompatActivity() {
                 R.string.server_version,
                 codeServerVersion ?: getString(R.string.not_installed)
             )
-            if (codeServerVersion.isNullOrBlank()) {
-                binding.btnStartCode.isEnabled = false
-                binding.btnInstallServer.text =
-                    getString(R.string.install_server)
-                binding.btnInstallServer.visibility = View.VISIBLE
-                binding.installedRegionGroup.visibility = View.GONE
-                canAutoRun = false
-            } else {
+            var isInstalled = codeServerVersion.isNullOrBlank()
+            if (isInstalled) {
                 binding.btnStartCode.isEnabled = true
                 if (codeServerVersion != kCurrentServerVersion) {
                     binding.btnInstallServer.text =
@@ -219,8 +247,16 @@ class NewSessionActivity : AppCompatActivity() {
                     binding.btnInstallServer.text = getString(R.string.reinstall_server)
                     binding.btnInstallServer.visibility = View.GONE
                 }
-                binding.installedRegionGroup.visibility = View.VISIBLE
+            } else {
+                binding.btnStartCode.isEnabled = false
+                binding.btnInstallServer.text =
+                    getString(R.string.install_server)
+                binding.btnInstallServer.visibility = View.VISIBLE
+                canAutoRun = false
             }
+//            for (v in listOf(binding.installedRegionGroup)) {
+//                v.visibility = if (isInstalled) View.VISIBLE else View.GONE
+//            }
 
             mCanAutoRun = canAutoRun
             performRequestPermissions()
@@ -403,4 +439,18 @@ class NewSessionActivity : AppCompatActivity() {
         }
     }
 
+    fun initializeVHEMod() {
+        val ctx = this
+        File(CodeServerService.VHEMOD_PATH).mkdirs()
+        File("${CodeServerService.VHEMOD_PATH}/new-session.js").apply {
+            if (!exists()) CodeServerService.copyRawResource(
+                ctx,
+                R.raw.new_session_loader,
+                absolutePath)
+        }
+        CodeServerService.copyRawResource(
+            ctx,
+            R.raw.new_session_default,
+            "${CodeServerService.VHEMOD_PATH}/new-session-default.js")
+    }
 }

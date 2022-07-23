@@ -2,10 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/black"
     android:id="@+id/root_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     tools:context=".root.NewSessionActivity">
 
 
@@ -14,7 +14,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/new_editor_header"
+        android:text="@string/new_session_header"
         android:textColor="@color/white"
         android:textSize="24dp"
         app:layout_constraintBottom_toTopOf="@+id/txtAppVersion"
@@ -31,11 +31,11 @@
         android:gravity="center"
         android:text="@string/loading"
         android:textColor="@color/white"
-        app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintBottom_toTopOf="@+id/txtInstalledServerVersion"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtHeader" />
+        app:layout_constraintTop_toBottomOf="@id/txtHeader"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
         android:id="@+id/txtInstalledServerVersion"
@@ -44,11 +44,11 @@
         android:gravity="center"
         android:text="@string/loading"
         android:textColor="@color/white"
-        app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintBottom_toTopOf="@+id/btnInstallServer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtAppVersion" />
+        app:layout_constraintTop_toBottomOf="@id/txtAppVersion"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <Button
         android:id="@+id/btnInstallServer"
@@ -61,94 +61,91 @@
         android:onClick="onInstallServerClick"
         android:text="@string/install_server"
         android:textColor="@color/button_important"
-        app:layout_constraintBottom_toTopOf="@+id/installedRegionGroup"
+        app:layout_constraintBottom_toTopOf="@+id/mainGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtInstalledServerVersion" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/installedRegionGroup"
+    <vn.vhn.vhscode.ui.ShrinkingScrollView
+        android:id="@+id/mainGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer"
-        app:layout_constraintVertical_chainStyle="packed"
-        >
-        <Button
-            android:id="@+id/btnNewTerminal"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/button_bg"
-            android:onClick="onNewTerminal"
-            android:text="@string/new_terminal"
-            android:textColor="@color/button"
-            app:layout_constraintBottom_toTopOf="@+id/btnStartCode"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@+id/btnInstallServer">
 
-        <Button
-            android:id="@+id/btnStartCode"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="0dp"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/button_bg"
-            android:onClick="onStartCode"
-            android:text="@string/start_code"
-            android:textColor="@color/button"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnNewTerminal"
-            app:layout_constraintVertical_chainStyle="packed" />
+            android:orientation="vertical">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/remoteRegionGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/installedRegionGroup"
-        app:layout_constraintVertical_chainStyle="packed"
-        >
-        <EditText
-            android:id="@+id/editTxtRemoteServer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/white"
-            android:ems="10"
-            android:inputType="textUri"
-            android:text="http://127.0.0.1:13337"
-            android:textColor="@color/white"
-            app:layout_constraintBaseline_toBaselineOf="@+id/btnStartRemote"
-            app:layout_constraintEnd_toStartOf="@+id/btnStartRemote"
-            app:layout_constraintStart_toStartOf="parent" />
+            <Button
+                android:id="@+id/btnNewTerminal"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/button_bg"
+                android:onClick="onNewTerminal"
+                android:text="@string/new_terminal"
+                android:textColor="@color/button" />
 
-        <Button
-            android:id="@+id/btnStartRemote"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/button_bg"
-            android:onClick="onStartRemote"
-            android:text="@string/start_remote"
-            android:textColor="@color/button"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/editTxtRemoteServer"
-            app:layout_constraintVertical_chainStyle="packed" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/customTerminalReactHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"></androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+            <Button
+                android:id="@+id/btnStartCode"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/button_bg"
+                android:onClick="onStartCode"
+                android:text="@string/start_code"
+                android:textColor="@color/button" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/remoteRegionGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <EditText
+                    android:id="@+id/editTxtRemoteServer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/white"
+                    android:ems="10"
+                    android:inputType="textUri"
+                    android:text="http://127.0.0.1:13337"
+                    android:textColor="@color/white"
+                    app:layout_constraintBaseline_toBaselineOf="@+id/btnStartRemote"
+                    app:layout_constraintEnd_toStartOf="@+id/btnStartRemote"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <Button
+                    android:id="@+id/btnStartRemote"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/button_bg"
+                    android:onClick="onStartRemote"
+                    android:text="@string/start_remote"
+                    android:textColor="@color/button"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/editTxtRemoteServer"
+                    app:layout_constraintVertical_chainStyle="packed" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </vn.vhn.vhscode.ui.ShrinkingScrollView>
+
     <Button
         android:id="@+id/btnSettings"
         style="?android:attr/borderlessButtonStyle"
