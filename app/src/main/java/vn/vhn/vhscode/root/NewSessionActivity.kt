@@ -235,7 +235,7 @@ class NewSessionActivity : AppCompatActivity() {
                 R.string.server_version,
                 codeServerVersion ?: getString(R.string.not_installed)
             )
-            var isInstalled = codeServerVersion.isNullOrBlank()
+            var isInstalled = !codeServerVersion.isNullOrBlank()
             if (isInstalled) {
                 binding.btnStartCode.isEnabled = true
                 if (codeServerVersion != kCurrentServerVersion) {
