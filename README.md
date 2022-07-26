@@ -9,4 +9,4 @@ This project use [https://github.com/cdr/code-server](cdr/code-server) as the co
 
 If you want to play with the server, build it yourself using [this repo](https://github.com/vhqtvn/vscode-android-server).
 
-This app has builtin termux, you can start right away by openning the terminal view and run `apt install git` (there's maybe incompatible package, please report).
+This app has built-in termux, you can start right away by opening the terminal view and run `apt install git` (there's maybe incompatible package, please report).
