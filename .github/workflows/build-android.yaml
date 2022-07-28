@@ -18,6 +18,9 @@ jobs:
       - name: "npm install"
         run: |
           npm ci
+      - name: "patch deps"
+        run: |
+          node ./ci/patch-deps
       - name: "build jsbundle"
         run: |
           npm run bundle-rnjs
