@@ -1,4 +1,17 @@
 # VHEditor Changelog
+### [2.7.3-test-ci.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.2-test...v2.7.3-test-ci.0) (2022-07-28)
+
+
+### Features
+
+* initial setup for react-native ([5f9019b](https://github.com/vhqtvn/VHEditor-Android/commit/5f9019be52e3c7038dda4f53a516941bbd2736bb))
+* **reactnative:** require() is working now ([de24dfe](https://github.com/vhqtvn/VHEditor-Android/commit/de24dfe1ddbd15237ee2ba61f3f6ddc02b794452))
+
+
+### Bug Fixes
+
+* fix crash on surface duo ([4a5ebaf](https://github.com/vhqtvn/VHEditor-Android/commit/4a5ebaf8af546eb20832a7d3b746928725c8ccea))
+
 ### [2.7.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.1...v2.7.2) (2022-07-21)
 
 

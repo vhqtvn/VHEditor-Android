@@ -14,7 +14,7 @@
   },
   "name": "vheditor-android-ci",
   "description": "VHEditor Android",
-  "version": "2.7.2",
+  "version": "2.7.3-test-ci.0",
   "main": "ci/ci.js",
   "dependencies": {
     "@tradle/react-native-http": "^2.0.0",
