@@ -1,5 +1,6 @@
 package vn.vhn.reactnative.modules
 
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -12,6 +13,17 @@ class RNFileModule(reactContext: ReactApplicationContext) :
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun readText(name: String): String {
         return File(name).readText(Charsets.UTF_8)
+    }
+
+    fun readTextAsync(name: String, promise: Promise) {
+        lateinit var content: String
+        try {
+            content = File(name).readText(Charsets.UTF_8)
+        } catch (e: Exception) {
+            promise.reject(e)
+            return
+        }
+        promise.resolve(content)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -27,5 +39,16 @@ class RNFileModule(reactContext: ReactApplicationContext) :
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun isFile(name: String): Boolean {
         return File(name).isFile
+    }
+
+    fun scanDirAsync(path: String, promise: Promise) {
+        lateinit var result: Array<String>
+        try {
+            result = File(path).list()
+        } catch (e: Exception) {
+            promise.reject(e)
+            return
+        }
+        promise.resolve(result)
     }
 }

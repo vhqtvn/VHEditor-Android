@@ -15,15 +15,19 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
-      - name: "Build"
+      - name: "Setup variables"
         run: |
-          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="$(basename ${{ github.ref }} | sed 's/^v//')" ./gradlew assembleRelease
+           echo ::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
+           echo ::set-output name=version_name::$(basename ${{ github.ref }} | sed 's/^v//')
+      - name: "Build for Google Play"
+        run: |
+          npm run play
+      - name: "Build for Github release"
+        run: |
+          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="${{ steps.vars.outputs.version_name }}" ./gradlew assembleRelease
       - name: "Changelog"
         run: |
            git log -p -n1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
-      - name: "Check is prerelease"
-        run: |
-           echo ::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -44,13 +48,22 @@ jobs:
           asset_name: VHSCode-arm64.apk
           asset_path: ./app/build/outputs/apk/release/app-arm64-v8a-release.apk
           asset_content_type: application/vnd.android.package-archive
+      - name: Upload arm64 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-arm64-${{ steps.vars.outputs.version_name }}.apk
+          asset_path: ./app/build/outputs/apk/release/app-arm64-v8a-release.apk
+          asset_content_type: application/vnd.android.package-archive
       - name: Upload arm release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_name: VHSCode-arm.apk
+          asset_name: VHSCode-arm-${{ steps.vars.outputs.version_name }}.apk
           asset_path: ./app/build/outputs/apk/release/app-armeabi-v7a-release.apk
           asset_content_type: application/vnd.android.package-archive
       - name: Upload x86_64 release
@@ -59,7 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_name: VHSCode-x86_64.apk
+          asset_name: VHSCode-x86_64-${{ steps.vars.outputs.version_name }}.apk
           asset_path: ./app/build/outputs/apk/release/app-x86_64-release.apk
           asset_content_type: application/vnd.android.package-archive
       - name: Upload x86 release
@@ -68,6 +81,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_name: VHSCode-x86.apk
+          asset_name: VHSCode-x86-${{ steps.vars.outputs.version_name }}.apk
           asset_path: ./app/build/outputs/apk/release/app-x86-release.apk
           asset_content_type: application/vnd.android.package-archive
+      - name: Upload GooglePlay bundle
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-${{ steps.vars.outputs.version_name }}.aab
+          asset_path: ./app/build/outputs/bundle/release/app-release.aab
+          asset_content_type: application/x-authorware-bin

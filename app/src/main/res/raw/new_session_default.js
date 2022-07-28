@@ -1,10 +1,12 @@
 import React from 'react';
 import {
-       	  AppRegistry,
-       	  StyleSheet,
-       	  Text,
-       	  View
-       } from 'react-native';
+  AppRegistry,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
+
+
 
 export function main() {
 	const HelloWorld = () => {
