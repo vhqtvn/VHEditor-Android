@@ -27,10 +27,10 @@ jobs:
            echo ::set-output name=version_name::$(basename ${{ github.ref }} | sed 's/^v//')
       - name: "Build for Google Play"
         run: |
-          npm run play
+          npm run play -- --no-daemon
       - name: "Build for Github release"
         run: |
-          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="${{ steps.vars.outputs.version_name }}" ./gradlew assembleRelease
+          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="${{ steps.vars.outputs.version_name }}" ./gradlew assembleRelease --no-daemon
       - name: "Changelog"
         run: |
            git log -p -n1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
