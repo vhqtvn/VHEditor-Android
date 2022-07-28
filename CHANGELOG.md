@@ -1,4 +1,6 @@
 # VHEditor Changelog
+### [2.7.3-test-ci.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.1...v2.7.3-test-ci.2) (2022-07-28)
+
 ### [2.7.3-test-ci.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.0...v2.7.3-test-ci.1) (2022-07-28)
 
 ### [2.7.3-test-ci.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.2-test...v2.7.3-test-ci.0) (2022-07-28)
