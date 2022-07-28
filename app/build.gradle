@@ -120,6 +120,14 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    applicationVariants.all { variant ->
+        if (variant.name == 'debug') {
+            variant.outputs.each { output ->
+                output.versionCodeOverride = 999999999
+            }
+        }
+    }
 }
 
 dependencies {
