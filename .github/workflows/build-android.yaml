@@ -15,6 +15,12 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
+      - name: "npm install"
+        run: |
+          npm ci
+      - name: "build jsbundle"
+        run: |
+          npm run bundle-rnjs
       - name: "Setup variables"
         run: |
            echo ::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
