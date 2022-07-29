@@ -26,13 +26,16 @@ jobs:
           npm run bundle-rnjs
       - name: "Setup variables"
         run: |
-           echo ::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
-           echo ::set-output name=version_name::$(basename ${{ github.ref }} | sed 's/^v//')
+          echo '::echo::on'
+          echo '::set-output name=is_prerelease::$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")'
+          echo '::set-output name=version_name::$(basename ${{ github.ref }} | sed 's/^v//')'
       - name: "Build for Google Play"
         run: |
+          [[ -z "${{ steps.vars.outputs.version_name }}" ]] && exit 13
           npm run play -- --no-daemon
       - name: "Build for Github release"
         run: |
+          [[ -z "${{ steps.vars.outputs.version_name }}" ]] && exit 13
           USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="${{ steps.vars.outputs.version_name }}" ./gradlew assembleRelease --no-daemon
       - name: "Changelog"
         run: |
