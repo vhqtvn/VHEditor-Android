@@ -94,6 +94,14 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
         true
     )
 
+    File("${PREFIX_PATH}/usr/bin/vh-editor-ensure-ssh").also { f ->
+        val required_content = readRawResourceString(context, R.raw.bin_ensure_ssh)
+        if (!f.exists() || f.readText(Charsets.UTF_8) != required_content) {
+            f.writeText(required_content)
+        }
+        f.setExecutable(true)
+    }
+
     // region global inject
     "${PREFIX_PATH}/globalinject.js".apply {
         copyRawResource(context, R.raw.globalinject, this)

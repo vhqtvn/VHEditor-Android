@@ -444,4 +444,8 @@ class VSCodeFragment : Fragment() {
     fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         binding.loading.visibility = View.VISIBLE
     }
+
+    fun openPaths(paths: List<String>) {
+        TODO("Not yet implemented")
+    }
 }

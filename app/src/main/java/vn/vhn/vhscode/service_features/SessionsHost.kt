@@ -54,6 +54,13 @@ class SessionsHost(
     val mGlobalSessionsManager: GlobalSessionsManager = globalSessionsManager
     val mTermuxTerminalSessionClientBase = TermuxTerminalSessionClientBase()
 
+    fun canAddNewCodeEditorSession(): Boolean {
+        if (mCodeServerSessions.filter { it?.remote == false }.size >= MAX_CODESERVER_LOCAL_SESSIONS) {
+            return true
+        }
+        return false
+    }
+
     @Synchronized
     fun createCodeEditorSession(
         id: Int,
@@ -62,9 +69,9 @@ class SessionsHost(
         useSSL: Boolean,
         remote: Boolean = false,
         remoteURL: String? = null,
-        port: Int? = null
+        port: Int? = null,
     ): CodeServerSession? {
-        if (!remote && mCodeServerSessions.filter { it?.remote == false }.size >= MAX_CODESERVER_LOCAL_SESSIONS) {
+        if (!remote && !canAddNewCodeEditorSession()) {
             mGlobalSessionsManager.notifyMaxCodeEditorSessionsReached()
             return null
         }

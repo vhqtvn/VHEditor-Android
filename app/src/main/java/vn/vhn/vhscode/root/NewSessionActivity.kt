@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Html
 import android.text.method.LinkMovementMethod
+import android.util.Log
 import android.view.View
 import android.view.Window
 import android.widget.CheckBox
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import vn.vhn.reactnative.modules.VHEApiModuleHandler
 import vn.vhn.reactnative.modules.VHEReactNativePackage
 import vn.vhn.vhscode.BuildConfig
 import vn.vhn.vhscode.CodeServerService
@@ -46,8 +48,9 @@ import java.io.InputStreamReader
 import java.net.URL
 
 
-class NewSessionActivity : AppCompatActivity() {
+class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
     companion object {
+        val TAG = "NewSessionActivity"
         val kCurrentServerVersion = "4.5.0-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
@@ -57,7 +60,13 @@ class NewSessionActivity : AppCompatActivity() {
 
         val kSessionType = "SESSION_TYPE"
         val kSessionTypeTerminal = "SESSION_TYPE_TERMINAL"
+
+        val kTerminalSessionName = "TERMINAL_SESSION:name"
+        val kTerminalExecutable = "TERMINAL_SESSION:executable"
+        val kTerminalArguments = "TERMINAL_SESSION:arguments"
+
         val kSessionTypeCodeEditor = "SESSION_TYPE_CODEEDITOR"
+        val kEditorPathToOpen = "EDITOR_SESSION:path"
         val kSessionTypeRemoteCodeEditor = "SESSION_TYPE_REMOTE_CODEEDITOR"
 
         val kRemoteCodeEditorURL = "REMOTE_CODEEDITOR_URL"
@@ -141,36 +150,41 @@ class NewSessionActivity : AppCompatActivity() {
 
     private var mResultSet = false
 
-    fun onStartCode(view: View) {
+    fun returnResult(builder: () -> Intent) {
         if (mResultSet) return
         mResultSet = true
         ensureSetup {
             CoroutineScope(Dispatchers.Main).launch {
                 setResult(
                     RESULT_OK,
-                    Intent()
-                        .putExtra(kSessionType, kSessionTypeCodeEditor)
-                        .putExtra(kSessionSSL, preferences.editorUseSSL)
-                        .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
+                    builder()
                 )
                 finish()
             }
         }
     }
 
+    fun onStartCode(view: View) {
+        returnResult {
+            Intent()
+                .putExtra(kSessionType, kSessionTypeCodeEditor)
+                .putExtra(kSessionSSL, preferences.editorUseSSL)
+                .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
+        }
+    }
+
     fun onStartRemote(view: View) {
-        if (mResultSet) return
-        mResultSet = true
-        setResult(
-            RESULT_OK, Intent()
+        returnResult {
+            val remote = binding.editTxtRemoteServer.text.toString()
+            preferences.defaultRemoteEditorURL = remote
+            Intent()
                 .putExtra(kSessionType, kSessionTypeRemoteCodeEditor)
-                .putExtra(kRemoteCodeEditorURL, binding.editTxtRemoteServer.text.toString())
-        )
-        preferences.defaultRemoteEditorURL = binding.editTxtRemoteServer.text.toString()
-        finish()
+                .putExtra(kRemoteCodeEditorURL, remote)
+        }
     }
 
     private fun checkLatestVersion() {
+        Log.d(TAG, "checkLatestVersion")
         CoroutineScope(Dispatchers.IO).launch {
             if (preferences.latestVersionCheckTime >= System.currentTimeMillis() - kVersionCheckPeriodMilli
             ) {
@@ -206,6 +220,7 @@ class NewSessionActivity : AppCompatActivity() {
                     updateUI()
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Check latest version exception", e)
                 // ignore
             }
         }
@@ -218,6 +233,7 @@ class NewSessionActivity : AppCompatActivity() {
             finish()
         }
         CoroutineScope(Dispatchers.Main).launch {
+            Log.d(TAG, "updateUI: latestRemoteVersion=$latestRemoteVersion")
             var canAutoRun = true
             var txtVersion = "App version: ${BuildConfig.VERSION_NAME}"
             if (latestRemoteVersion != null) {
@@ -454,5 +470,26 @@ class NewSessionActivity : AppCompatActivity() {
             ctx,
             R.raw.new_session_default,
             "${CodeServerService.VHEMOD_PATH}/new-session-default.js")
+    }
+
+    override fun onVHEApiStartSession(command: String, name: String?) {
+        returnResult {
+            Intent().putExtra(kSessionType, kSessionTypeTerminal).also { intent ->
+                name?.also { intent.putExtra(kTerminalSessionName, it) }
+                intent.putExtra(kTerminalArguments,
+                    listOf<String>("-c", command).toTypedArray()
+                )
+            }
+        }
+    }
+
+    override fun onVHEApiOpenEditorPath(path: String) {
+        returnResult {
+            Intent()
+                .putExtra(kSessionType, kSessionTypeCodeEditor)
+                .putExtra(kSessionSSL, preferences.editorUseSSL)
+                .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
+                .putExtra(kEditorPathToOpen, path)
+        }
     }
 }

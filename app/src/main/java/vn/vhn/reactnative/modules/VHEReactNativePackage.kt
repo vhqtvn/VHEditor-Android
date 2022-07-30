@@ -17,5 +17,6 @@ class VHEReactNativePackage : ReactPackage {
         reactContext: ReactApplicationContext,
     ): MutableList<NativeModule> = listOf(
         RNFileModule(reactContext),
+        VHEApiModule(reactContext),
     ).toMutableList()
 }

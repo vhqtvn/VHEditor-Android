@@ -17,14 +17,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import james.crasher.Crasher
 import kotlinx.coroutines.channels.Channel
+import okio.internal.commonToUtf8String
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import vn.vhn.vhscode.root.EditorHostActivity
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
 import vn.vhn.vhscode.service_features.SessionsHost
-import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.util.zip.GZIPInputStream
 
 
@@ -118,6 +116,25 @@ class CodeServerService() : Service() {
 
             inStream.close()
             outStream.close()
+        }
+
+        fun readRawResourceString(context: Context, resource_id: Int): String {
+            val inStream = context.resources.openRawResource(resource_id)
+            val outStream = ByteArrayOutputStream()
+
+            val bufSize = 4096
+            val buffer = ByteArray(bufSize)
+            while (true) {
+                val cnt = inStream.read(buffer)
+                if (cnt <= 0) break;
+                outStream.write(buffer, 0, cnt)
+            }
+
+            inStream.close()
+            val content = outStream.toByteArray()
+            outStream.close()
+
+            return String(content)
         }
 
         suspend fun extractTarGz(

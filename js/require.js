@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import crypto from 'crypto'
 
 const { VHERNFile } = NativeModules;
 
@@ -38,40 +39,88 @@ const bundler = require('metro-react-native-babel-transformer').transform;
 const generator = require("@babel/generator").default;
 const require_cache = require('./require-cached');
 
+function compiler_cache(path, original_content) {
+    const cache_path = path + '.compiled-cache'
+
+    const hmac_computer = createHmac('sha256', 'cache-v1');
+    hmac_computer.update(original_content)
+    const hash = hmac_computer.digest('hex')
+    const magic_line = "//compiled:" + hash
+    return {
+        read() {
+            try {
+                const cached_content = VHERNFile.readText(cache_path)
+                if (cached_content.startsWith(magic_line)) {
+                    return [cached_content, true]
+                }
+            } catch (_) { }
+            return [undefined, false]
+        },
+        async write(new_content) {
+            await VHERNFile.writeTextAsync(cache_path, magic_line + "\n" + new_content)
+        }
+    }
+}
+
+function compile(content, path) {
+    let result, ok
+    const cache = compiler_cache(path, content)
+    [result, ok] = cache.read()
+    if (!ok) {
+        const transformed = bundler({ filename: path, options: {}, src: content })
+        result = generator(transformed.ast, {}, content)
+        cache.write(result)
+        ok = true
+    }
+    if (!ok) throw Error("Compiler error?");
+    return result
+}
+
 export const reqm = (function CommonJS() {
     const gmodule = Object.create(null)
     gmodule._cache = {}
     const load = (content, path) => {
-        if (!typeof content === 'string') {
+        if (typeof content !== 'string') {
             throw (gmodule._cache[path] = new Error("error"));
         }
-        const transformed = bundler({ filename: path, options: {}, src: content })
-        const transformed_content = generator(transformed.ast, {}, content)
-        const creator = eval('(function(gmodule, global){' +
-            'var module=Object.assign({},gmodule,{exports:{}});' +
-            'var __filename=module.filename=' + JSON.stringify(path) + ';' +
-            'var __dirname=__filename.slice(0,__filename.lastIndexOf("/"));' +
-            'var require=function(path){return gmodule.require(path, __dirname);};' +
-            'var async_import=function(path){return gmodule.import(path, __dirname);};' +
-            'var exports=module.exports;' +
-            '(function(){"use strict";\n' +
-            transformed_content.code +
-            ';\n}.call(exports));' +
-            'return module.exports;' +
-            '});')
-        return gmodule._cache[path] = creator(gmodule, global);
+        try {
+            const transformed_content = compile(content, path)
+            const creator = eval('(function(gmodule, global){' +
+                'var module=Object.assign({},gmodule,{exports:{}});' +
+                'var __filename=module.filename=' + JSON.stringify(path) + ';' +
+                'var __dirname=__filename.slice(0,__filename.lastIndexOf("/"));' +
+                'var require=function(path){return gmodule.require(path, __dirname);};' +
+                'var async_import=function(path){return gmodule.import(path, __dirname);};' +
+                'var exports=module.exports;' +
+                '(function(){"use strict";\n' +
+                transformed_content.code +
+                ';\n}.call(exports));' +
+                'return module.exports;' +
+                '});')
+            return gmodule._cache[path] = creator(gmodule, global);
+        } catch (e) {
+            throw (gmodule._cache[path] = e);
+        }
     }
 
-    gmodule.import = async (path, base) => {
-        path = normalize(path, (base || BASEDIR) + "/");
+    const load_sync = (path) => {
+        let content = VHERNFile.readText(path)
+        return load(content, path)
+
+    }
+    const load_async = async (path) => {
         let content = await RNFS.readFile(path, 'utf8')
         return load(content, path)
     }
 
+    gmodule.import = async (path, base) => {
+        path = normalize(path, (base || BASEDIR) + "/");
+        return load_async(path)
+    }
+
     gmodule.require = (path, base) => require_cache(gmodule, normalize(path, (base || BASEDIR) + "/"), () => {
-        // throw new Error(\`Not supported yet (require(\${path}))\`)
-        let content = VHERNFile.readText(normalize(path, (base || BASEDIR) + "/"))
-        return load(content, path)
+        path = normalize(path, (base || BASEDIR) + "/")
+        return load_sync(path)
     })
 
     return gmodule;

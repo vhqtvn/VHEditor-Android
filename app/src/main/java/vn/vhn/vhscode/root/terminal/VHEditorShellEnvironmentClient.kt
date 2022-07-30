@@ -2,9 +2,10 @@ package vn.vhn.vhscode.root.terminal
 
 import android.content.Context
 import com.termux.shared.shell.ShellEnvironmentClient
+import okhttp3.internal.concat
 import vn.vhn.vhscode.CodeServerService
 
-class VHEditorShellEnvironmentClient: ShellEnvironmentClient {
+class VHEditorShellEnvironmentClient : ShellEnvironmentClient {
     override fun getDefaultWorkingDirectoryPath(): String {
         return CodeServerService.HOME_PATH
     }
@@ -16,15 +17,17 @@ class VHEditorShellEnvironmentClient: ShellEnvironmentClient {
     override fun buildEnvironment(
         currentPackageContext: Context?,
         isFailSafe: Boolean,
-        workingDirectory: String?
+        workingDirectory: String?,
     ): Array<String> {
         return CodeServerService.buildEnv()
     }
 
     override fun setupProcessArgs(
         fileToExecute: String,
-        arguments: Array<out String>?
+        arguments: Array<out String>?,
     ): Array<String> {
-        return listOf<String>(fileToExecute).toTypedArray()
+        val r = mutableListOf<String>(fileToExecute)
+        r.addAll(arguments ?: emptyArray())
+        return r.toTypedArray()
     }
 }
