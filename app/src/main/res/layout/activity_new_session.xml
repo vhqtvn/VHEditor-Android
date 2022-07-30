@@ -91,11 +91,6 @@
                 android:text="@string/new_terminal"
                 android:textColor="@color/button" />
 
-            <androidx.coordinatorlayout.widget.CoordinatorLayout
-                android:id="@+id/customTerminalReactHost"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"></androidx.coordinatorlayout.widget.CoordinatorLayout>
-
             <Button
                 android:id="@+id/btnStartCode"
                 style="?android:attr/borderlessButtonStyle"
@@ -142,6 +137,14 @@
                     app:layout_constraintStart_toEndOf="@+id/editTxtRemoteServer"
                     app:layout_constraintVertical_chainStyle="packed" />
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View style="@style/Divider" />
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/customTerminalReactHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/activity_vertical_margin" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </vn.vhn.vhscode.ui.ShrinkingScrollView>

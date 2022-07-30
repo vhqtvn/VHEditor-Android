@@ -40,6 +40,7 @@ import vn.vhn.vhscode.R
 import vn.vhn.vhscode.databinding.ActivityNewSessionBinding
 import vn.vhn.vhscode.preferences.EditorHostPrefs
 import vn.vhn.vhscode.root.codeserver.CodeServerManager
+import vn.vhn.vhscode.service_features.initialSetupIfNeededSync
 import vn.vhn.vhscode.service_features.setupIfNeeded
 import java.io.BufferedReader
 import java.io.File
@@ -96,9 +97,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
 
         mResultSet = false
 
-
-        initializeVHEMod()
-
+        CodeServerService.initialSetupIfNeededSync(this)
 
         SoLoader.init(this, false)
         reactRootView = ReactRootView(this)
@@ -455,21 +454,6 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
         } else {
             run()
         }
-    }
-
-    fun initializeVHEMod() {
-        val ctx = this
-        File(CodeServerService.VHEMOD_PATH).mkdirs()
-        File("${CodeServerService.VHEMOD_PATH}/new-session.js").apply {
-            if (!exists()) CodeServerService.copyRawResource(
-                ctx,
-                R.raw.new_session_loader,
-                absolutePath)
-        }
-        CodeServerService.copyRawResource(
-            ctx,
-            R.raw.new_session_default,
-            "${CodeServerService.VHEMOD_PATH}/new-session-default.js")
     }
 
     override fun onVHEApiStartSession(command: String, name: String?) {

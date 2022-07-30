@@ -6,7 +6,15 @@ import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
 import java.io.File
 
-fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> Unit) {
+private class SetupStorage {
+    companion object {
+        var initialSetupRan = false
+    }
+}
+
+fun CodeServerService.Companion.initialSetupIfNeededSync(context: Context) {
+    if (SetupStorage.initialSetupRan) return
+    SetupStorage.initialSetupRan = true
     // region home symlink
     HOME_PATH.apply {
         val homeFile = File(this)
@@ -28,6 +36,21 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
     }
     // region
 
+    File(VHEMOD_PATH).mkdirs()
+    File("$VHEMOD_PATH/new-session.js").apply {
+        if (!exists()) copyRawResource(
+            context,
+            R.raw.new_session_loader,
+            absolutePath)
+    }
+
+    copyRawResource(
+        context,
+        R.raw.new_session_default,
+        "$VHEMOD_PATH/new-session-default.js")
+}
+
+fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> Unit) {
     // region setup certs
     copyRawResource(
         context,
