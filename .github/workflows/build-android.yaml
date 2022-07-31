@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          fetch-depth: 7
           submodules: recursive
       - uses: actions/setup-java@v1
         with:
