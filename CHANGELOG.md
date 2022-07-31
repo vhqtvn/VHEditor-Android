@@ -1,4 +1,6 @@
 # VHEditor Changelog
+### [2.9.2-0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.1...v2.9.2-0) (2022-07-31)
+
 ### [2.9.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.0...v2.9.1) (2022-07-31)
 
 
