@@ -1,4 +1,16 @@
 # VHEditor Changelog
+## [2.9.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.8.0...v2.9.0) (2022-07-31)
+
+
+### Features
+
+* **editor:** fake process.platform to 'linux' to enable extensions installing ([0a792e3](https://github.com/vhqtvn/VHEditor-Android/commit/0a792e3b1e1a19a8ce7396a468e8438cd99fd0e5)), closes [#175](https://github.com/vhqtvn/VHEditor-Android/issues/175)
+
+
+### Bug Fixes
+
+* **terminal:** ensure binding is not null ([7a8b078](https://github.com/vhqtvn/VHEditor-Android/commit/7a8b0788145343be3832439ef0d1c47037d844da)), closes [#174](https://github.com/vhqtvn/VHEditor-Android/issues/174)
+
 ## [2.8.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.6...v2.8.0) (2022-07-31)
 
 
