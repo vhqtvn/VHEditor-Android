@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.9.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.0...v2.9.1) (2022-07-31)
+
+
+### Bug Fixes
+
+* fix the stupid js syntax error ([c5c87f8](https://github.com/vhqtvn/VHEditor-Android/commit/c5c87f834338e1cc7cf13151c5e8d7fd458c5ba3))
+
 ## [2.9.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.8.0...v2.9.0) (2022-07-31)
 
 
