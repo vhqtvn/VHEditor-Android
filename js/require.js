@@ -41,13 +41,12 @@ const require_cache = require('./require-cached');
 
 function compiler_cache(path, original_content) {
     const cache_path = path + '.compiled-cache'
-
-    const hmac_computer = createHmac('sha256', 'cache-v1');
+    const hmac_computer = crypto.createHmac('sha256', 'cache-v1');
     hmac_computer.update(original_content)
     const hash = hmac_computer.digest('hex')
     const magic_line = "//compiled:" + hash
     return {
-        read() {
+        read: function () {
             try {
                 const cached_content = VHERNFile.readText(cache_path)
                 if (cached_content.startsWith(magic_line)) {
@@ -56,7 +55,7 @@ function compiler_cache(path, original_content) {
             } catch (_) { }
             return [undefined, false]
         },
-        async write(new_content) {
+        write: async function (new_content) {
             await VHERNFile.writeTextAsync(cache_path, magic_line + "\n" + new_content)
         }
     }
@@ -64,7 +63,7 @@ function compiler_cache(path, original_content) {
 
 function compile(content, path) {
     let result, ok
-    const cache = compiler_cache(path, content)
+    const cache = compiler_cache(path, content);
     [result, ok] = cache.read()
     if (!ok) {
         const transformed = bundler({ filename: path, options: {}, src: content })

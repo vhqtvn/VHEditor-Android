@@ -15,7 +15,7 @@ import { Text, View, StyleSheet, TouchableHighlight } from 'react-native';
 const SSH_LIST_FILE = '~/.vheditor/ssh'
 
 function Section(props, child) {
-  const {name, children, empty, footer} = props;
+  const { name, children, empty, footer } = props;
   return (
     <View style={styles.section_container}>
       <Text style={[styles.text, styles.section_title]}>{name}</Text>
@@ -24,7 +24,7 @@ function Section(props, child) {
       </View>
       {footer && (
         <View style={styles.section_footer}>
-            {footer()}
+          {footer()}
         </View>
       )}
     </View>
@@ -32,13 +32,13 @@ function Section(props, child) {
 }
 
 function SSHItem(props) {
-  const {user,host,name,command} = props
+  const { user, host, name, command } = props
   return (
-    <TouchableHighlight onPress={()=>{
-        VHEApi.startSession({
-            command: `vh-editor-ensure-ssh && ${command}`,
-            title: `ssh ${name}`
-        })
+    <TouchableHighlight onPress={() => {
+      VHEApi.startSession({
+        command: `vh-editor-ensure-ssh && ${command}`,
+        title: `ssh ${name}`
+      })
     }} underlayColor="#555555">
       <View style={[styles.sshitem_container]}>
         <Text style={[styles.text, styles.sshitem_name]}>{name}</Text>
@@ -61,41 +61,42 @@ function SSHItemsEmpty() {
 function SSHFooter() {
   return (
     <View>
-      <TouchableHighlight onPress={()=>{
-              VHEApi.openEditor({
-                  path: SSH_LIST_FILE,
-              })
-          }} underlayColor="#555555">
-              <Text style={[styles.text, styles.sshfooter_edit]}>Edit {SSH_LIST_FILE}</Text>
-          </TouchableHighlight>
+      <TouchableHighlight onPress={() => {
+        VHEApi.openEditor({
+          path: SSH_LIST_FILE,
+        })
+      }} underlayColor="#555555">
+        <Text style={[styles.text, styles.sshfooter_edit]}>Edit {SSH_LIST_FILE}</Text>
+      </TouchableHighlight>
     </View>
   )
 }
 
 function SSHItems(props) {
-  const {name} = props
+  const { name } = props
   const items = []
-  if(VHERNFile) {
+  if (VHERNFile) {
     let content
-    try{
-        content = VHERNFile.readText(SSH_LIST_FILE)
-    }catch(e){}
-    if(content)
-        for(let line of content.split("\n")) {
-          line = line.trim()
-          if(line.startsWith("#") || !line) continue
-          if(line.indexOf(' ')===-1) {
-              //user@host
-              const [user,host] = line.split("@")
-              const name = host
-              const command = `ssh ${user}@${host}`
-              items.push(<SSHItem {...{user,host,name,command}} />)
-          } else if(line.startsWith("ssh ")) {
-              const name = line
-              const command = line
-              items.push(<SSHItem {...{name, command}} />)
-          }
+    try {
+      content = VHERNFile.readText(SSH_LIST_FILE)
+    } catch (e) { }
+    if (content)
+      for (let line of content.split("\n")) {
+        line = line.trim()
+        if (line.startsWith("#") || !line) continue
+        if (line.indexOf(' ') === -1) {
+          //user@host
+          let [user, host] = line.split("@")
+          if (typeof host === 'undefined') host = user
+          const name = host
+          const command = `ssh ${user}@${host}`
+          items.push(<SSHItem {...{ user, host, name, command }} />)
+        } else if (line.startsWith("ssh ")) {
+          const name = line
+          const command = line
+          items.push(<SSHItem {...{ name, command }} />)
         }
+      }
   }
   return (
     <Section name="SSH" empty={SSHItemsEmpty} footer={SSHFooter}>
@@ -108,18 +109,18 @@ export function main() {
   return (
     <View style={styles.container}>
       <SSHItems />
-     <TouchableHighlight onPress={()=>{
-              VHEApi.openEditor({
-                  folder: '~/vhe-modules/',
-                  paths: [
-                    '~/vhe-modules/new-session.js',
-                    '~/vhe-modules/new-session-default.js',
-                  ]
-              })
-          }} underlayColor="#555555">
-          <Text style={[styles.text, styles.footer_edit]}>Edit this screen</Text>
+      <TouchableHighlight onPress={() => {
+        VHEApi.openEditor({
+          folder: '~/vhe-modules/',
+          paths: [
+            '~/vhe-modules/new-session.js',
+            '~/vhe-modules/new-session-default.js',
+          ]
+        })
+      }} underlayColor="#555555">
+        <Text style={[styles.text, styles.footer_edit]}>Edit this screen</Text>
       </TouchableHighlight>
-     </View>
+    </View>
   );
 }
 
