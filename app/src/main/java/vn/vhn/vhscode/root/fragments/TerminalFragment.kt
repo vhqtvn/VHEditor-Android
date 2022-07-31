@@ -4,17 +4,12 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.AttributeSet
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
-import com.termux.view.TerminalView
-import vn.vhn.vhscode.R
 import vn.vhn.vhscode.databinding.FragmentTerminalBinding
 import vn.vhn.vhscode.root.EditorHostActivity
 import vn.vhn.vhscode.root.terminal.TermuxTerminalSingleSessionClient
@@ -137,7 +132,7 @@ class TerminalFragment : Fragment() {
     }
 
     fun dispatchKeyEvent(event: KeyEvent?): Boolean {
-        if (event == null) return false
+        if (event == null || _binding == null) return false
         if (
             event.keyCode != KeyEvent.KEYCODE_BACK
             && event.keyCode != KeyEvent.KEYCODE_HOME
