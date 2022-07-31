@@ -97,4 +97,14 @@
         }
         _(require('./code-server/release-standalone/out/node/cli.js'));
     })();
+
+    (function(){
+        var inner = false;
+        Object.defineProperty(
+            process,
+            'platform',
+            {
+                value: "linux"
+            })
+    })()
 })();
