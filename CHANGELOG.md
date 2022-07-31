@@ -1,4 +1,14 @@
 # VHEditor Changelog
+## [2.8.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.6...v2.8.0) (2022-07-31)
+
+
+### Features
+
+* editable react-native based widget on new session screen ([691c47f](https://github.com/vhqtvn/VHEditor-Android/commit/691c47f7ce8b930fc9b63cdf0c8ece923b45d785))
+* **editor:** disable workspace trust features by default ([be95bd8](https://github.com/vhqtvn/VHEditor-Android/commit/be95bd8b8a2896d22ca06acc55030d21fb38244a))
+* **editor:** update code-server to v4.5.1 ([dc792eb](https://github.com/vhqtvn/VHEditor-Android/commit/dc792eb28830560cc049c124e7dbc81468b5f935))
+* new terminal shortcuts with react-native based user-customizable screen ([3c62d98](https://github.com/vhqtvn/VHEditor-Android/commit/3c62d98871d826061679d26ec4bdc6047c6122d3))
+
 ### [2.7.3-test-ci.6](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.5...v2.7.3-test-ci.6) (2022-07-29)
 
 ### [2.7.3-test-ci.5](https://github.com/vhqtvn/VHEditor-Android/compare/v2.7.3-test-ci.4...v2.7.3-test-ci.5) (2022-07-29)
