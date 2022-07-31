@@ -11,12 +11,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
-import android.util.Log
 import android.util.TypedValue
 import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -63,7 +63,6 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     private var mInitialResume = true
     private var mIsOnResumeAfterOnCreate = false
     private var mIsActivityRecreated = false
-    private var mPendingEditorPaths = mutableListOf<String>()
 
     private var mCodeServerService: CodeServerService? = null
     lateinit var preferences: EditorHostPrefs
@@ -119,9 +118,6 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 mCurrentTerminalFragmentId = null
                 binding.overlayControlButtonSettings.visibility = View.VISIBLE
                 hasSet = true
-                binding.root.postDelayed({
-                    triggerOpenPendingPaths()
-                }, 300)
             }
             is TerminalFragment -> {
                 mCurrentEditorFragment = null
@@ -388,7 +384,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
     }
 
     private val startForResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        (this as ComponentActivity).registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             if (result.resultCode == RESULT_OK) {
                 val intent = result.data
                 when (intent?.getStringExtra(NewSessionActivity.kSessionType)) {
@@ -411,20 +407,16 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                         )
                     }
                     NewSessionActivity.kSessionTypeCodeEditor -> {
-                        intent.getStringExtra(NewSessionActivity.kEditorPathToOpen)?.also {
-                            mPendingEditorPaths.add(it)
-                        }
-                        if (codeServerService?.sessionsHost?.canAddNewCodeEditorSession() == false) {
-                            triggerOpenPendingPaths()
-                        } else {
-                            codeServerService?.sessionsHost?.createCodeEditorSession(
-                                GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_EDITOR),
-                                "Editor",
-                                intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
-                                    true),
-                                intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
-                                port = preferences.editLocalServerListenPort.toIntOrNull()
-                            )
+                        codeServerService?.sessionsHost?.createCodeEditorSession(
+                            GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_EDITOR),
+                            "Editor",
+                            intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
+                                true),
+                            intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
+                            port = preferences.editLocalServerListenPort.toIntOrNull()
+                        )?.also { session ->
+                            intent.getStringArrayExtra(NewSessionActivity.kEditorPathToOpen)
+                                ?.also { paths -> paths.onEach { session.openPath(it) } }
                         }
                     }
                     NewSessionActivity.kSessionTypeRemoteCodeEditor -> {
@@ -435,21 +427,14 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                             false,
                             true,
                             intent?.getStringExtra(NewSessionActivity.kRemoteCodeEditorURL)
-                        )
+                        )?.also { session ->
+                            intent.getStringArrayExtra(NewSessionActivity.kEditorPathToOpen)
+                                ?.also { paths -> paths.onEach { session.openPath(it) } }
+                        }
                     }
                 }
             }
         }
-
-    private fun triggerOpenPendingPaths() {
-        mCurrentEditorFragment?.also {
-            val paths = mPendingEditorPaths
-            if (paths.size > 0) {
-                mPendingEditorPaths = mutableListOf()
-                it.openPaths(paths)
-            }
-        }
-    }
 
     private fun startNewSessionActivity() {
         binding.drawerLayout.post {
@@ -705,7 +690,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
             is CodeEditorItem -> {
                 val (sid) = item
                 binding.overlayKillBtn.isEnabled =
-                    codeServerService?.sessionsHost?.getVSCodeSessionForId(sid)?.mTerminated != true
+                    codeServerService?.sessionsHost?.getVSCodeSessionForId(sid)?.terminated != true
             }
         }
     }

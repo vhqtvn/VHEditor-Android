@@ -52,7 +52,7 @@ import java.net.URL
 class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
     companion object {
         val TAG = "NewSessionActivity"
-        val kCurrentServerVersion = "4.5.0-" + BuildConfig.CS_VERSION
+        val kCurrentServerVersion = "4.5.1-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 
@@ -467,13 +467,19 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
         }
     }
 
-    override fun onVHEApiOpenEditorPath(path: String) {
+    override fun onVHEApiOpenEditorPath(folder: String?, paths: List<String>) {
         returnResult {
-            Intent()
+            val intent = Intent()
                 .putExtra(kSessionType, kSessionTypeCodeEditor)
                 .putExtra(kSessionSSL, preferences.editorUseSSL)
                 .putExtra(kSessionAllInterfaces, preferences.editorListenAllInterfaces)
-                .putExtra(kEditorPathToOpen, path)
+            if (folder != null || paths.isNotEmpty()) {
+                val pathsToOpen = mutableListOf<String>()
+                if (folder != null) pathsToOpen.add(folder)
+                pathsToOpen.addAll(paths)
+                intent.putExtra(kEditorPathToOpen, pathsToOpen.toTypedArray())
+            }
+            intent
         }
     }
 }

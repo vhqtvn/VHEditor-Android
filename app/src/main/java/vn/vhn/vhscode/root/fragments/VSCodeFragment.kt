@@ -14,8 +14,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.CheckBox
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import org.json.JSONArray
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.chromebrowser.VSCodeJSInterface
 import vn.vhn.vhscode.chromebrowser.webclient.VSCodeWebChromeClient
@@ -24,9 +26,11 @@ import vn.vhn.vhscode.databinding.FragmentVSCodeBinding
 import vn.vhn.vhscode.generic_dispatcher.BBKeyboardEventDispatcher
 import vn.vhn.vhscode.generic_dispatcher.IGenericEventDispatcher
 import vn.vhn.vhscode.root.EditorHostActivity
-import vn.vhn.vhscode.root.codeserver.CodeServerSession
+import vn.vhn.vhscode.root.codeserver.ICodeServerSession
 import vn.vhn.virtualmouse.VirtualMouse
+import java.io.File
 import java.lang.ref.WeakReference
+import java.net.URL
 
 
 private const val FRAGMENT_ID = "fragment_id"
@@ -69,17 +73,17 @@ class VSCodeFragment : Fragment() {
 
     private var _binding: FragmentVSCodeBinding? = null
     private val binding get() = _binding!!
-    private var mSession: CodeServerSession? = null
+    private var mSession: ICodeServerSession? = null
     private var mWebViewConfigured = false
     private var genericMotionEventDispatcher: IGenericEventDispatcher? = null
     private var mNewUIScale: Int = 0
     private var mNewVirtualMouseScaleParam: Int = -1
 
     private val serverLogObserver: Observer<String> = Observer<String> { updateLogView(it) }
-    private val statusObserver: Observer<CodeServerSession.Companion.RunStatus> =
-        Observer<CodeServerSession.Companion.RunStatus> { onServerStatusUpdated(it) }
+    private val statusObserver: Observer<ICodeServerSession.RunStatus> =
+        Observer<ICodeServerSession.RunStatus> { onServerStatusUpdated(it) }
 
-    public val webView: WebView
+    val webView: WebView
         get() = binding.webView
 
     val mOnLayoutChangeListener: View.OnLayoutChangeListener =
@@ -220,15 +224,15 @@ class VSCodeFragment : Fragment() {
         }
     }
 
-    private fun onServerStatusUpdated(status: CodeServerSession.Companion.RunStatus) {
+    private fun onServerStatusUpdated(status: ICodeServerSession.RunStatus) {
         _binding?.webView?.post {
             when (status) {
-                CodeServerSession.Companion.RunStatus.RUNNING -> {
+                ICodeServerSession.RunStatus.RUNNING -> {
                     setLogVisible(false)
                     setEditorVisible(true)
                 }
-                CodeServerSession.Companion.RunStatus.ERROR,
-                CodeServerSession.Companion.RunStatus.FINISHED,
+                ICodeServerSession.RunStatus.ERROR,
+                ICodeServerSession.RunStatus.FINISHED,
                 -> {
                     _binding?.also {
                         it.webView.loadUrl("about:blank")
@@ -246,7 +250,7 @@ class VSCodeFragment : Fragment() {
     private var mCurrentLogVisible = true
     private var mLastLogVisibleHeight = -1
     private fun setLogVisible(visible: Boolean) {
-        if (mSession?.status?.value != CodeServerSession.Companion.RunStatus.RUNNING && !visible) return
+        if (mSession?.status?.value != ICodeServerSession.RunStatus.RUNNING && !visible) return
 
         if (!visible && mCurrentLogVisible != visible) {
             var shouldConfigureWebview = false
@@ -309,14 +313,14 @@ class VSCodeFragment : Fragment() {
 
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
-//        webView.onResolvePointerIcon()
-
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.settings.databaseEnabled = true
         webView.settings.allowContentAccess = true
         webView.settings.allowFileAccess = true
+        @Suppress("DEPRECATION")
         webView.settings.allowFileAccessFromFileURLs = true
+        @Suppress("DEPRECATION")
         webView.settings.allowUniversalAccessFromFileURLs = true
         webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
         webView.settings.setAppCacheEnabled(true)
@@ -324,19 +328,40 @@ class VSCodeFragment : Fragment() {
         webView.webChromeClient = VSCodeWebChromeClient(this)
         webView.setInitialScale(host.preferences.editorUIScale)
         webView.settings.fixedFontFamily = "vscode-monospace"
-        val isSSL = mSession?.useSSL == true
-        val protocol = if (isSSL) "https" else "http"
-        val port = mSession?.port ?: throw Error("St wrong, no port obtained")
-        val url: String
-        if (mSession?.remote == true) {
-            url = mSession?.remoteURL ?: throw Error("No remote url")
-        } else {
-            url = protocol + "://127.0.0.1:" + port + "/?_=" + System.currentTimeMillis()
-        }
-
-        if (isSSL) {
-            webView.clearCache(true)
-            webView.clearSslPreferences()
+        var url: String = mSession?.url ?: throw Error("No url defined")
+        val host = URL(url).host
+        mSession?.pathsToOpen?.also { paths ->
+            if (paths.isNotEmpty()) {
+                val queryIdx = url.indexOf('?')
+                if (queryIdx >= 0) url = url.substring(0, queryIdx)
+                val filesToOpen = JSONArray()
+                var directoriesToOpen = mutableListOf<String>()
+                for (path in paths) {
+                    File(path).also { f ->
+                        if (f.exists()) {
+                            if (f.isDirectory) directoriesToOpen.add(path)
+                            else filesToOpen.put("vscode-remote://$host${f.absolutePath}")
+                        }
+                    }
+                }
+                url += "?ew=true"
+                if (directoriesToOpen.isNotEmpty()) {
+                    if (directoriesToOpen.size > 1) {
+                        Toast.makeText(context,
+                            R.string.can_open_1_folder_in_a_single_instance_only,
+                            Toast.LENGTH_SHORT).show()
+                    }
+                    url += "&folder=" + java.net.URLEncoder.encode(directoriesToOpen[0], "utf-8")
+                }
+                if (filesToOpen.length() > 0) {
+                    url += "&payload=" + java.net.URLEncoder.encode(JSONArray().apply {
+                        put(JSONArray().apply {
+                            put("openFiles")
+                            put(filesToOpen)
+                        })
+                    }.toString(), "utf-8")
+                }
+            }
         }
         webView.webViewClient = VSCodeWebClient(this, url)
         webView.addJavascriptInterface(jsInterface!!, "_vn_vhn_vscjs_")
@@ -381,9 +406,9 @@ class VSCodeFragment : Fragment() {
 
     fun configureWebViewHWAMode(hardware: Boolean) {
         if (hardware) {
-            binding.webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            binding.webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         } else {
-            binding.webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            binding.webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         }
     }
 
@@ -443,9 +468,5 @@ class VSCodeFragment : Fragment() {
 
     fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         binding.loading.visibility = View.VISIBLE
-    }
-
-    fun openPaths(paths: List<String>) {
-        TODO("Not yet implemented")
     }
 }

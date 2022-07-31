@@ -77,4 +77,7 @@
     <string name="error_failed_to_extract">Failed to extract!</string>
     <string name="copied_to_clipboard">Copied!</string>
     <string name="long_press_to_copy_full">Tap and hold to copy to clipboard.</string>
+
+    <string name="editor_service_restart_due_to_configuration_changes">Editor service restarting to update configurations.</string>
+    <string name="can_open_1_folder_in_a_single_instance_only">Only first folder opened.</string>
 </resources>

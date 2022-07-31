@@ -15,13 +15,18 @@ import { Text, View, StyleSheet, TouchableHighlight } from 'react-native';
 const SSH_LIST_FILE = '~/.vheditor/ssh'
 
 function Section(props, child) {
-  const {name, children, empty} = props;
+  const {name, children, empty, footer} = props;
   return (
     <View style={styles.section_container}>
       <Text style={[styles.text, styles.section_title]}>{name}</Text>
       <View style={styles.section_children_container}>
         {children && children.length ? children : empty()}
       </View>
+      {footer && (
+        <View style={styles.section_footer}>
+            {footer()}
+        </View>
+      )}
     </View>
   )
 }
@@ -53,6 +58,20 @@ function SSHItemsEmpty() {
   )
 }
 
+function SSHFooter() {
+  return (
+    <View>
+      <TouchableHighlight onPress={()=>{
+              VHEApi.openEditor({
+                  path: SSH_LIST_FILE,
+              })
+          }} underlayColor="#555555">
+              <Text style={[styles.text, styles.sshfooter_edit]}>Edit {SSH_LIST_FILE}</Text>
+          </TouchableHighlight>
+    </View>
+  )
+}
+
 function SSHItems(props) {
   const {name} = props
   const items = []
@@ -79,7 +98,7 @@ function SSHItems(props) {
         }
   }
   return (
-    <Section name="SSH" empty={SSHItemsEmpty}>
+    <Section name="SSH" empty={SSHItemsEmpty} footer={SSHFooter}>
       {items}
     </Section>
   )
@@ -89,7 +108,18 @@ export function main() {
   return (
     <View style={styles.container}>
       <SSHItems />
-    </View>
+     <TouchableHighlight onPress={()=>{
+              VHEApi.openEditor({
+                  folder: '~/vhe-modules/',
+                  paths: [
+                    '~/vhe-modules/new-session.js',
+                    '~/vhe-modules/new-session-default.js',
+                  ]
+              })
+          }} underlayColor="#555555">
+          <Text style={[styles.text, styles.footer_edit]}>Edit this screen</Text>
+      </TouchableHighlight>
+     </View>
   );
 }
 
@@ -104,12 +134,30 @@ const styles = StyleSheet.create({
     fontFamily: "fa_regular_400",
   },
   section_container: {
+    borderColor: '#444444',
+    borderWidth: 1,
+    borderRadius: 1,
+    padding: 10
   },
   section_title: {
     fontSize: 10,
     color: "#CCCCCC"
   },
   section_children_container: {
+  },
+  footer_edit: {
+    fontStyle: "italic",
+    paddingTop: 4,
+    paddingBottom: 10,
+    color: "#999999"
+  },
+  sshfooter_edit: {
+    fontStyle: "italic",
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    color: "#999999"
   },
   sshitem_container: {
     flex: 1,

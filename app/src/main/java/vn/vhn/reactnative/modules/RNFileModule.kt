@@ -11,10 +11,12 @@ class RNFileModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
     override fun getName() = "VHERNFile"
 
-    private fun resolveFile(name: String): String {
-        var name = name
-        if (name.startsWith("~/")) name = CodeServerService.HOME_PATH + "/" + name.substring(2)
-        return name
+    companion object {
+        fun resolveFile(name: String): String {
+            var name = name
+            if (name.startsWith("~/")) name = CodeServerService.HOME_PATH + "/" + name.substring(2)
+            return name
+        }
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

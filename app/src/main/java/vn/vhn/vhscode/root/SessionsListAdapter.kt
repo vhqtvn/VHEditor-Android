@@ -9,11 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.databinding.SessionsListItemBinding
-import vn.vhn.vhscode.root.codeserver.CodeServerSession
-import java.lang.reflect.Type
+import vn.vhn.vhscode.root.codeserver.SharedLocalCodeServerSession
 
 const val kTagBinding = R.string.tag_binding
 const val kTagBindingPosition = R.string.tag_binding_position
@@ -47,7 +45,7 @@ class SessionsListAdapter(
                 }
                 is CodeEditorItem -> {
                     val (sid) = item
-                    if (sessionsHost.getVSCodeSessionForId(sid)?.mTerminated != false)
+                    if (sessionsHost.getVSCodeSessionForId(sid)?.terminated != false)
                         sessionsHost.cleanupVSCodeSessionForId(sid)
                 }
             }
@@ -115,10 +113,12 @@ class SessionsListAdapter(
                 val (id) = item
                 val session = activity.codeServerService?.sessionsHost?.getVSCodeSessionForId(id)
                 if (session != null) {
-                    txtPartName = "Editor (${session.url})"
+                    if (session is SharedLocalCodeServerSession) txtPartName = "Local Editor"
+                    else txtPartName = "Remote Editor"
+                    txtPartName += " (${session.url})"
                     nameHasExtPart = true
                     txtPartTitle = session.title
-                    running = session.mTerminated != true
+                    running = session.terminated != true
                 } else {
                     txtPartName = "Editor"
                     txtPartTitle = ""

@@ -10,6 +10,7 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import com.termux.shared.file.FileUtils
 import com.termux.shared.interact.TextInputDialogUtils
 import com.termux.shared.logger.Logger
@@ -21,7 +22,10 @@ import com.termux.terminal.TerminalSession
 import com.termux.terminal.TerminalSessionClient
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
-import vn.vhn.vhscode.root.codeserver.CodeServerSession
+import vn.vhn.vhscode.root.codeserver.CodeServerLocalService
+import vn.vhn.vhscode.root.codeserver.ICodeServerSession
+import vn.vhn.vhscode.root.codeserver.RemoteCodeServerSession
+import vn.vhn.vhscode.root.codeserver.SharedLocalCodeServerSession
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
 import vn.vhn.vhscode.root.terminal.VHEditorShellEnvironmentClient
 import java.util.*
@@ -35,7 +39,7 @@ class SessionsHost(
 
         open class SessionWrapper()
         data class SessionCaseTerminal(val session: TermuxSession?) : SessionWrapper()
-        data class SessionCaseCodeEditor(val session: CodeServerSession?) : SessionWrapper()
+        data class SessionCaseCodeEditor(val session: ICodeServerSession?) : SessionWrapper()
 
         private val MAX_TERMINAL_SESSIONS = 10
         private val MAX_CODESERVER_LOCAL_SESSIONS = 1
@@ -50,16 +54,10 @@ class SessionsHost(
     var mWantsToStop = false
     val mSessions: MutableList<SessionWrapper> = ArrayList()
     val mTermuxSessions: MutableList<TermuxSession?> = ArrayList()
-    val mCodeServerSessions: MutableList<CodeServerSession?> = ArrayList()
+    var mCodeServerLocalService: CodeServerLocalService? = null
+    val mCodeServerSessions: MutableList<ICodeServerSession?> = ArrayList()
     val mGlobalSessionsManager: GlobalSessionsManager = globalSessionsManager
     val mTermuxTerminalSessionClientBase = TermuxTerminalSessionClientBase()
-
-    fun canAddNewCodeEditorSession(): Boolean {
-        if (mCodeServerSessions.filter { it?.remote == false }.size >= MAX_CODESERVER_LOCAL_SESSIONS) {
-            return true
-        }
-        return false
-    }
 
     @Synchronized
     fun createCodeEditorSession(
@@ -70,21 +68,65 @@ class SessionsHost(
         remote: Boolean = false,
         remoteURL: String? = null,
         port: Int? = null,
-    ): CodeServerSession? {
-        if (!remote && !canAddNewCodeEditorSession()) {
-            mGlobalSessionsManager.notifyMaxCodeEditorSessionsReached()
-            return null
+    ): ICodeServerSession? {
+        if (!remote) {
+            mCodeServerLocalService?.also { service ->
+                if (
+                    service.listenOnAllInterface != listenOnAllInterface
+                    || service.useSSL != useSSL
+                    || service.port != port
+                ) {
+                    val toMigrate = mutableListOf<SharedLocalCodeServerSession>()
+                    for (session in mCodeServerSessions) {
+                        if (session is SharedLocalCodeServerSession
+                            && session.base == service // FIXME: should it be?
+                        )
+                            toMigrate.add(session)
+                    }
+                    for (session in toMigrate) session.startMigratingBase()
+                    try {
+
+                        Toast.makeText(mContext,
+                            R.string.editor_service_restart_due_to_configuration_changes,
+                            Toast.LENGTH_SHORT).show()
+                        service.killIfExecuting(mContext)
+
+                        val newService = CodeServerLocalService(
+                            -1,
+                            ctx = mContext,
+                            listenOnAllInterface = listenOnAllInterface,
+                            useSSL = useSSL,
+                            port = port
+                        )
+                        newService.start()
+                        mCodeServerLocalService = newService
+
+                        for (session in toMigrate) session.migrateBase(newService)
+                    } finally {
+                        for (session in toMigrate) session.finishMigratingBase()
+                    }
+                }
+            } ?: kotlin.run {
+                mCodeServerLocalService = CodeServerLocalService(
+                    -1,
+                    ctx = mContext,
+                    listenOnAllInterface = listenOnAllInterface,
+                    useSSL = useSSL,
+                    port = port
+                )
+                mCodeServerLocalService?.start()
+            }
         }
-        val newEditorSession = CodeServerSession(
-            id,
-            mContext,
-            listenOnAllInterface,
-            useSSL,
-            remote,
-            remoteURL,
-            port
-        )
-        newEditorSession.start()
+        val newEditorSession = if (remote)
+            RemoteCodeServerSession(id,
+                sessionName = sessionName,
+                url = remoteURL ?: throw Error("remoteURL not set"))
+        else
+            SharedLocalCodeServerSession(
+                id,
+                mCodeServerLocalService!!,
+                sessionName = sessionName
+            )
         mCodeServerSessions.add(newEditorSession)
         mSessions.add(SessionCaseCodeEditor(newEditorSession))
 
@@ -179,15 +221,12 @@ class SessionsHost(
             TAG,
             "Killing EditorSessions=" + mCodeServerSessions.size
         )
-        val editorSessions = ArrayList(mCodeServerSessions)
-        for (i in editorSessions.indices) {
-            editorSessions[i]?.apply {
-                killIfExecuting(mContext)
-                try {
-                    Log.d(TAG, "kill codeserver $title -> ${process?.exitValue()}")
-                } catch (e: Exception) {
-                    Log.d(TAG, "kill codeserver $title -> CHECK_ERROR")
-                }
+        mCodeServerLocalService?.apply {
+            killIfExecuting(mContext)
+            try {
+                Log.d(TAG, "kill codeserver $title -> ${process?.exitValue()}")
+            } catch (e: Exception) {
+                Log.d(TAG, "kill codeserver $title -> CHECK_ERROR")
             }
         }
     }
@@ -294,7 +333,7 @@ class SessionsHost(
         updateNotification()
     }
 
-    fun onVSCodeSessionExited(session: CodeServerSession?) {
+    fun onVSCodeSessionExited(session: ICodeServerSession?) {
         if (session != null) {
             mCodeServerSessions.remove(session)
             mSessions.removeIf { it is SessionCaseCodeEditor && it.session == session }
@@ -340,7 +379,8 @@ class SessionsHost(
             onTermuxSessionExited(session)
         }
         for (session in ArrayList(mCodeServerSessions)) {
-            session!!.killIfExecuting(mContext)
+            if (session is SharedLocalCodeServerSession)
+                session!!.base.killIfExecuting(mContext)
             onVSCodeSessionExited(session)
         }
     }
@@ -374,9 +414,13 @@ class SessionsHost(
     fun killVSCodeSessionForId(id: Int?): Boolean {
         if (id == null) return false
         for (session in mCodeServerSessions) {
-            if (session!!.id == id) {
-                session!!.killIfExecuting(mContext)
-                return true
+            session!!.also {
+                if (it.id == id) {
+                    it.kill(mContext)
+                    checkCleanupEditorService()
+                    mContext.run { cleanupVSCodeSessionForId(id) }
+                    return true
+                }
             }
         }
 
@@ -387,10 +431,13 @@ class SessionsHost(
     fun cleanupVSCodeSessionForId(id: Int?): Boolean {
         if (id == null) return false
         for (session in mCodeServerSessions) {
-            if (session!!.id == id) {
-                session!!.killIfExecuting(mContext)
-                onVSCodeSessionExited(session)
-                return true
+            session!!.also {
+                if (it.id == id) {
+                    it.kill(mContext)
+                    checkCleanupEditorService()
+                    onVSCodeSessionExited(it)
+                    return true
+                }
             }
         }
 
@@ -398,7 +445,7 @@ class SessionsHost(
     }
 
     @Synchronized
-    fun getVSCodeSessionForId(id: Int?): CodeServerSession? {
+    fun getVSCodeSessionForId(id: Int?): ICodeServerSession? {
         if (id == null) return null
         for (session in mCodeServerSessions) {
             if (session!!.id == id) return session
@@ -450,9 +497,17 @@ class SessionsHost(
         for (i in 0 until mTermuxSessions.size) {
             if (mTermuxSessions[i]!!.terminalSession.isRunning) return true
         }
-        for (i in 0 until mCodeServerSessions.size) {
-            if (mCodeServerSessions[i]!!.status.value == CodeServerSession.Companion.RunStatus.RUNNING) return true
-        }
+        if (mCodeServerLocalService?.status?.value == ICodeServerSession.RunStatus.RUNNING) return true
         return false
+    }
+
+    fun checkCleanupEditorService() {
+        mCodeServerLocalService?.also {
+            if (it.refs.isEmpty()) {
+                it.killIfExecuting(mContext)
+                mCodeServerLocalService = null
+                updateNotification()
+            }
+        }
     }
 }

@@ -10,27 +10,20 @@ import java.io.DataInputStream
 import java.io.File
 import java.net.ServerSocket
 import java.util.*
+import kotlin.collections.HashSet
 
-class CodeServerLocalSerivce(
-    val id: Int,
+typealias RunStatus = ICodeServerSession.RunStatus
+
+class CodeServerLocalService(
+    override val id: Int,
     val ctx: Context,
     val listenOnAllInterface: Boolean,
     val useSSL: Boolean,
-    val remote: Boolean = false,
-    var remoteURL: String? = null,
-    port: Int? = null,
-) {
+    val port: Int? = null,
+) : ICodeServerSession() {
     companion object {
         const val OUTPUT_STREAM_STDOUT = 1
         const val OUTPUT_STREAM_STDERR = 2
-
-        public enum class RunStatus {
-            NOT_STARTED,
-            STARTING,
-            RUNNING,
-            ERROR,
-            FINISHED
-        }
 
         private fun freePort(): Int {
             return try {
@@ -49,34 +42,36 @@ class CodeServerLocalSerivce(
 
     val mHandle = UUID.randomUUID().toString()
 
+    val refs = HashSet<Int>()
+
     private var isServerStarted = false
     private var mIOJobs: List<Job>? = null
     private var mPort = port ?: freePort()
     var hasStarted = false
     var mTerminated = false
     var process: Process? = null
-    var title = ""
+    override var title = ""
+    override val terminated: Boolean
+        get() = mTerminated
 
     var error: String? = null
 
-    // -1: starting, 0: not started, 1: started
-    val status: MutableLiveData<RunStatus> =
-        MutableLiveData<RunStatus>().apply { postValue(RunStatus.NOT_STARTED) }
+    override val sessionName = "EditorBase"
 
-    val port: Int
-        get() = mPort
+    override val status: MutableLiveData<RunStatus> = MutableLiveData(RunStatus.NOT_STARTED)
 
-    val liveServerLog: MutableLiveData<String> =
-        MutableLiveData<String>().apply { postValue("") }
+    override val liveServerLog: MutableLiveData<String> = MutableLiveData("")
 
-    val url: String
+    override val url: String
         get() {
-            return if (remote) (remoteURL ?: "")
-            else (
-                    (if (useSSL) "https://" else "http://")
-                            + (if (listenOnAllInterface) "0.0.0.0" else "127.0.0.1")
-                            + ":${mPort}")
+            return ((if (useSSL) "https://" else "http://")
+                    + ("127.0.0.1")
+                    + ":${mPort}")
         }
+
+    override fun kill(context: Context) {
+        killIfExecuting(context)
+    }
 
     @Synchronized
     fun start() {
@@ -86,10 +81,6 @@ class CodeServerLocalSerivce(
     }
 
     fun killIfExecuting(context: Context) {
-        if (remote) {
-            onProcessFinished(RunStatus.FINISHED, true)
-            return
-        }
         if (!checkIfHasExited()) {
             process?.destroy()
             for (i in 0..30) {
@@ -106,11 +97,6 @@ class CodeServerLocalSerivce(
     }
 
     private fun _run() {
-        if (remote) {
-            status.postValue(RunStatus.RUNNING)
-            appendLog(OUTPUT_STREAM_STDERR, "Running remote editor: ${remoteURL}\n")
-            return
-        }
         status.postValue(RunStatus.STARTING)
         val nodeBinary = ctx.getFileStreamPath("node")
         val envHome = nodeBinary?.parentFile?.absolutePath
@@ -192,10 +178,6 @@ class CodeServerLocalSerivce(
     }
 
     private fun checkIfHasExited(): Boolean {
-        if (remote) {
-            return true
-        }
-
         if (process == null) return true
         return try {
             process?.exitValue()
@@ -213,9 +195,6 @@ class CodeServerLocalSerivce(
         if (checkIfHasExited()) {
             status.postValue(newStatus)
             mTerminated = true
-            if (remote) {
-                appendLog(OUTPUT_STREAM_STDERR, "Finished.\n")
-            }
         }
     }
 

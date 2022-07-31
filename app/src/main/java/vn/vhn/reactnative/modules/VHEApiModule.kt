@@ -7,7 +7,7 @@ import java.io.File
 
 interface VHEApiModuleHandler {
     fun onVHEApiStartSession(command: String, name: String?)
-    fun onVHEApiOpenEditorPath(path: String)
+    fun onVHEApiOpenEditorPath(folder: String?, paths: List<String>)
 }
 
 class VHEApiModule(reactContext: ReactApplicationContext) :
@@ -19,9 +19,10 @@ class VHEApiModule(reactContext: ReactApplicationContext) :
             TODO("Not yet implemented")
         }
 
-        override fun onVHEApiOpenEditorPath(path: String) {
+        override fun onVHEApiOpenEditorPath(folder: String?, paths: List<String>) {
             TODO("Not yet implemented")
         }
+
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -39,13 +40,23 @@ class VHEApiModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun openEditor(config: ReadableMap) {
-        if (!config.hasKey("path")) throw RuntimeException("No path defined")
+        if (!config.hasKey("folder") && !config.hasKey("path") && config.getArray("paths")
+                .let { it == null || it.size() == 0 }
+        ) throw RuntimeException("No path defined")
         var handler: VHEApiModuleHandler = mDefaultHandler
         (currentActivity as? VHEApiModuleHandler)?.apply {
             handler = this
         }
+        val paths = mutableListOf<String>()
+        config.getString("path")?.also { paths.add(RNFileModule.resolveFile(it)) }
+        config.getArray("paths")?.also {
+            for (i in 0 until it.size()) {
+                paths.add(RNFileModule.resolveFile(it.getString(i)))
+            }
+        }
         handler.onVHEApiOpenEditorPath(
-            config.getString("path")!!
+            config.getString("folder")?.let { RNFileModule.resolveFile(it) },
+            paths
         )
     }
 }

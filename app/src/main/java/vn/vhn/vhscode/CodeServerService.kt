@@ -309,6 +309,13 @@ class CodeServerService() : Service() {
         stopSelf()
     }
 
+    private fun plural(cnt: Int?, singular: String, plural: String): String {
+        cnt?.also {
+            if (it >= 2) return it.toString() + plural
+        }
+        return cnt.toString() + singular
+    }
+
     fun updateNotification() {
         val resultIntent = Intent(this, EditorHostActivity::class.java)
         val stackBuilder: TaskStackBuilder = TaskStackBuilder.create(this)
@@ -342,8 +349,23 @@ class CodeServerService() : Service() {
             NotificationCompat.Builder(this, channelId)
         @Suppress("DEPRECATION") val notification = notificationBuilder.setOngoing(true)
             .setSmallIcon(R.drawable.logo_b)
-            .setContentTitle("VHEditor is running, ${mGlobalSessionsManager.sessionsHost?.mTermuxSessions?.size} terminal, ${mGlobalSessionsManager.sessionsHost?.mCodeServerSessions?.size} editor session(s)${ext}.")
-            .setPriority(Notification.PRIORITY_LOW)
+            .setContentTitle("VHEditor: ${
+                if (mGlobalSessionsManager.sessionsHost?.mCodeServerLocalService?.hasStarted == true)
+                    "editor service running, "
+                else ""
+            }${
+                plural(mGlobalSessionsManager.sessionsHost?.mCodeServerSessions?.size,
+                    " editor",
+                    " editors")
+            }"
+                    + ", ${
+                plural(mGlobalSessionsManager.sessionsHost?.mTermuxSessions?.size,
+                    " terminal",
+                    " terminals")
+            }${
+                ext
+            }.")
+            .setPriority(Notification.PRIORITY_HIGH)
             .setCategory(Notification.CATEGORY_SERVICE)
             .setContentIntent(resultPendingIntent)
             .addAction(
