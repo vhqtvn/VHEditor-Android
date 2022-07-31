@@ -11,7 +11,7 @@ import java.io.File
 import java.net.ServerSocket
 import java.util.*
 
-class CodeServerSession(
+class CodeServerLocalSerivce(
     val id: Int,
     val ctx: Context,
     val listenOnAllInterface: Boolean,
