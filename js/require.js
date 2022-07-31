@@ -50,13 +50,13 @@ function compiler_cache(path, original_content) {
             try {
                 const cached_content = VHERNFile.readText(cache_path)
                 if (cached_content.startsWith(magic_line)) {
-                    return [cached_content, true]
+                    return [cached_content.substring(magic_line.length).trim(), true]
                 }
             } catch (_) { }
             return [undefined, false]
         },
         write: async function (new_content) {
-            await VHERNFile.writeTextAsync(cache_path, magic_line + "\n" + new_content)
+            VHERNFile.writeText(cache_path, magic_line + "\n" + new_content)
         }
     }
 }
@@ -68,8 +68,10 @@ function compile(content, path) {
     if (!ok) {
         const transformed = bundler({ filename: path, options: {}, src: content })
         result = generator(transformed.ast, {}, content)
-        cache.write(result)
+        cache.write(JSON.stringify(result))
         ok = true
+    } else {
+        result = JSON.parse(result)
     }
     if (!ok) throw Error("Compiler error?");
     return result
