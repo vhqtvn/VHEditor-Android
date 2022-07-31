@@ -7,14 +7,17 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     },
-    "versionCode": 36
+    "versionCode": 37
   },
   "standard-version": {
-    "header": "# VHEditor Changelog"
+    "header": "# VHEditor Changelog",
+    "scripts": {
+      "postbump": "node ci/inc-version-code.js"
+    }
   },
   "name": "vheditor-android-ci",
   "description": "VHEditor Android",
-  "version": "2.9.2",
+  "version": "2.9.3",
   "main": "ci/ci.js",
   "dependencies": {
     "@tradle/react-native-http": "^2.0.0",
@@ -169,7 +172,6 @@
     "release": "standard-version",
     "postinstall": "node ci/post-install.js",
     "play": "env GPLAY_BUILD=1 ./gradlew bundleRelease",
-    "postbump": "node ci/inc-version-code.js",
     "gen-require-cache": "node ci/require-cached-generator.js > js/require-cached.js",
     "bundle-rnjs": "react-native bundle --platform android --dev false --entry-file loader.js --bundle-output app/src/main/assets/loader.bundled.js --assets-dest app/src/main/res/",
     "test": "echo \"Error: no test specified\" && exit 1"

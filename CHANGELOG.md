@@ -1,4 +1,12 @@
 # VHEditor Changelog
+### [2.9.3](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.2...v2.9.3) (2022-07-31)
+
+
+### Bug Fixes
+
+* **new-session-default:** fix ssh command for no-username case ([97b2ea8](https://github.com/vhqtvn/VHEditor-Android/commit/97b2ea8ec647ae36f1fc9bf3854481911265fcc0))
+* **rnjs-compiler:** fix compiler cache ([ef3ee30](https://github.com/vhqtvn/VHEditor-Android/commit/ef3ee30ad8701d0e1b6bb50b55539df3f1597955))
+
 ### [2.9.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.2-0...v2.9.2) (2022-07-31)
 
 
