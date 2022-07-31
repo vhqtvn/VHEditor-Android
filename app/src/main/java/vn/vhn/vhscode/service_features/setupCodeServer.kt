@@ -24,6 +24,7 @@ fun CodeServerService.Companion.initialSetupIfNeededSync(context: Context) {
         }
         File("$this/storage").apply {
             if (!exists()) {
+                mkdirs()
                 val oldHome = homePath(context)
                 if (File(oldHome).exists()) {
                     Runtime.getRuntime()
