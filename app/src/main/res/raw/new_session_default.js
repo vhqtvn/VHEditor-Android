@@ -89,11 +89,11 @@ function SSHItems(props) {
           let [user, host] = line.split("@")
           if (typeof host === 'undefined') host = user
           const name = host
-          const command = `ssh ${user}@${host}`
+          const command = `ssh ${line}`
           items.push(<SSHItem {...{ user, host, name, command }} />)
         } else if (line.startsWith("ssh ")) {
           const name = line
-          const command = line
+          const command = `${line}`
           items.push(<SSHItem {...{ name, command }} />)
         }
       }
