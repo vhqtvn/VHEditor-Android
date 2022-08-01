@@ -4,7 +4,12 @@ import android.content.Context
 import android.system.Os
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
+import vn.vhn.vhscode.compat.FSCompat
 import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.io.path.Path
+import kotlin.io.path.isSymbolicLink
 
 private class SetupStorage {
     companion object {
@@ -18,13 +23,16 @@ fun CodeServerService.Companion.initialSetupIfNeededSync(context: Context) {
     // region home symlink
     HOME_PATH.apply {
         val homeFile = File(this)
-        if (homeFile.canonicalFile.equals(homeFile.canonicalFile)) {
+        if (FSCompat.isSymbolicLink(homeFile)) {
             homeFile.delete()
             homeFile.mkdir()
         }
         File("$this/storage").apply {
+            if (exists() && !FSCompat.isSymbolicLink(this)) {
+                delete()
+            }
             if (!exists()) {
-                mkdirs()
+                parentFile?.mkdirs()
                 val oldHome = homePath(context)
                 if (File(oldHome).exists()) {
                     Runtime.getRuntime()
