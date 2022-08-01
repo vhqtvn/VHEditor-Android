@@ -1,4 +1,12 @@
 # VHEditor Changelog
+### [2.9.4-test.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.3...v2.9.4-test.0) (2022-08-01)
+
+
+### Bug Fixes
+
+* fix initial setup crash ([dc0d25e](https://github.com/vhqtvn/VHEditor-Android/commit/dc0d25ee1b373053af7b058ae71b2253445f2d9d)), closes [#178](https://github.com/vhqtvn/VHEditor-Android/issues/178)
+* **installer:** possible memory fix ([60bbf57](https://github.com/vhqtvn/VHEditor-Android/commit/60bbf574472f2b2fda352d2139ee041dfd7efe15)), closes [#121](https://github.com/vhqtvn/VHEditor-Android/issues/121)
+
 ### [2.9.3](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.2...v2.9.3) (2022-07-31)
 
 
