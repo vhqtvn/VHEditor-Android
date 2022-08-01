@@ -234,7 +234,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
         CoroutineScope(Dispatchers.Main).launch {
             Log.d(TAG, "updateUI: latestRemoteVersion=$latestRemoteVersion")
             var canAutoRun = true
-            var txtVersion = "App version: ${BuildConfig.VERSION_NAME}"
+            var txtVersion = "App version: ${BuildConfig.VERSION_NAME}, arch: ${CodeServerService.getArch()}"
             if (latestRemoteVersion != null) {
                 if (latestRemoteVersion == BuildConfig.VERSION_NAME) {
                     txtVersion += ", already latest version."

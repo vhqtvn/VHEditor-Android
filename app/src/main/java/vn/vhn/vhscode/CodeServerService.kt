@@ -32,6 +32,10 @@ class CodeServerService() : Service() {
 
         const val TAG = "CodeServerService"
 
+        init {
+            System.loadLibrary("vhcode")
+        }
+
         @SuppressLint("SdCardPath")
         const val BASE_PATH = "/data/data/vn.vhn.vsc"
         const val ROOT_PATH = "${BASE_PATH}/files"
@@ -48,12 +52,18 @@ class CodeServerService() : Service() {
 
         // region CodeServer setup
 
-        fun loadZipBytes(): ByteArray? {
+        suspend fun loadZipBytes(f: suspend (content: ByteArray?) -> Unit): Unit {
             System.loadLibrary("vsc-bootstrap")
-            return getZip()
+            try {
+                f(getZip())
+            } finally {
+                unloadLibrary("vsc-bootstrap")
+            }
         }
 
         external fun getZip(): ByteArray?
+        external fun getArch(): String
+        public external fun unloadLibrary(library: String)
 
         suspend fun extractServer(
             context: Context,
@@ -82,11 +92,13 @@ class CodeServerService() : Service() {
                     if (exists()) delete()
                 }
             }
-            extractTarGz(
-                ByteArrayInputStream(loadZipBytes()),
-                File(ROOT_PATH),
-                progressChannel
-            )
+            loadZipBytes {
+                extractTarGz(
+                    ByteArrayInputStream(it),
+                    File(ROOT_PATH),
+                    progressChannel
+                )
+            }
 
             //ensure exec permission of bash scripts in code-server
             context.getFileStreamPath("code-server")

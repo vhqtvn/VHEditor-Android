@@ -6,10 +6,6 @@ import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.compat.FSCompat
 import java.io.File
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import kotlin.io.path.Path
-import kotlin.io.path.isSymbolicLink
 
 private class SetupStorage {
     companion object {
@@ -121,10 +117,9 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
         File(this).setExecutable(true)
     }
 
-    File("${PREFIX_PATH}/usr/lib/libc++_shared.so").copyTo(
-        File("${ROOT_PATH}/libc++_shared.so"),
-        true
-    )
+    File("${PREFIX_PATH}/usr/lib/libc++_shared.so").apply {
+        if (exists()) copyTo(File("${ROOT_PATH}/libc++_shared.so"), true)
+    }
 
     File("${PREFIX_PATH}/usr/bin/vh-editor-ensure-ssh").also { f ->
         val required_content = readRawResourceString(context, R.raw.bin_ensure_ssh)
