@@ -17,6 +17,7 @@ class EditorHostPrefs(context: Context) {
         val kPrefEditorHWAcceleration = "editor:hwa"
         val kPrefEditorUIScale = "editor:uiscale"
         val kPrefEditorUseSSL = "editor:use-ssl"
+        val kPrefEditorVerbose = "editor:verbose"
         val kPrefEditorUseVirtualMouse = "editor:use-vmouse"
         val kPrefEditorListenALlInterfaces = "editor:all-interfaces"
         val kPrefRemoteCodeEditorURL = "editor:remote-url"
@@ -339,6 +340,22 @@ class EditorHostPrefs(context: Context) {
             SharedPreferenceUtils.setBoolean(
                 mSharedPreferences,
                 kPrefEditorUseSSL,
+                value,
+                false
+            )
+        }
+
+    var editorVerbose: Boolean
+        get() =
+            SharedPreferenceUtils.getBoolean(
+                mSharedPreferences,
+                kPrefEditorVerbose,
+                false
+            )
+        set(value) {
+            SharedPreferenceUtils.setBoolean(
+                mSharedPreferences,
+                kPrefEditorVerbose,
                 value,
                 false
             )

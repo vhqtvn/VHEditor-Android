@@ -4,6 +4,9 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -113,6 +116,16 @@ class VSCodeFragment : Fragment() {
         _binding?.chkUseHardwareKeyboard?.setOnClickListener { onChkUseHardwareKeyboard(it) }
         _binding?.chkUseVirtualMouse?.setOnClickListener { onChkUseVirtualMouse(it) }
         _binding?.chkUseHWA?.setOnClickListener { onChkUseHWA(it) }
+        _binding?.txtServerLog?.setOnLongClickListener {
+            (activity?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)
+                ?.setPrimaryClip(ClipData(null,
+                    arrayOf("text/plain"),
+                    ClipData.Item(mSession?.liveServerLog?.value)))
+            Toast.makeText(activity,
+                R.string.copied_to_clipboard,
+                Toast.LENGTH_LONG).show()
+            return@setOnLongClickListener true
+        }
         _binding?.virtualMouseScaleSeekBar?.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
@@ -212,7 +225,11 @@ class VSCodeFragment : Fragment() {
     private fun updateLogView(txt: String) {
         _binding?.txtServerLog?.post {
             _binding?.also {
-                it.txtServerLog.setTextKeepState(txt)
+                var displayTxt =
+                    if (txt.length > 1000)
+                        txt.substring(txt.length - 1000)
+                    else txt
+                it.txtServerLog.setTextKeepState(displayTxt)
                 if (it.txtServerLog.layout == null) return@post
                 val scrollAmount =
                     it.txtServerLog.layout.getLineTop(it.txtServerLog.lineCount) - it.txtServerLog.height;

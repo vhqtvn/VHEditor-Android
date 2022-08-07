@@ -66,6 +66,13 @@
                 android:text="@string/server_listen_on_all_interfaces" />
 
             <CheckBox
+                android:id="@+id/chkEditorVerbose"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onCheckEditorVerbose"
+                android:text="@string/server_listen_on_all_interfaces" />
+
+            <CheckBox
                 android:id="@+id/chkUseSSL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -34,6 +34,7 @@
     <string name="deleting">Deleting...</string>
     <string name="reset_root_fs_finished">Reset rootfs finished</string>
     <string name="server_listen_on_all_interfaces">Server listen on all interfaces</string>
+    <string name="editor_verbose">Verbose output</string>
     <string name="use_https">Use https</string>
     <string name="link_release"><a href="https://github.com/vhqtvn/VHEditor-Android/releases/latest">github.com/vhqtvn/VHEditor-Android</a></string>
     <string name="wrong_target_sdk"><h1>I\'m sorry!</h1>\nAndroid api version <b>28</b> is required to make termux embedding works.\nBut now Google Play <b>disabled</b> uploading applications with targetSdk 28, devices with <b>Android 10 and later can\'t use VHEditor version installed from Google Play</b>.\nPlease tap the <b>following link</b> to download latest release from VHEditor\'s github repository.</string>
@@ -80,4 +81,9 @@
 
     <string name="editor_service_restart_due_to_configuration_changes">Editor service restarting to update configurations.</string>
     <string name="can_open_1_folder_in_a_single_instance_only">Only first folder opened.</string>
+
+    <string name="acquire_wake_lock">Acquire wake lock.</string>
+    <string name="release_wake_lock">Release wake lock.</string>
+    <string name="acquire_wifi_lock">Acquire wifi lock.</string>
+    <string name="release_wifi_lock">Release wifi lock.</string>
 </resources>

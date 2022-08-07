@@ -29,6 +29,8 @@ import java.util.zip.GZIPInputStream
 class CodeServerService() : Service() {
     companion object {
         const val kActionStopService = "stop_service"
+        const val kActionAcquireWakeLock = "acquire_wake_lock"
+        const val kActionReleaseWakeLock = "release_wake_lock"
 
         const val TAG = "CodeServerService"
 
@@ -307,8 +309,10 @@ class CodeServerService() : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.apply {
-            if (action == kActionStopService) {
-                actionStopService()
+            when (action) {
+                kActionStopService -> actionStopService()
+                kActionAcquireWakeLock -> sessionsHost.enableWakeLock(true)
+                kActionReleaseWakeLock -> sessionsHost.enableWakeLock(false)
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -334,10 +338,6 @@ class CodeServerService() : Service() {
         stackBuilder.addNextIntentWithParentStack(resultIntent)
         val resultPendingIntent: PendingIntent =
             stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        val stopIntent = Intent(this, CodeServerService::class.java)
-        stopIntent.action = kActionStopService
-        val pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, 0)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val chan = NotificationChannel(
@@ -383,8 +383,37 @@ class CodeServerService() : Service() {
             .addAction(
                 R.drawable.icon_trash,
                 getString(R.string.stop_server),
-                pendingStopIntent
+                PendingIntent.getService(this,
+                    0,
+                    Intent(this, CodeServerService::class.java).also {
+                        it.action = kActionStopService
+                    },
+                    0)
             )
+            .let {
+                if (sessionsHost.hasWakeLock)
+                    it.addAction(
+                        R.drawable.icon_stop,
+                        getString(R.string.release_wake_lock),
+                        PendingIntent.getService(this,
+                            0,
+                            Intent(this, CodeServerService::class.java).also {
+                                it.action = kActionReleaseWakeLock
+                            },
+                            0)
+                    )
+                else
+                    it.addAction(
+                        R.drawable.icon_vscode,
+                        getString(R.string.acquire_wake_lock),
+                        PendingIntent.getService(this,
+                            0,
+                            Intent(this, CodeServerService::class.java).also {
+                                it.action = kActionAcquireWakeLock
+                            },
+                            0)
+                    )
+            }
             .build()
         val notificationManager = NotificationManagerCompat.from(this)
         notificationManager.notify(1, notificationBuilder.build())

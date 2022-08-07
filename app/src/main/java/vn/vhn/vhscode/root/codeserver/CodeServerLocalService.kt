@@ -20,6 +20,7 @@ class CodeServerLocalService(
     val listenOnAllInterface: Boolean,
     val useSSL: Boolean,
     val port: Int? = null,
+    val verbose: Boolean = false,
 ) : ICodeServerSession() {
     companion object {
         const val OUTPUT_STREAM_STDOUT = 1
@@ -121,10 +122,15 @@ class CodeServerLocalService(
                 codeServerRoot,
                 "--disable-telemetry",
                 "--disable-update-check"
-            ) + (if (useSSL) arrayOf(
-                "--cert", "${CodeServerService.HOME_PATH}/cert.cert",
-                "--cert-key", "${CodeServerService.HOME_PATH}/cert.key"
-            ) else arrayOf()) +
+            ) +
+                    (if (verbose) arrayOf(
+                        "-vvv"
+                    ) else arrayOf()
+                            ) +
+                    (if (useSSL) arrayOf(
+                        "--cert", "${CodeServerService.HOME_PATH}/cert.cert",
+                        "--cert-key", "${CodeServerService.HOME_PATH}/cert.key"
+                    ) else arrayOf()) +
                     arrayOf(
                         "--auth",
                         "none",

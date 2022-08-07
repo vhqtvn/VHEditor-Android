@@ -22,6 +22,7 @@ import com.termux.terminal.TerminalSession
 import com.termux.terminal.TerminalSessionClient
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
+import vn.vhn.vhscode.compat.PermissionCompat
 import vn.vhn.vhscode.root.codeserver.CodeServerLocalService
 import vn.vhn.vhscode.root.codeserver.ICodeServerSession
 import vn.vhn.vhscode.root.codeserver.RemoteCodeServerSession
@@ -68,6 +69,7 @@ class SessionsHost(
         remote: Boolean = false,
         remoteURL: String? = null,
         port: Int? = null,
+        verbose: Boolean = false,
     ): ICodeServerSession? {
         if (!remote) {
             mCodeServerLocalService?.also { service ->
@@ -96,7 +98,8 @@ class SessionsHost(
                             ctx = mContext,
                             listenOnAllInterface = listenOnAllInterface,
                             useSSL = useSSL,
-                            port = port
+                            port = port,
+                            verbose = verbose,
                         )
                         newService.start()
                         mCodeServerLocalService = newService
@@ -257,47 +260,57 @@ class SessionsHost(
     val hasWifiLock: Boolean
         get() = mWifiLock != null
 
+    fun enableWakeLock(enable: Boolean) {
+        if (enable != hasWakeLock) {
+            if (enable) actionAcquireWakeLock()
+            else actionReleaseWakeLock(true)
+        }
+    }
+
     /** Process action to acquire Power and Wi-Fi WakeLocks.  */
     @SuppressLint("WakelockTimeout", "BatteryLife")
     private fun actionAcquireWakeLock() {
-        if (mWakeLock != null) {
-            Log.d(
-                TAG,
-                "Ignoring acquiring WakeLocks since they are already held"
-            )
-            return
-        }
-        Log.d(TAG, "Acquiring WakeLocks")
-        val pm = mContext.getSystemService(Service.POWER_SERVICE) as PowerManager
-        mWakeLock = pm.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK, TermuxConstants.TERMUX_APP_NAME.lowercase(
-                Locale.getDefault()
-            ) + ":service-wakelock"
-        )
-        mWakeLock?.acquire()
-
-        // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
-        val wm = mContext.applicationContext.getSystemService(Service.WIFI_SERVICE) as WifiManager
-        mWifiLock = wm.createWifiLock(
-            WifiManager.WIFI_MODE_FULL_HIGH_PERF, TermuxConstants.TERMUX_APP_NAME.lowercase(
-                Locale.getDefault()
-            )
-        )
-        mWifiLock?.acquire()
-        val packageName = mContext.packageName
-        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-            val whitelist = Intent()
-            whitelist.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-            whitelist.data = Uri.parse("package:$packageName")
-            whitelist.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            try {
-                mContext.startActivity(whitelist)
-            } catch (e: ActivityNotFoundException) {
-                Logger.logStackTraceWithMessage(
+        synchronized(this) {
+            if (mWakeLock != null) {
+                Log.d(
                     TAG,
-                    "Failed to call ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
-                    e
+                    "Ignoring acquiring WakeLocks since they are already held"
                 )
+                return
+            }
+            Log.d(TAG, "Acquiring WakeLocks")
+            val pm = mContext.getSystemService(Service.POWER_SERVICE) as PowerManager
+            mWakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK, TermuxConstants.TERMUX_APP_NAME.lowercase(
+                    Locale.getDefault()
+                ) + ":service-wakelock"
+            )
+            mWakeLock?.acquire()
+
+            // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
+            val wm =
+                mContext.applicationContext.getSystemService(Service.WIFI_SERVICE) as WifiManager
+            mWifiLock = wm.createWifiLock(
+                WifiManager.WIFI_MODE_FULL_HIGH_PERF, TermuxConstants.TERMUX_APP_NAME.lowercase(
+                    Locale.getDefault()
+                )
+            )
+            mWifiLock?.acquire()
+            val packageName = mContext.packageName
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                val whitelist = Intent()
+                whitelist.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                whitelist.data = Uri.parse("package:$packageName")
+                whitelist.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                try {
+                    mContext.startActivity(whitelist)
+                } catch (e: ActivityNotFoundException) {
+                    Logger.logStackTraceWithMessage(
+                        TAG,
+                        "Failed to call ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+                        e
+                    )
+                }
             }
         }
         updateNotification()
@@ -306,18 +319,20 @@ class SessionsHost(
 
     /** Process action to release Power and Wi-Fi WakeLocks.  */
     private fun actionReleaseWakeLock(updateNotification: Boolean) {
-        if (mWakeLock == null && mWifiLock == null) {
-            Log.d(
-                TAG,
-                "Ignoring releasing WakeLocks since none are already held"
-            )
-            return
+        synchronized(this) {
+            if (mWakeLock == null && mWifiLock == null) {
+                Log.d(
+                    TAG,
+                    "Ignoring releasing WakeLocks since none are already held"
+                )
+                return
+            }
+            Log.d(TAG, "Releasing WakeLocks")
+            mWakeLock?.release()
+            mWakeLock = null
+            mWifiLock?.release()
+            mWifiLock = null
         }
-        Log.d(TAG, "Releasing WakeLocks")
-        mWakeLock?.release()
-        mWakeLock = null
-        mWifiLock?.release()
-        mWifiLock = null
         if (updateNotification) updateNotification()
         Log.d(TAG, "WakeLocks released successfully")
     }
