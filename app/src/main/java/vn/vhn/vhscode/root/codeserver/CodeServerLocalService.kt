@@ -123,10 +123,9 @@ class CodeServerLocalService(
                 "--disable-telemetry",
                 "--disable-update-check"
             ) +
-                    (if (verbose) arrayOf(
-                        "-vvv"
-                    ) else arrayOf()
-                            ) +
+                    (if (verbose)
+                        arrayOf("-vvv")
+                    else arrayOf()) +
                     (if (useSSL) arrayOf(
                         "--cert", "${CodeServerService.HOME_PATH}/cert.cert",
                         "--cert-key", "${CodeServerService.HOME_PATH}/cert.key"

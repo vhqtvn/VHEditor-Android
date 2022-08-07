@@ -409,6 +409,8 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
             preferences.editorListenAllInterfaces
         dialog.findViewById<CheckBox>(R.id.chkUseSSL)?.isChecked =
             preferences.editorUseSSL
+        dialog.findViewById<CheckBox>(R.id.chkEditorVerbose)?.isChecked =
+            preferences.editorVerbose
         dialog.findViewById<CheckBox>(R.id.chkInitialStartEditor)?.isChecked =
             preferences.startupTool == EditorHostPrefs.StartupTool.EDITOR
         dialog.findViewById<TextInputEditText>(R.id.txtSettingsLocalServerListenPort)?.apply {

@@ -115,7 +115,8 @@ class SessionsHost(
                     ctx = mContext,
                     listenOnAllInterface = listenOnAllInterface,
                     useSSL = useSSL,
-                    port = port
+                    port = port,
+                    verbose = verbose,
                 )
                 mCodeServerLocalService?.start()
             }

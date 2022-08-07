@@ -410,10 +410,11 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                         codeServerService?.sessionsHost?.createCodeEditorSession(
                             GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_EDITOR),
                             "Editor",
-                            intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
+                            listenOnAllInterface = intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
                                 true),
-                            intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
-                            port = preferences.editLocalServerListenPort.toIntOrNull()
+                            useSSL = intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
+                            port = preferences.editLocalServerListenPort.toIntOrNull(),
+                            verbose = preferences.editorVerbose,
                         )?.also { session ->
                             intent.getStringArrayExtra(NewSessionActivity.kEditorPathToOpen)
                                 ?.also { paths -> paths.onEach { session.openPath(it) } }
@@ -423,10 +424,11 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                         codeServerService?.sessionsHost?.createCodeEditorSession(
                             GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.REMOTE_CODESERVER_EDITOR),
                             "RemoteEditor",
-                            false,
-                            false,
-                            true,
-                            intent?.getStringExtra(NewSessionActivity.kRemoteCodeEditorURL)
+                            listenOnAllInterface = false,
+                            useSSL = false,
+                            remote = true,
+                            remoteURL = intent?.getStringExtra(NewSessionActivity.kRemoteCodeEditorURL),
+                            verbose = preferences.editorVerbose,
                         )?.also { session ->
                             intent.getStringArrayExtra(NewSessionActivity.kEditorPathToOpen)
                                 ?.also { paths -> paths.onEach { session.openPath(it) } }
