@@ -1,4 +1,12 @@
 # VHEditor Changelog
+## [2.10.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.4-test.0...v2.10.0) (2022-08-07)
+
+
+### Features
+
+* allow acquire/release wakelock in notification ([7f510cd](https://github.com/vhqtvn/VHEditor-Android/commit/7f510cdd91e72dab16aea080555b60f546f20771))
+* **editor:** verbose output settings ([fd797e7](https://github.com/vhqtvn/VHEditor-Android/commit/fd797e7512c20edda3234fa6566d6078732999ac))
+
 ### [2.9.4-test.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.9.3...v2.9.4-test.0) (2022-08-01)
 
 
