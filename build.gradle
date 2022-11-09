@@ -18,7 +18,7 @@ buildscript {
     }
 }
 
-def REACT_NATIVE_VERSION = 'node --print "JSON.parse(require(\'fs\').readFileSync(\'node_modules/react-native/package.json\', \'utf-8\')).version"'.execute(null, rootDir).text.trim()
+def REACT_NATIVE_VERSION = 'node --print "JSON.parse(require(\'fs\').readFileSync(\'package-lock.json\', \'utf-8\')).packages[\'node_modules/react-native\'].version"'.execute(null, rootDir).text.trim()
 
 print("REACT_NATIVE_VERSION=" + REACT_NATIVE_VERSION)
 
