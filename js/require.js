@@ -3,8 +3,6 @@ import crypto from 'crypto'
 
 const { VHERNFile } = NativeModules;
 
-var RNFS = require('react-native-fs');
-
 const normalize = function (url, base) {
     if (!url.startsWith("./") && !url.startsWith("/")) return url;
     for (var
@@ -110,7 +108,7 @@ export const reqm = (function CommonJS() {
 
     }
     const load_async = async (path) => {
-        let content = await RNFS.readFile(path, 'utf8')
+        let content = await VHERNFile.readTextAsync(path)
         return load(content, path)
     }
 

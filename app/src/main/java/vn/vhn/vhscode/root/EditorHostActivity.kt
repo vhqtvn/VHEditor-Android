@@ -406,6 +406,24 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                             ), name
                         )
                     }
+                    NewSessionActivity.kSessionTypeRemoteCodeServer -> {
+                        val name = intent!!.getStringExtra(NewSessionActivity.kTerminalSessionName)
+                        val executable =
+                            intent!!.getStringExtra(NewSessionActivity.kTerminalExecutable)!!
+                        val arguments =
+                            intent!!.getStringArrayListExtra(NewSessionActivity.kTerminalArguments)!!
+                        codeServerService?.sessionsHost?.createRemoteManagedCodeEditorSession(
+                            GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_REMOTE_MANAGED_EDITOR),
+                            name,
+                            executable, arguments.toTypedArray(),
+                            useSSL = intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
+                            port = null,
+                            verbose = preferences.editorVerbose,
+                        )?.also { session ->
+                            intent.getStringArrayExtra(NewSessionActivity.kEditorPathToOpen)
+                                ?.also { paths -> paths.onEach { session.openPath(it) } }
+                        }
+                    }
                     NewSessionActivity.kSessionTypeCodeEditor -> {
                         codeServerService?.sessionsHost?.createCodeEditorSession(
                             GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_EDITOR),

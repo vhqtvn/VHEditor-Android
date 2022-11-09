@@ -22,6 +22,7 @@ abstract class ICodeServerSession {
     abstract val url: String
     abstract var title: String
     abstract val terminated: Boolean
+    open val isRemote: Boolean = false
 
     abstract fun kill(context: Context)
 

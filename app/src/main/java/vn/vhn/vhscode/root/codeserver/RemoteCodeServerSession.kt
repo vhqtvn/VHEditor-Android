@@ -11,6 +11,8 @@ class RemoteCodeServerSession(
 ) : ICodeServerSession() {
     val mHandle = UUID.randomUUID().toString()
 
+    override val isRemote = true
+
     override val liveServerLog = MutableLiveData<String>()
     override val status = MutableLiveData<ICodeServerSession.RunStatus>()
 

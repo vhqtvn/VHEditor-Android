@@ -355,12 +355,21 @@ class VSCodeFragment : Fragment() {
                 var directoriesToOpen = mutableListOf<String>()
                 for (path in paths) {
                     File(path).also { f ->
-                        if (f.exists()) {
+                        if (mSession?.isRemote == true) {
+                            if (directoriesToOpen.isEmpty()) {
+                                directoriesToOpen.add(path)
+                            } else {
+                                filesToOpen.put("vscode-remote://$host${f.absolutePath}")
+                            }
+                        } else if (f.exists()) {
                             if (f.isDirectory) directoriesToOpen.add(path)
                             else filesToOpen.put("vscode-remote://$host${f.absolutePath}")
+                        } else {
+                            filesToOpen.put("vscode-remote://$host${f.absolutePath}")
                         }
                     }
                 }
+                if (!url.endsWith("/")) url += "/"
                 url += "?ew=true"
                 if (directoriesToOpen.isNotEmpty()) {
                     if (directoriesToOpen.size > 1) {
@@ -380,6 +389,7 @@ class VSCodeFragment : Fragment() {
                 }
             }
         }
+        Log.d(TAG, "Loading $url")
         webView.webViewClient = VSCodeWebClient(this, url)
         webView.addJavascriptInterface(jsInterface!!, "_vn_vhn_vscjs_")
         webView.loadUrl(url)

@@ -117,6 +117,11 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
         File(this).setExecutable(true)
     }
 
+    "${PREFIX_PATH}/boot-remote.sh".apply {
+        copyRawResource(context, R.raw.boot_remote, this)
+        File(this).setExecutable(true)
+    }
+
     File("${PREFIX_PATH}/usr/lib/libc++_shared.so").apply {
         if (exists()) copyTo(File("${ROOT_PATH}/libc++_shared.so"), true)
     }

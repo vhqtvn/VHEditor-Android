@@ -11,6 +11,7 @@ class GlobalSessionsManager() {
     enum class SessionType {
         TERMUX_TERMINAL,
         CODESERVER_EDITOR,
+        CODESERVER_REMOTE_MANAGED_EDITOR,
         REMOTE_CODESERVER_EDITOR;
 
         companion object {

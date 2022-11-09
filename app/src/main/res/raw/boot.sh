@@ -19,8 +19,18 @@ const fs = require("fs");
     }catch(e){
     }
     if(!p) p = {};
-    if(!("security.workspace.trust.enabled" in p)) {
+    let needwrite = false;
+    if(!p.hasOwnProperty("security.workspace.trust.enabled")) {
+      console.log("Setting default option for security.workspace.trust.enabled: false");
       p["security.workspace.trust.enabled"]=false;
+      needwrite = true;
+    }
+    if(!p.hasOwnProperty("terminal.integrated.gpuAcceleration")) {
+      console.log("Setting default option for terminal.integrated.gpuAcceleration: off");
+      settings["terminal.integrated.gpuAcceleration"] = "off";
+      needwrite = true;
+    }
+    if(needwrite) {
       fs.mkdirSync("/data/data/vn.vhn.vsc/files/home/.local/share/code-server/User", {recursive: true});
       fs.writeFileSync("/data/data/vn.vhn.vsc/files/home/.local/share/code-server/User/settings.json", JSON.stringify(p, null, 2));
     }

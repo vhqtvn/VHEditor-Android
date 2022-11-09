@@ -23,10 +23,7 @@ import com.termux.terminal.TerminalSessionClient
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
 import vn.vhn.vhscode.compat.PermissionCompat
-import vn.vhn.vhscode.root.codeserver.CodeServerLocalService
-import vn.vhn.vhscode.root.codeserver.ICodeServerSession
-import vn.vhn.vhscode.root.codeserver.RemoteCodeServerSession
-import vn.vhn.vhscode.root.codeserver.SharedLocalCodeServerSession
+import vn.vhn.vhscode.root.codeserver.*
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
 import vn.vhn.vhscode.root.terminal.VHEditorShellEnvironmentClient
 import java.util.*
@@ -131,6 +128,36 @@ class SessionsHost(
                 mCodeServerLocalService!!,
                 sessionName = sessionName
             )
+        mCodeServerSessions.add(newEditorSession)
+        mSessions.add(SessionCaseCodeEditor(newEditorSession))
+
+        mGlobalSessionsManager.notifySessionsListUpdated()
+        updateNotification()
+        return newEditorSession
+
+    }
+
+    @Synchronized
+    fun createRemoteManagedCodeEditorSession(
+        id: Int,
+        sessionName: String?,
+        executable: String,
+        arguments: Array<String>,
+        useSSL: Boolean,
+        port: Int? = null,
+        verbose: Boolean = false,
+    ): ICodeServerSession? {
+        val newEditorSession = CodeServerRemoteService(
+            id,
+            ctx = mContext,
+            sshCmd = executable,
+            sshArgs = arguments,
+            useSSL = useSSL,
+            port = port,
+            sessionName = sessionName,
+            verbose = verbose,
+        )
+        newEditorSession.start()
         mCodeServerSessions.add(newEditorSession)
         mSessions.add(SessionCaseCodeEditor(newEditorSession))
 

@@ -59,6 +59,7 @@ if (fs.existsSync("node_modules/react-native-os/android/src/main/java/com/peel/r
 hack([
     "node_modules/react-native-os/android/src/main/java/com/peel/reactos/RNOSModule.java",
     "node_modules/react-native-tcp/android/src/main/java/com/peel/react/TcpSocketsModule.java",
+    "node_modules/react-native-udp/android/src/main/java/com/tradle/react/UdpSocketsModule.java",
 ], (s) => {
     return s.replace(
         /@Override(\s+[^(]*?createJSModules\(\))/sg,
@@ -87,6 +88,13 @@ hack([
     s=s.replace('require("babel-preset-fbjs/package.json").version',rnd)
     return s;
 })
+
+//hack([
+//    "node_modules/asyncstorage-down/default-opts.js",
+//], (s) => {
+//    s=s.replace("require('react-native').AsyncStorage","require('@react-native-async-storage/async-storage').default")
+//    return s;
+//})
 
 
 function hack(file, transform) {

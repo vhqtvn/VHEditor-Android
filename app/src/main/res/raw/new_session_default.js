@@ -10,7 +10,7 @@ import { NativeModules } from 'react-native';
 const { VHERNFile, VHEApi } = NativeModules;
 
 import * as React from 'react';
-import { Text, View, StyleSheet, TouchableHighlight } from 'react-native';
+import { Button, Text, View, StyleSheet, TouchableHighlight } from 'react-native';
 
 const SSH_LIST_FILE = '~/.vheditor/ssh'
 
@@ -32,19 +32,28 @@ function Section(props, child) {
 }
 
 function SSHItem(props) {
-  const { user, host, name, command } = props
+  const { user, host, name, command, args } = props
   return (
-    <TouchableHighlight onPress={() => {
+      <View style={[styles.sshitem_container]}>
+    <Button title={"Remote Editor"} color={"#666666"} onPress={() => {
+                                       VHEApi.startRemoteCodeServerSession({
+                                         sshCommand: command,
+                                         sshArguments: args,
+                                         title: `VSCode: ${name}`
+                                       })
+                                     }}/>
+    <TouchableHighlight style={[styles.sshitem_touch_container]} onPress={() => {
       VHEApi.startSession({
         command: `vh-editor-ensure-ssh && ${command}`,
         title: `ssh ${name}`
       })
     }} underlayColor="#555555">
-      <View style={[styles.sshitem_container]}>
+      <View style={[styles.sshitem_inner_container]}>
         <Text style={[styles.text, styles.sshitem_name]}>{name}</Text>
         <Text style={[styles.text, styles.sshitem_username]}>{user}</Text>
       </View>
     </TouchableHighlight>
+    </View>
   )
 }
 
@@ -84,18 +93,13 @@ function SSHItems(props) {
       for (let line of content.split("\n")) {
         line = line.trim()
         if (line.startsWith("#") || !line) continue
-        if (line.indexOf(' ') === -1) {
-          //user@host
-          let [user, host] = line.split("@")
-          if (typeof host === 'undefined') host = user
-          const name = host
-          const command = `ssh ${line}`
-          items.push(<SSHItem {...{ user, host, name, command }} />)
-        } else if (line.startsWith("ssh ")) {
-          const name = line
-          const command = `${line}`
-          items.push(<SSHItem {...{ name, command }} />)
-        }
+        //user@host
+        let [user, host] = line.split("@")
+        if (typeof host === 'undefined') host = user
+        const name = host
+        const command = "ssh"
+        const args = [line]
+        items.push(<SSHItem {...{ user, host, name, command, args }} />)
       }
   }
   return (
@@ -164,10 +168,22 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 10,
     paddingBottom: 10,
     borderBottomColor: "#333333",
     borderBottomWidth: 1,
+  },
+  sshitem_touch_container: {
+    flex: 1,
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  sshitem_inner_container: {
+    flex: 1,
+    paddingLeft: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   sshitem_name: {
     fontWeight: "bold",

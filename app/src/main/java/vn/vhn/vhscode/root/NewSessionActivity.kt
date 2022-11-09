@@ -58,6 +58,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
 
         val kSessionSSL = "ssl"
         val kSessionAllInterfaces = "all-interfaces"
+        val kSessionRemotePort = "remote-port"
 
         val kSessionType = "SESSION_TYPE"
         val kSessionTypeTerminal = "SESSION_TYPE_TERMINAL"
@@ -68,7 +69,10 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
 
         val kSessionTypeCodeEditor = "SESSION_TYPE_CODEEDITOR"
         val kEditorPathToOpen = "EDITOR_SESSION:path"
-        val kSessionTypeRemoteCodeEditor = "SESSION_TYPE_REMOTE_CODEEDITOR"
+        val kSessionTypeRemoteCodeEditor =
+            "SESSION_TYPE_REMOTE_CODEEDITOR" // this session type just open a browser to host:port
+        val kSessionTypeRemoteCodeServer =
+            "SESSION_TYPE_REMOTE_CODESERVER" // this session type is managed over ssh
 
         val kRemoteCodeEditorURL = "REMOTE_CODEEDITOR_URL"
 
@@ -471,6 +475,30 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
                     listOf<String>("-c", command).toTypedArray()
                 )
             }
+        }
+    }
+
+    override fun onVHEApiStartRemoteCodeServerSession(
+        command: String,
+        arguments: ArrayList<String>,
+        name: String?,
+        folder: String?,
+        paths: List<String>,
+    ) {
+        returnResult {
+            val intent = Intent()
+                .putExtra(kTerminalSessionName, name ?: "remote:${arguments.joinToString(" ")}")
+                .putExtra(kSessionType, kSessionTypeRemoteCodeServer)
+                .putExtra(kSessionSSL, preferences.editorUseSSL)
+                .putExtra(kTerminalExecutable, command)
+                .putStringArrayListExtra(kTerminalArguments, arguments)
+            if (folder != null || paths.isNotEmpty()) {
+                val pathsToOpen = mutableListOf<String>()
+                if (folder != null) pathsToOpen.add(folder)
+                pathsToOpen.addAll(paths)
+                intent.putExtra(kEditorPathToOpen, pathsToOpen.toTypedArray())
+            }
+            intent
         }
     }
 

@@ -1,7 +1,11 @@
 const glob = require("glob");
 
 console.log(`var preload_fns = Object.create(null)`);
-for (var package of ['react', 'react-native']) {
+for (var package of [
+    'react',
+    'react/jsx-runtime',
+    'react-native',
+]) {
     console.log(`preload_fns[${JSON.stringify(package)}] = ()=>require(${JSON.stringify(package)})`)
 }
 for (var fn of glob.sync("node_modules/@babel/runtime/helpers/*.js")) {
