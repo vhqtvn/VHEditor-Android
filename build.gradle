@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 // hack to help react-native-fs compiles...
@@ -18,7 +20,7 @@ buildscript {
     }
 }
 
-def REACT_NATIVE_VERSION = 'node --print "JSON.parse(require(\'fs\').readFileSync(\'package-lock.json\', \'utf-8\')).packages[\'node_modules/react-native\'].version"'.execute(null, rootDir).text.trim()
+def REACT_NATIVE_VERSION = new JsonSlurper().parseText(file("$rootDir/package-lock.json").text).packages['node_modules/react-native'].version
 
 print("REACT_NATIVE_VERSION=" + REACT_NATIVE_VERSION)
 
