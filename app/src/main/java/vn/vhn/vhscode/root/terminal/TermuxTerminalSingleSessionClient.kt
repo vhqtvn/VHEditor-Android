@@ -206,7 +206,7 @@ class TermuxTerminalSingleSessionClient(fragment: TerminalFragment) :
 //        }
     }
 
-    fun updateBackgroundColor() {
+    private fun updateBackgroundColor() {
         if (!mFragment.userVisible) return
         mFragment.terminalView.mTermSession?.emulator?.apply {
             mFragment.terminalView.setBackgroundColor(

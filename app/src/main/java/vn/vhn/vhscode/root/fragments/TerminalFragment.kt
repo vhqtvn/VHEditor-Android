@@ -85,6 +85,8 @@ class TerminalFragment : Fragment() {
         super.onResume()
         host.onFragmentResume(fragmentId, WeakReference(this))
         ensureBindOrStartTerminalSession()
+        mTermuxTerminalSingleViewClient.onResume()
+        mTermuxTerminalSingleSessionClient.onResume()
     }
 
     override fun onPause() {
@@ -92,6 +94,7 @@ class TerminalFragment : Fragment() {
             host.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
         inputMethodManager?.hideSoftInputFromWindow(binding.terminalView.windowToken, 0)
         host.onFragmentPause(fragmentId)
+        mTermuxTerminalSingleViewClient.onStop()
         super.onPause()
     }
 

@@ -1,6 +1,7 @@
 package vn.vhn.vhscode.preferences
 
 import android.content.Context
+import android.util.Log
 import android.util.TypedValue
 import com.termux.shared.settings.preferences.SharedPreferenceUtils
 import com.termux.shared.settings.preferences.TermuxPreferenceConstants
@@ -255,11 +256,18 @@ class EditorHostPrefs(context: Context) {
         set(value) {
             SharedPreferenceUtils.setInt(
                 mSharedPreferences,
-                TermuxPreferenceConstants.TERMUX_APP.KEY_SOFT_KEYBOARD_ENABLED,
+                TermuxPreferenceConstants.TERMUX_APP.KEY_FONTSIZE,
                 limitMinMax(value, _defaultFontSizes[1], _defaultFontSizes[2]),
                 false
             )
         }
+
+    fun fontSizeChange(increase: Boolean) {
+        var sz = fontSize
+        if (increase) sz += 1
+        else sz -= 1
+        fontSize = sz
+    }
 
     val latestVersionCheckTime: Long
         get() = SharedPreferenceUtils.getLong(

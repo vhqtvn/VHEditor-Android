@@ -16,7 +16,7 @@ import vn.vhn.vhscode.root.fragments.TerminalFragment
 
 class TermuxTerminalSingleViewClient(
     fragment: TerminalFragment,
-    termuxTerminalSingleSessionClient: TermuxTerminalSingleSessionClient
+    termuxTerminalSingleSessionClient: TermuxTerminalSingleSessionClient,
 ) :
     TermuxTerminalViewClientBase() {
     val mTermuxTerminalSingleSessionClient: TermuxTerminalSingleSessionClient
@@ -85,7 +85,7 @@ class TermuxTerminalSingleViewClient(
     }
 
     override fun shouldEnforceCharBasedInput(): Boolean {
-        return false
+        return true
     }
 
     override fun shouldUseCtrlSpaceWorkaround(): Boolean {
@@ -191,7 +191,9 @@ class TermuxTerminalSingleViewClient(
         return false
     }
 
-    fun changeFontSize(increase: Boolean) {
+    private fun changeFontSize(increase: Boolean) {
+        mActivity.preferences.fontSizeChange(increase)
+        mFragment.terminalView.setTextSize(mActivity.preferences.fontSize)
     }
 
     /**
@@ -311,7 +313,7 @@ class TermuxTerminalSingleViewClient(
     }
 
 
-    fun setTerminalCursorBlinkerState(start: Boolean) {
+    private fun setTerminalCursorBlinkerState(start: Boolean) {
         if (start) {
             // If set/update the cursor blinking rate is successful, then enable cursor blinker
             if (mFragment.terminalView.setTerminalCursorBlinkerRate(
