@@ -86,4 +86,5 @@
     <string name="release_wake_lock">Release wake lock.</string>
     <string name="acquire_wifi_lock">Acquire wifi lock.</string>
     <string name="release_wifi_lock">Release wifi lock.</string>
+    <string name="locking_orientation_rewrite_write_settings">\"Modify system settings\" permission needs to be enabled!</string>
 </resources>

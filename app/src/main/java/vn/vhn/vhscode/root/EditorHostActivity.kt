@@ -30,8 +30,8 @@ import james.crasher.Crasher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import vn.vhn.pckeyboard.orientation.IScreenOrientationLocker
-import vn.vhn.pckeyboard.orientation.createScreenOrientationLocker
+import vn.vhn.vhscode.features.orientation.IScreenOrientationLocker
+import vn.vhn.vhscode.features.orientation.createScreenOrientationLocker
 import vn.vhn.vhscode.BuildConfig
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R

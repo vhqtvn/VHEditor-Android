@@ -152,7 +152,6 @@ dependencies {
     implementation "com.facebook.react:react-native:+" // From node_modules
     implementation "org.webkit:android-jsc:+"
 
-    api project(':vhkeyboard')
     api project(':termux-shared')
     api project(':terminal-emulator')
     api project(':terminal-view')
