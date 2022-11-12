@@ -1,4 +1,11 @@
 # VHEditor Changelog
+## [2.12.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.11.0...v2.12.0) (2022-11-12)
+
+
+### Features
+
+* **remote-editor:** allow password input when setting up code-server ([0f0f7c8](https://github.com/vhqtvn/VHEditor-Android/commit/0f0f7c80c8140ffbcca912343913259e17068d04))
+
 ## [2.11.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.11.0-test.3...v2.11.0) (2022-11-12)
 
 
