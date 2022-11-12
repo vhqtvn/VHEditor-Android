@@ -3,8 +3,9 @@ set -eum
 
 if [[ "$1" == "remote" ]]; then
   VHEDITOR_STORAGE=$HOME/.local/vheditor
-
+  mkdir -p $VHEDITOR_STORAGE
   shift
+
   CODESERVER=
   if command -v code-server; then
     CODESERVER="$(which code-server)"
@@ -17,9 +18,47 @@ if [[ "$1" == "remote" ]]; then
   echo "CODESERVER=$CODESERVER"
 
   if ! test -e "$CODESERVER"; then
-    echo "No code-server binary in PATH, will install."
-    curl -fsSL https://code-server.dev/install.sh | sh
+    rm -rf $VHEDITOR_STORAGE/bin
+    mkdir -p $VHEDITOR_STORAGE/bin
+    cat <<ASKPASS >$VHEDITOR_STORAGE/bin/askpass
+#!/bin/bash
+echo "[[VHEditor: sudo password request ($VHEDITORASKPASSTOKEN) $@]]" >&2
+while IFS= read -r line; do
+  echo "(received input)" >&2
+  if [[ \$line =~ ^vheditorpassreply: ]]; then
+    echo \${line:18}
+    break
   fi
+done
+ASKPASS
+    cat <<SUDO >$VHEDITOR_STORAGE/bin/sudo
+#!/bin/bash
+"$(which sudo)" -A "\$@"
+SUDO
+
+    chmod +x $VHEDITOR_STORAGE/bin/*
+    echo "No code-server binary in PATH, will try to install."
+    echo "Please install manually if failed."
+    echo '$ curl -fsSL https://code-server.dev/install.sh | sh'
+    echo 'curl -fsSL https://code-server.dev/install.sh | sh' >/tmp/install-cs
+    echo 'or'
+    echo '$ sh /tmp/install-cs'
+    SUDO_ASKPASS=$VHEDITOR_STORAGE/bin/askpass PATH=$VHEDITOR_STORAGE/bin:$PATH sh -c "$(curl -fsSL https://code-server.dev/install.sh)"
+    rm -rf $VHEDITOR_STORAGE/bin
+    rm -rf /tmp/install-cs
+
+    CODESERVER=
+    if command -v code-server; then
+      CODESERVER="$(which code-server)"
+    else
+      if test -e "$HOME/.local/bin/code-server"; then
+        CODESERVER="$HOME/.local/bin/code-server"
+      fi
+    fi
+  fi
+
+  unset VHEDITORASKPASSTOKEN
+  export VHEDITORASKPASSTOKEN
 
   if ! test -e "$CODESERVER"; then
     echo "No code-server installed."
@@ -27,10 +66,9 @@ if [[ "$1" == "remote" ]]; then
   fi
 
   [[ "$1" == "--" ]] && shift
-  mkdir -p $VHEDITOR_STORAGE
   ARGS_HASH=$(echo "$@" | md5sum | awk '{print $1}')
 
-  NODE=$(NODE_OPTIONS='-v' ./.local/bin/code-server 2>&1 | awk -F: '{print $1}')
+  NODE=$(NODE_OPTIONS='-v' $CODESERVER 2>&1 | awk -F: '{print $1}')
   CURRENT_SESSION_FILE="$VHEDITOR_STORAGE/current-session"
   IS_RUNNING=0
   if [[ -f "$CURRENT_SESSION_FILE" ]]; then
@@ -134,8 +172,6 @@ else
   for x in "$@"; do
     ARGS+=("${x@Q}")
   done
-  {
-    cat $SELF
-  } | "${SSHCMD[@]}" 'bash -s remote' -- "${ARGS[@]}"
-
+  SELF_SRC=$(cat $SELF)
+  "${SSHCMD[@]}" env VHEDITORASKPASSTOKEN=$VHEDITORASKPASSTOKEN bash -s -c "${SELF_SRC@Q}" -- remote "${ARGS[@]}"
 fi

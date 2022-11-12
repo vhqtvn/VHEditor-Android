@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -47,13 +48,12 @@ class VSCodeFragment : Fragment() {
         fun newInstance(
             fragmentID: Long,
             id: Int,
-        ) =
-            VSCodeFragment().apply {
-                arguments = Bundle().apply {
-                    putLong(FRAGMENT_ID, fragmentID)
-                    putInt(ARG_ID, id)
-                }
+        ) = VSCodeFragment().apply {
+            arguments = Bundle().apply {
+                putLong(FRAGMENT_ID, fragmentID)
+                putInt(ARG_ID, id)
             }
+        }
     }
 
     val host: EditorHostActivity
@@ -82,6 +82,8 @@ class VSCodeFragment : Fragment() {
     private var mNewUIScale: Int = 0
     private var mNewVirtualMouseScaleParam: Int = -1
 
+    private val inputStateObserver: Observer<ICodeServerSession.InputState> =
+        Observer<ICodeServerSession.InputState> { updateInputState(it) }
     private val serverLogObserver: Observer<String> = Observer<String> { updateLogView(it) }
     private val statusObserver: Observer<ICodeServerSession.RunStatus> =
         Observer<ICodeServerSession.RunStatus> { onServerStatusUpdated(it) }
@@ -102,8 +104,7 @@ class VSCodeFragment : Fragment() {
                 oldRight: Int,
                 oldBottom: Int,
             ) {
-                if (mCurrentLogVisible)
-                    setLogVisible(mCurrentLogVisible)
+                if (mCurrentLogVisible) setLogVisible(mCurrentLogVisible)
             }
 
         }
@@ -117,14 +118,22 @@ class VSCodeFragment : Fragment() {
         _binding?.chkUseVirtualMouse?.setOnClickListener { onChkUseVirtualMouse(it) }
         _binding?.chkUseHWA?.setOnClickListener { onChkUseHWA(it) }
         _binding?.txtServerLog?.setOnLongClickListener {
-            (activity?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)
-                ?.setPrimaryClip(ClipData(null,
+            (activity?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?)?.setPrimaryClip(
+                ClipData(null,
                     arrayOf("text/plain"),
                     ClipData.Item(mSession?.liveServerLog?.value)))
-            Toast.makeText(activity,
-                R.string.copied_to_clipboard,
-                Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, R.string.copied_to_clipboard, Toast.LENGTH_LONG).show()
             return@setOnLongClickListener true
+        }
+        _binding?.txtPassword?.setOnEditorActionListener { txt, actionId, k ->
+            if (actionId == EditorInfo.IME_ACTION_SEND || k.keyCode == KeyEvent.KEYCODE_ENTER) {
+                val p = txt.text
+                txt.text = ""
+                mSession?.sendInput(p.toString())
+                true
+            } else {
+                false
+            }
         }
         _binding?.virtualMouseScaleSeekBar?.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
@@ -186,6 +195,7 @@ class VSCodeFragment : Fragment() {
         mSession = session
         session?.liveServerLog?.observeForever(serverLogObserver) // this will trigger any initial value
         session?.status?.observeForever(statusObserver)
+        session?.inputState?.observeForever(inputStateObserver)
         Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
         jsInterface = VSCodeJSInterface(host)
         if (android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+"))) { //Key1,2
@@ -217,26 +227,46 @@ class VSCodeFragment : Fragment() {
         mSession?.also { session ->
             session.liveServerLog.removeObserver(serverLogObserver)
             session.status.removeObserver(statusObserver)
+            session.inputState.removeObserver(inputStateObserver)
         }
         super.onDestroyView()
         _binding = null
     }
 
+    private fun updateInputState(newState: ICodeServerSession.InputState) {
+        _binding?.txtPasswordLayout?.post {
+            _binding?.also {
+                it.txtPasswordLayout.visibility =
+                    when (newState) {
+                        ICodeServerSession.InputState.Password ->
+                            View.VISIBLE
+                        else ->
+                            View.GONE
+                    }
+            }
+        }
+    }
+
+    private fun scrollLogView() {
+        _binding?.txtServerLog?.post {
+            _binding?.also {
+                if (it.txtServerLog.layout == null) return@post
+                val scrollAmount =
+                    it.txtServerLog.layout.getLineTop(it.txtServerLog.lineCount) - it.txtServerLog.height
+                if (scrollAmount > 0) it.txtServerLog.scrollTo(0, scrollAmount + 10)
+                else it.txtServerLog.scrollTo(0, 0)
+            }
+        }
+
+    }
+
     private fun updateLogView(txt: String) {
         _binding?.txtServerLog?.post {
             _binding?.also {
-                var displayTxt =
-                    if (txt.length > 10000)
-                        "..." + txt.substring(txt.length - 10000)
-                    else txt
+                var displayTxt = if (txt.length > 10000) "..." + txt.substring(txt.length - 10000)
+                else txt
                 it.txtServerLog.setTextKeepState(displayTxt)
-                if (it.txtServerLog.layout == null) return@post
-                val scrollAmount =
-                    it.txtServerLog.layout.getLineTop(it.txtServerLog.lineCount) - it.txtServerLog.height;
-                if (scrollAmount > 0)
-                    it.txtServerLog.scrollTo(0, scrollAmount);
-                else
-                    it.txtServerLog.scrollTo(0, 0);
+                scrollLogView()
             }
         }
     }
@@ -281,9 +311,8 @@ class VSCodeFragment : Fragment() {
             }
             if (shouldConfigureWebview) configureWebView(binding.webView, true)
         }
-        val newHeight =
-            if (visible) binding.root.height
-            else 1
+        val newHeight = if (visible) binding.root.height
+        else 1
         if (newHeight == mLastLogVisibleHeight && mCurrentLogVisible && visible) return
         mLastLogVisibleHeight = newHeight
         mCurrentLogVisible = visible
@@ -299,10 +328,13 @@ class VSCodeFragment : Fragment() {
         }
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
-                if (!visible && mCurrentLogAnimator == animator) {
-                    view.visibility = View.GONE
-                    if (mUseHardKeyboard == true && !binding.webView.hasFocus())
-                        binding.webView.requestFocus()
+                if (mCurrentLogAnimator == animator) {
+                    if (!visible) {
+                        view.visibility = View.GONE
+                        if (mUseHardKeyboard == true && !binding.webView.hasFocus()) binding.webView.requestFocus()
+                    } else {
+                        scrollLogView()
+                    }
                 }
             }
         })
@@ -335,10 +367,8 @@ class VSCodeFragment : Fragment() {
         webView.settings.databaseEnabled = true
         webView.settings.allowContentAccess = true
         webView.settings.allowFileAccess = true
-        @Suppress("DEPRECATION")
-        webView.settings.allowFileAccessFromFileURLs = true
-        @Suppress("DEPRECATION")
-        webView.settings.allowUniversalAccessFromFileURLs = true
+        @Suppress("DEPRECATION") webView.settings.allowFileAccessFromFileURLs = true
+        @Suppress("DEPRECATION") webView.settings.allowUniversalAccessFromFileURLs = true
         webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
         webView.settings.setAppCacheEnabled(true)
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT

@@ -98,6 +98,8 @@ class SharedLocalCodeServerSession(
         terminated = true
     }
 
+    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.None)
+
     init {
         register()
     }

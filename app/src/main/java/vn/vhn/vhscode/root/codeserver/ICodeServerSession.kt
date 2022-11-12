@@ -25,10 +25,17 @@ abstract class ICodeServerSession {
     open val isRemote: Boolean = false
 
     abstract fun kill(context: Context)
+    open fun sendInput(s: String) {}
 
     val pathsToOpen: MutableList<String> = mutableListOf<String>()
 
     fun openPath(path: String) {
         pathsToOpen.add(path)
     }
+
+    enum class InputState {
+        None, Password
+    }
+
+    abstract val inputState: MutableLiveData<InputState>
 }

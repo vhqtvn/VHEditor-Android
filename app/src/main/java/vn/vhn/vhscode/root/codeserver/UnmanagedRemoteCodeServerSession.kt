@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import java.util.*
 
-class RemoteCodeServerSession(
+class UnmanagedRemoteCodeServerSession(
     override val id: Int,
     override val sessionName: String?,
     override val url: String,
@@ -18,6 +18,7 @@ class RemoteCodeServerSession(
 
     override var title: String = ""
     override var terminated: Boolean = false
+    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.None)
 
     override fun kill(context: Context) {
         terminated = true

@@ -46,16 +46,45 @@
             android:enabled="true"
             android:focusable="false"
             android:gravity="start|top"
+            android:importantForAutofill="no"
             android:inputType="textMultiLine"
             android:scrollbarAlwaysDrawVerticalTrack="true"
             android:scrollbars="vertical"
             android:textColor="@color/log"
             android:textSize="20sp"
             android:typeface="monospace"
-            app:layout_constraintBottom_toTopOf="@+id/settingsGroup"
+            app:layout_constraintBottom_toTopOf="@+id/txtPasswordLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
             tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/txtPasswordLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Input password"
+            android:visibility="gone"
+            android:background="#EE000000"
+            android:textColorHint="@color/log"
+            app:layout_constraintBottom_toTopOf="@+id/settingsGroup"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtServerLog"
+            app:layout_constraintVertical_chainStyle="packed">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/txtPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="true"
+                android:gravity="start|center_vertical"
+                android:imeOptions="actionSend"
+                android:inputType="textPassword"
+                android:textColor="@color/log"
+                android:textSize="20sp"
+                android:typeface="monospace"
+                tools:ignore="SpeakableTextPresentCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/settingsGroup"
@@ -70,7 +99,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtServerLog"
+            app:layout_constraintTop_toBottomOf="@+id/txtPasswordLayout"
             app:layout_constraintVertical_chainStyle="packed">
 
             <CheckBox

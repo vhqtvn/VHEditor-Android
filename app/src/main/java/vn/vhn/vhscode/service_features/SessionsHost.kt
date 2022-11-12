@@ -22,7 +22,6 @@ import com.termux.terminal.TerminalSession
 import com.termux.terminal.TerminalSessionClient
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.R
-import vn.vhn.vhscode.compat.PermissionCompat
 import vn.vhn.vhscode.root.codeserver.*
 import vn.vhn.vhscode.root.terminal.GlobalSessionsManager
 import vn.vhn.vhscode.root.terminal.VHEditorShellEnvironmentClient
@@ -119,7 +118,7 @@ class SessionsHost(
             }
         }
         val newEditorSession = if (remote)
-            RemoteCodeServerSession(id,
+            UnmanagedRemoteCodeServerSession(id,
                 sessionName = sessionName,
                 url = remoteURL ?: throw Error("remoteURL not set"))
         else

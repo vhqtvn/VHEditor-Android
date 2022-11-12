@@ -6,8 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import vn.vhn.vhscode.CodeServerService
 import vn.vhn.vhscode.kConfigStreamBuferSize
+import java.io.BufferedWriter
 import java.io.DataInputStream
 import java.io.File
+import java.io.OutputStreamWriter
 import java.net.ServerSocket
 import java.util.*
 import kotlin.collections.HashSet
@@ -53,9 +55,13 @@ class CodeServerRemoteService(
 
     val refs = HashSet<Int>()
 
+    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.None)
+
     private var isServerStarted = false
     private var mIOJobs: List<Job>? = null
     private var mPort = port ?: freePort()
+    private val token = UUID.randomUUID().toString()
+    private var stdin: BufferedWriter? = null
     var hasStarted = false
     var mTerminated = false
     var process: Process? = null
@@ -71,9 +77,7 @@ class CodeServerRemoteService(
 
     override val url: String
         get() {
-            return ((if (useSSL) "https://" else "http://")
-                    + ("127.0.0.1")
-                    + ":${mPort}")
+            return ((if (useSSL) "https://" else "http://") + ("127.0.0.1") + ":${mPort}")
         }
 
     override fun kill(context: Context) {
@@ -107,45 +111,32 @@ class CodeServerRemoteService(
         status.postValue(RunStatus.STARTING)
         val nodeBinary = ctx.getFileStreamPath("node")
         val envHome = nodeBinary?.parentFile?.absolutePath
-        appendLog(
-            OUTPUT_STREAM_STDERR, "Starting...\n"
-        )
+        appendLog(OUTPUT_STREAM_STDERR, "Starting...\n")
         try {
             error = null
             val cmd = arrayOf(
                 "${CodeServerService.ROOT_PATH}/usr/bin/bash",
                 ctx.getFileStreamPath("boot-remote.sh").absolutePath,
-            ) +
-                    arrayOf(
-                        sshCmd,
-                        "-L",
-                        "${mPort}:127.0.0.1:${remotePort}",
-                    ) +
-                    sshArgs +
-                    arrayOf(
-                        "--remote--args--",
-                    ) +
-                    (if (useSSL) arrayOf(
-                        "ssl",
-                        File("${CodeServerService.HOME_PATH}/cert.cert").readText(),
-                        File("${CodeServerService.HOME_PATH}/cert.key").readText(),
-                    ) else arrayOf()) +
-                    arrayOf(
-                        "--disable-telemetry",
-                        "--disable-update-check"
-                    ) +
-                    (if (verbose)
-                        arrayOf("-vvv")
-                    else arrayOf()) +
-                    arrayOf(
-                        "--auth",
-                        "none",
-                        "--host",
-                        "127.0.0.1",
-                        "--port",
-                        remotePort.toString()
-                    )
-            var env = CodeServerService.buildEnv()
+            ) + arrayOf(
+                sshCmd,
+                "-L",
+                "${mPort}:127.0.0.1:${remotePort}",
+            ) + sshArgs + arrayOf(
+                "--remote--args--",
+            ) + (if (useSSL) arrayOf(
+                "ssl",
+                File("${CodeServerService.HOME_PATH}/cert.cert").readText(),
+                File("${CodeServerService.HOME_PATH}/cert.key").readText(),
+            ) else arrayOf()) + arrayOf("--disable-telemetry",
+                "--disable-update-check") + (if (verbose) arrayOf("-vvv")
+            else arrayOf()) + arrayOf("--auth",
+                "none",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                remotePort.toString())
+
+            var env = CodeServerService.buildEnv("VHEDITORASKPASSTOKEN=$token")
             File("${CodeServerService.PREFIX_PATH}/run-vs-code-remote.sh").bufferedWriter().use {
                 it.write("env ")
                 for (e in env) it.write("\"$e\" ")
@@ -153,35 +144,33 @@ class CodeServerRemoteService(
             }
             process = Runtime.getRuntime().exec(cmd, env)
             val stream = DataInputStream(process!!.inputStream)
+            stdin = BufferedWriter(OutputStreamWriter(process!!.outputStream))
             val errStream = DataInputStream(process!!.errorStream)
-            mIOJobs = listOf(
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        outputStreamUpdate(stream, OUTPUT_STREAM_STDOUT)
-                    } catch (e: Exception) {
-                        error = e.toString()
-                        appendLog(OUTPUT_STREAM_STDERR, "\nException: ${error}")
-                    } finally {
-                        appendLog(OUTPUT_STREAM_STDERR, "\nFinished.")
-                        onProcessFinished(RunStatus.FINISHED)
-                    }
-                },
-                CoroutineScope(Dispatchers.IO).launch {
-                    outputStreamUpdate(errStream, OUTPUT_STREAM_STDERR)
-                },
-                CoroutineScope(Dispatchers.IO).launch {
-                    while (!mTerminated) {
-                        try {
-                            process?.waitFor()
-                            process?.exitValue()
-                            break
-                        } catch (e: IllegalThreadStateException) {
-                        }
-                    }
-                    onProcessFinished(RunStatus.FINISHED, true)
-                    //finished
+            mIOJobs = listOf(CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    outputStreamUpdate(stream, OUTPUT_STREAM_STDOUT)
+                } catch (e: Exception) {
+                    error = e.toString()
+                    appendLog(OUTPUT_STREAM_STDERR, "\nException: ${error}")
+                } finally {
+                    stdin?.close()
+                    appendLog(OUTPUT_STREAM_STDERR, "\nFinished.")
+                    onProcessFinished(RunStatus.FINISHED)
                 }
-            )
+            }, CoroutineScope(Dispatchers.IO).launch {
+                outputStreamUpdate(errStream, OUTPUT_STREAM_STDERR)
+            }, CoroutineScope(Dispatchers.IO).launch {
+                while (!mTerminated) {
+                    try {
+                        process?.waitFor()
+                        process?.exitValue()
+                        break
+                    } catch (e: IllegalThreadStateException) {
+                    }
+                }
+                onProcessFinished(RunStatus.FINISHED, true)
+                //finished
+            })
         } catch (e: Exception) {
             error = e.toString()
             appendLog(OUTPUT_STREAM_STDERR, "\nProcess initializing exception: ${error}")
@@ -216,15 +205,22 @@ class CodeServerRemoteService(
     private fun appendLog(type: Int, log: String) {
         outputBuffer += log
         if (!isServerStarted) {
-            if (
-                outputBuffer.indexOf("HTTPS server listening on") >= 0
-                || outputBuffer.indexOf("HTTP server listening on") >= 0
-            ) {
+            if (outputBuffer.indexOf("HTTPS server listening on") >= 0 || outputBuffer.indexOf("HTTP server listening on") >= 0) {
                 isServerStarted = true
                 status.postValue(RunStatus.RUNNING)
             }
         }
         liveServerLog.postValue(outputBuffer)
+    }
+
+    override fun sendInput(s: String) {
+        if (inputState.value == InputState.Password) {
+            inputState.postValue(InputState.None)
+            CoroutineScope(Dispatchers.IO).launch {
+                stdin?.write("vheditorpassreply:$s\n")
+                stdin?.flush()
+            }
+        }
     }
 
     private suspend fun outputStreamUpdate(outputStream: DataInputStream, type: Int) {
@@ -246,7 +242,11 @@ class CodeServerRemoteService(
                 }
                 if (size <= 0) continue
                 try {
-                    appendLog(type, String(buffer, 0, size))
+                    val buf = String(buffer, 0, size)
+                    appendLog(type, buf)
+                    if (buf.contains("[[VHEditor: sudo password request $token")) {
+                        inputState.postValue(InputState.Password)
+                    }
                 } catch (e: Exception) {
                     // not relating to process
                 }

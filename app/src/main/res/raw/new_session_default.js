@@ -44,7 +44,7 @@ function SSHItem(props) {
                                      }}/>
     <TouchableHighlight style={[styles.sshitem_touch_container]} onPress={() => {
       VHEApi.startSession({
-        command: `vh-editor-ensure-ssh && ${command}`,
+        command: `vh-editor-ensure-ssh && ${command} ${args.join(' ')}`,
         title: `ssh ${name}`
       })
     }} underlayColor="#555555">
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "stretch",
     paddingTop: 10,
     paddingBottom: 10,
     borderBottomColor: "#333333",
