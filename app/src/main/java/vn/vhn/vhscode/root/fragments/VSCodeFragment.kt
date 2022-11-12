@@ -226,8 +226,8 @@ class VSCodeFragment : Fragment() {
         _binding?.txtServerLog?.post {
             _binding?.also {
                 var displayTxt =
-                    if (txt.length > 1000)
-                        txt.substring(txt.length - 1000)
+                    if (txt.length > 10000)
+                        "..." + txt.substring(txt.length - 10000)
                     else txt
                 it.txtServerLog.setTextKeepState(displayTxt)
                 if (it.txtServerLog.layout == null) return@post

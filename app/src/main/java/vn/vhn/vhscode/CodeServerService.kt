@@ -240,7 +240,7 @@ class CodeServerService() : Service() {
             }
         }
 
-        fun buildEnv(): Array<String> {
+        fun buildEnv(vararg customEnvs: String): Array<String> {
             val envHome = ROOT_PATH
 
             val env = mutableListOf<String>()
@@ -264,6 +264,7 @@ class CodeServerService() : Service() {
             env.add("PREFIX=${PREFIX_PATH}")
             env.add("SHELL=${PREFIX_PATH}/usr/bin/bash")
             env.add("TERMUX_PKG_NO_MIRROR_SELECT=1")
+            env.addAll(customEnvs)
 
             Log.d(TAG, "env = " + env.toString())
 

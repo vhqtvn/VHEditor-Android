@@ -131,6 +131,8 @@ class CodeServerLocalService(
                         "--cert-key", "${CodeServerService.HOME_PATH}/cert.key"
                     ) else arrayOf()) +
                     arrayOf(
+                        "--app-name",
+                        "VHEditor::code-server",
                         "--auth",
                         "none",
                         "--host",
@@ -139,7 +141,7 @@ class CodeServerLocalService(
                         mPort.toString(),
                         "--without-connection-token"
                     )
-            val env = CodeServerService.buildEnv()
+            val env = CodeServerService.buildEnv("VSCODE__WITHOUT_CONNECTION_TOKEN=1")
             File("${CodeServerService.PREFIX_PATH}/run-vs-code.sh").bufferedWriter().use {
                 for (e in env) it.write("$e ")
                 for (c in cmd) it.write("$c ")

@@ -1,4 +1,10 @@
 (function(){
+    (function(){
+        const av = process.argv;
+        if(av.length>=2 && av[1].match(/release-standalone\/out\/node\/entry$/) && process.env.VSCODE__WITHOUT_CONNECTION_TOKEN)
+            av.push("--without-connection-token")
+    })();
+
     const fs = require('fs');
     const os = require('os');
 

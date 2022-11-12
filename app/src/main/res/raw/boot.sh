@@ -27,14 +27,18 @@ const fs = require("fs");
     }
     if(!p.hasOwnProperty("terminal.integrated.gpuAcceleration")) {
       console.log("Setting default option for terminal.integrated.gpuAcceleration: off");
-      settings["terminal.integrated.gpuAcceleration"] = "off";
+      p["terminal.integrated.gpuAcceleration"] = "off";
       needwrite = true;
     }
     if(needwrite) {
-      fs.mkdirSync("/data/data/vn.vhn.vsc/files/home/.local/share/code-server/User", {recursive: true});
+      try{
+        fs.mkdirSync("/data/data/vn.vhn.vsc/files/home/.local/share/code-server/User", {recursive: true});
+      }catch(e){}
       fs.writeFileSync("/data/data/vn.vhn.vsc/files/home/.local/share/code-server/User/settings.json", JSON.stringify(p, null, 2));
     }
-  }catch(e){}
+  }catch(e){
+    console.log("Error: ",e);
+  }
 })();
 
 (function() {

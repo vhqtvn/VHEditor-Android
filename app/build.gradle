@@ -8,12 +8,12 @@ f1b0486b404c03225e0870082a6e17d79650e7b92261e7c8cc983a320c2fcec7  bootstrap-arm.
 dc1aec73f587228ff5e41b511c675cd47abcfcef17c361157b25c2cac10f5da4  bootstrap-i686.zip
 db86eca36238cc0b6aeccf6b98768114fc035249b2a6d252c54987a6c7e167f6  bootstrap-x86_64.zip
 """)
-def csVersion = "cs-2022.07.31-r1"
+def csVersion = "cs-2022.11.12-r1"
 def csHashes = parseHashes("""
-72326828536cf8af5392114d685f6384b7e1ac38e60d9f1434068e208810eac5  cs-aarch64.tgz
-6b499ddb038f7bde85f8bf8fc5c42a707463e7cd378afec2e27887c6c71bc5e2  cs-arm.tgz
-bb9365287652bc9afb6bd76cd9d46ba894f715652de3d42ac8998cce2991bb30  cs-x86.tgz
-aa0711d3c4062c5f7d569b547a4bb5fa1d3cec8c0cd7995c69d89a73d0bf2192  cs-x86_64.tgz
+69f36e469c018ecbd94811e7e148839480986c403bcabe2b58b75cb34cdfde75 cs-aarch64.tgz
+3a3f97ceb9f68d810d500c2baabbba1f207243450da078b00ed778ac16c6947e cs-arm.tgz
+9a06629ce8457508b7bfa89e7e6f47dfb09a8c5ae3862f5f6ad8b6e26d6496d0 cs-x86.tgz
+0d8a7be13050e622c692a40bf8df2b6cf7c9d9f9f33f86c074f3df0811b25092 cs-x86_64.tgz
 """)
 
 def packageJsonFile = new File(projectDir, "../package.json")

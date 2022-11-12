@@ -25,7 +25,6 @@ import com.facebook.react.ReactRootView
 import com.facebook.react.common.LifecycleState
 import com.facebook.soloader.SoLoader
 import com.google.android.material.textfield.TextInputEditText
-import com.rnfs.RNFSPackage
 import com.termux.app.TermuxInstaller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +51,7 @@ import java.net.URL
 class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
     companion object {
         val TAG = "NewSessionActivity"
-        val kCurrentServerVersion = "4.5.1-" + BuildConfig.CS_VERSION
+        val kCurrentServerVersion = "4.8.3-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 
