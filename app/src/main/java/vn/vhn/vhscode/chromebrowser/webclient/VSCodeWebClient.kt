@@ -89,6 +89,7 @@ class VSCodeWebClient(
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         if (request != null && request.isForMainFrame) {
             if (request.url.host != rootUri.host) {
+                Log.d(TAG, "Request ${request.url.host}, root is ${rootUri.host}")
                 view?.context?.startActivity(Intent(Intent.ACTION_VIEW, request.url))
                 return true
             }

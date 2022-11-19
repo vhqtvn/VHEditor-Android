@@ -127,8 +127,10 @@ class CodeServerRemoteService(
                 "ssl",
                 File("${CodeServerService.HOME_PATH}/cert.cert").readText(),
                 File("${CodeServerService.HOME_PATH}/cert.key").readText(),
-            ) else arrayOf()) + arrayOf("--disable-telemetry",
-                "--disable-update-check") + (if (verbose) arrayOf("-vvv")
+            ) else arrayOf()
+                    ) + arrayOf("--disable-telemetry",
+//                "--disable-update-check"
+            ) + (if (verbose) arrayOf("-vvv")
             else arrayOf()) + arrayOf("--auth",
                 "none",
                 "--host",

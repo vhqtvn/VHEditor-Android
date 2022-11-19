@@ -14,7 +14,7 @@ class UnmanagedRemoteCodeServerSession(
     override val isRemote = true
 
     override val liveServerLog = MutableLiveData<String>()
-    override val status = MutableLiveData<ICodeServerSession.RunStatus>()
+    override val status = MutableLiveData(RunStatus.RUNNING)
 
     override var title: String = ""
     override var terminated: Boolean = false
