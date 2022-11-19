@@ -5,10 +5,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.text.TextUtils
+import android.util.Log
+import com.termux.shared.interact.ShareUtils
 import com.termux.shared.shell.TermuxSession
 import com.termux.shared.terminal.TermuxTerminalSessionClientBase
 import com.termux.terminal.TerminalSession
 import com.termux.terminal.TextStyle
+import vn.vhn.vhscode.R
 import vn.vhn.vhscode.root.fragments.TerminalFragment
 
 
@@ -74,11 +77,9 @@ class TermuxTerminalSingleSessionClient(fragment: TerminalFragment) :
     }
 
     override fun onCopyTextToClipboard(session: TerminalSession, text: String) {
-        val clipboard: ClipboardManager? =
-            mFragment.context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
-        clipboard?.setPrimaryClip(ClipData(null,
-            arrayOf("text/plain"),
-            ClipData.Item(attr.text.toString())))
+        ShareUtils.copyTextToClipboard(mFragment.requireContext(),
+            text,
+            mFragment.getString(R.string.copied))
 
     }
 
