@@ -1,4 +1,12 @@
 # VHEditor Changelog
+### [2.12.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.12.0...v2.12.1) (2022-11-19)
+
+
+### Bug Fixes
+
+* **editor:** fix loading for remote unmanaged server ([589700a](https://github.com/vhqtvn/VHEditor-Android/commit/589700a60c9a39c4e94cd9f0c58a6c66526164dc)), closes [#209](https://github.com/vhqtvn/VHEditor-Android/issues/209)
+* **terminal:** fixed text copy operation ([7e24b4b](https://github.com/vhqtvn/VHEditor-Android/commit/7e24b4b40a84d36f1dfb460325ab1387218a1c59))
+
 ## [2.12.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.11.0...v2.12.0) (2022-11-12)
 
 
