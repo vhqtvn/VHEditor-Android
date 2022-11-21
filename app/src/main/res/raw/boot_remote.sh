@@ -7,6 +7,7 @@ if [[ "$1" == "remote" ]]; then
   shift
 
   CODESERVER=
+  FORCE_INSTALL=
   if command -v code-server; then
     CODESERVER="$(which code-server)"
   else
@@ -15,14 +16,56 @@ if [[ "$1" == "remote" ]]; then
     fi
   fi
 
+  if [[ -e "$CODESERVER" ]]; then
+    read_reply() {
+      while IFS= read -r line; do
+        # important, this helps the  magic processor continue
+        echo "(received input)" >&2
+        if [[ $line =~ ^vheditorpassreply: ]]; then
+          echo ${line:18}
+          break
+        fi
+      done
+    }
+    CURRENT_CS_VER=$($CODESERVER --version | grep 'with Code' | head -n 1)
+    echo "Current code-server version: $CURRENT_CS_VER"
+    CHECK_REINSTALL=0
+    if [[ "$CURRENT_CS_VER" =~ ^([0-9.]+)\ [0-9a-z]+\ with\ Code\ ([0-9.]+)$ ]]; then
+      CS_VERSION="${BASH_REMATCH[1]}"
+      CODE_VERSION="${BASH_REMATCH[2]}"
+      NODE=$(NODE_OPTIONS='-v' $CODESERVER 2>&1 | awk -F: '{print $1}')
+      norm_ver() {
+        $NODE -e 'console.log(process.argv[1].replace(/[0-9]+/g, function(x){return ("0".repeat(10)+x).substring(-10);}))' -- "$1"
+      }
+      if [[ $(norm_ver $CS_VERSION) < $(norm_ver 4.8.0) ]]; then
+        CHECK_REINSTALL=1
+        echo "[[VHEditor: reinstall($VHEDITORASKPASSTOKEN): Installed code-server version ($CS_VERSION) is too low /VHEditor]]" >&2
+        REINSTALL_REPLY=$(read_reply)
+      fi
+    else
+        CHECK_REINSTALL=1
+        echo "[[VHEditor: reinstall($VHEDITORASKPASSTOKEN): Unsupported code-server version $CURRENT_CS_VER /VHEditor]]" >&2
+        REINSTALL_REPLY=$(read_reply)
+    fi
+
+    if [[ "$CHECK_REINSTALL" == "1" ]]; then
+      if [[ "$REINSTALL_REPLY" == "1" ]]; then
+        FORCE_INSTALL=1
+      else
+        echo "VHEditor does not support  current  code-server version on the server."
+        exit 1
+      fi
+    fi
+  fi
+
   echo "CODESERVER=$CODESERVER"
 
-  if ! test -e "$CODESERVER"; then
+  if [[ ! -e "$CODESERVER" ]] || [[ "$FORCE_INSTALL" == "1" ]]; then
     rm -rf $VHEDITOR_STORAGE/bin
     mkdir -p $VHEDITOR_STORAGE/bin
     cat <<ASKPASS >$VHEDITOR_STORAGE/bin/askpass
 #!/bin/bash
-echo "[[VHEditor: sudo password request ($VHEDITORASKPASSTOKEN) $@]]" >&2
+echo "[[VHEditor: sudo password request ($VHEDITORASKPASSTOKEN) \$@ /VHEditor]]" >&2
 while IFS= read -r line; do
   echo "(received input)" >&2
   if [[ \$line =~ ^vheditorpassreply: ]]; then
