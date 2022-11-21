@@ -18,7 +18,7 @@ class UnmanagedRemoteCodeServerSession(
 
     override var title: String = ""
     override var terminated: Boolean = false
-    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.None)
+    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.C.None())
 
     override fun kill(context: Context) {
         terminated = true

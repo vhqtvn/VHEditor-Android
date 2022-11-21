@@ -63,7 +63,7 @@
             android:id="@+id/txtPasswordLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Input password"
+            android:hint="@string/input_password"
             android:visibility="gone"
             android:background="#EE000000"
             android:textColorHint="@color/log"

@@ -15,7 +15,7 @@ import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
-open abstract class EditorHostItem(val unique_id: Long)
+sealed class EditorHostItem(val unique_id: Long)
 data class TerminalItem(val commandId: Int) : EditorHostItem(commandId.toLong())
 data class CodeEditorItem(val id: Int) : EditorHostItem(id.toLong())
 

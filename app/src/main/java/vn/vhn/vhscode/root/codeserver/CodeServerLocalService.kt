@@ -74,7 +74,7 @@ class CodeServerLocalService(
         killIfExecuting(context)
     }
 
-    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.None)
+    override val inputState: MutableLiveData<InputState> = MutableLiveData(InputState.C.None())
 
     @Synchronized
     fun start() {

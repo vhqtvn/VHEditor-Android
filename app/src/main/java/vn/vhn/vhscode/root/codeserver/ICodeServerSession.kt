@@ -33,9 +33,17 @@ abstract class ICodeServerSession {
         pathsToOpen.add(path)
     }
 
-    enum class InputState {
-        None, Password
+    sealed class InputState() {
+        companion object C {
+            class None : InputState()
+            class Password(val message: String) : InputState()
+            data class ReinstallConfirmation(val message: String) : InputState()
+        }
     }
 
     abstract val inputState: MutableLiveData<InputState>
+
+    fun z() {
+
+    }
 }

@@ -88,4 +88,6 @@
     <string name="release_wifi_lock">Release wifi lock.</string>
     <string name="locking_orientation_rewrite_write_settings">\"Modify system settings\" permission needs to be enabled!</string>
     <string name="copied">Copied!</string>
+    <string name="title_reinstall_remote_cs">Reinstall/Upgrade code-server?</string>
+    <string name="input_password">Input password</string>
 </resources>

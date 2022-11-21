@@ -19,6 +19,7 @@ import android.webkit.WebViewClient
 import android.widget.CheckBox
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import org.json.JSONArray
@@ -35,6 +36,7 @@ import vn.vhn.virtualmouse.VirtualMouse
 import java.io.File
 import java.lang.ref.WeakReference
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 private const val FRAGMENT_ID = "fragment_id"
@@ -198,9 +200,15 @@ class VSCodeFragment : Fragment() {
         session?.inputState?.observeForever(inputStateObserver)
         Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
         jsInterface = VSCodeJSInterface(host)
-        if (android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+"))) { //Key1,2
+        if (
+            android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+")) //Key1,2
+            || android.os.Build.MODEL.matches(Regex("STV100-[0-9]+")) //Priv
+        ) {
             genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface!!)
-        } else if (android.os.Build.MODEL.matches(Regex("STV100-[0-9]+"))) { //Priv
+        } else if (android.os.Build.BOARD == "Unihertz" && (
+                    android.os.Build.MODEL.matches(Regex("Titan"))
+                    )
+        ) {
             genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface!!)
         }
         if (genericMotionEventDispatcher != null) {
@@ -236,13 +244,40 @@ class VSCodeFragment : Fragment() {
     private fun updateInputState(newState: ICodeServerSession.InputState) {
         _binding?.txtPasswordLayout?.post {
             _binding?.also {
-                it.txtPasswordLayout.visibility =
-                    when (newState) {
-                        ICodeServerSession.InputState.Password ->
-                            View.VISIBLE
-                        else ->
-                            View.GONE
+                it.txtPasswordLayout.apply {
+                    if (newState is ICodeServerSession.InputState.C.Password) {
+                        hint = if (newState.message.isEmpty()) {
+                            getString(R.string.input_password)
+                        } else {
+                            newState.message
+                        }
+                        visibility = View.VISIBLE
+                    } else {
+                        visibility = View.GONE
                     }
+                }
+                when (newState) {
+                    is ICodeServerSession.InputState.C.ReinstallConfirmation -> {
+                        var replied = AtomicBoolean(false)
+                        val replyOnce = { result: String ->
+                            if (replied.compareAndSet(false, true))
+                                mSession?.sendInput(result)
+                        }
+                        AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.title_reinstall_remote_cs)
+                            .setMessage(newState.message)
+                            .setPositiveButton(android.R.string.ok) { _, _ ->
+                                replyOnce("1")
+                            }
+                            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                                replyOnce("0")
+                            }
+                            .setOnDismissListener {
+                                replyOnce("0")
+                            }
+                            .show()
+                    }
+                }
             }
         }
     }
