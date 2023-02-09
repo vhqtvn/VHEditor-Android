@@ -124,6 +124,16 @@ hack([
     return s;
 })
 
+hack([
+    "node_modules/react-native-os/android/src/main/java/com/peel/reactos/RNOS.java",
+], (s) => {
+    s=s.replace(
+        /[}] catch [(]SocketException e[)] [{]/g,
+        "} catch (java.lang.Exception e) {"
+    )
+    return s;
+})
+
 
 function hack(file, transform) {
     if (Array.isArray(file)) {
