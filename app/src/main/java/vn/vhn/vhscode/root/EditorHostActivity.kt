@@ -428,8 +428,10 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                         codeServerService?.sessionsHost?.createCodeEditorSession(
                             GlobalSessionsManager.getNextSessionId(GlobalSessionsManager.SessionType.CODESERVER_EDITOR),
                             "Editor",
-                            listenOnAllInterface = intent.getBooleanExtra(NewSessionActivity.kSessionAllInterfaces,
-                                true),
+                            listenOnAllInterface = intent.getBooleanExtra(
+                                NewSessionActivity.kSessionAllInterfaces,
+                                true
+                            ),
                             useSSL = intent.getBooleanExtra(NewSessionActivity.kSessionSSL, true),
                             port = preferences.editLocalServerListenPort.toIntOrNull(),
                             verbose = preferences.editorVerbose,
@@ -703,17 +705,23 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
         when (val item = mListViewAdapter.getItem(binding.viewPager.currentItem)) {
             is TerminalItem -> {
                 val (commandId) = item
+                binding.overlayReloadBtn.visibility = View.GONE
                 binding.overlayKillBtn.isEnabled =
                     codeServerService?.sessionsHost?.getTerminalSessionForCommandId(commandId)?.isRunning
                         ?: false
             }
             is CodeEditorItem -> {
                 val (sid) = item
+                binding.overlayReloadBtn.visibility = View.VISIBLE
                 binding.overlayKillBtn.isEnabled =
                     codeServerService?.sessionsHost?.getVSCodeSessionForId(sid)?.terminated != true
             }
             else -> {}
         }
+    }
+
+    fun onResetCacheClicked(view: View) {
+        mCurrentEditorFragment?.resetCache()
     }
 
     fun onKillClicked(view: View) {

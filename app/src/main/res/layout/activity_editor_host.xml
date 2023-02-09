@@ -119,6 +119,19 @@
                 android:paddingEnd="20dp">
 
                 <Button
+                    android:id="@+id/overlay_reload_btn"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/transparent_button_bg"
+                    android:fontFamily="@font/fa_solid_900"
+                    android:onClick="onResetCacheClicked"
+                    android:text="&#xf51a; Clear cache"
+                    android:textColor="@color/red_error" />
+
+                <Button
                     android:id="@+id/overlay_kill_btn"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"

@@ -541,10 +541,10 @@ class VSCodeFragment : Fragment() {
             setLogVisible(false)
             return true
         }
-        if (binding.webView.canGoBack()) {
-            binding.webView.goBack()
-            return true
-        }
+//        if (binding.webView.canGoBack()) {
+//            binding.webView.goBack()
+//            return true
+//        }
         return false
     }
 
@@ -559,5 +559,14 @@ class VSCodeFragment : Fragment() {
 
     fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         binding.loading.visibility = View.VISIBLE
+    }
+
+    fun resetCache() {
+        _binding?.also {
+            it.webView.post {
+                it.webView.clearCache(true)
+                it.webView.reload()
+            }
+        }
     }
 }

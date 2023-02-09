@@ -109,7 +109,7 @@ SUDO
   fi
 
   [[ "$1" == "--" ]] && shift
-  ARGS_HASH=$(echo "$@" | md5sum | awk '{print $1}')
+  ARGS_HASH=$(echo "$@" "@@current-cs-version:::$CURRENT_CS_VER" | md5sum | awk '{print $1}')
 
   NODE=$(NODE_OPTIONS='-v' $CODESERVER 2>&1 | awk -F: '{print $1}')
   CURRENT_SESSION_FILE="$VHEDITOR_STORAGE/current-session"
