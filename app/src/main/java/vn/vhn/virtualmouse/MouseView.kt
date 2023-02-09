@@ -304,28 +304,31 @@ class MouseView(
     val mMouseTop: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotY
     val mMouseBottom: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.height - mCurrentMouseHotspotY
 
+    /**
+     * TODO: partial postInvalidate is not working when hardware-accelerated is enabled, so just disable it for now
+     */
     fun updateDeltaTimed(triggerTime: Long, x: Float, y: Float) {
-        var left = cx
-        var right = cx
-        var top = cy
-        var bottom = cy
+//        var left = cx
+//        var right = cx
+//        var top = cy
+//        var bottom = cy
         cx += x
         cy += y
         if (cx < 0) cx = 0.0F
         if (cx > width) cx = width.toFloat()
         if (cy < 0) cy = 0.0F
         if (cy > height) cy = height.toFloat()
-        if (cx > left) right = cx else left = cx
-        if (cy > top) bottom = cy else top = cy
+//        if (cx > left) right = cx else left = cx
+//        if (cy > top) bottom = cy else top = cy
+//
+//        val padding = mMousePadding
+//        left = maxOf(0f, left - mMouseLeft + padding)
+//        right = minOf(width.toFloat(), right + mMouseRight + padding)
+//        top = maxOf(0f, top - mMouseTop + padding)
+//        bottom = minOf(height.toFloat(), bottom + mMouseBottom + padding)
+//        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
 
-        val padding = mMousePadding
-        left = maxOf(0f, left - mMouseLeft + padding)
-        right = minOf(width.toFloat(), right + mMouseRight + padding)
-        top = maxOf(0f, top - mMouseTop + padding)
-        bottom = minOf(height.toFloat(), bottom + mMouseBottom + padding)
-        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
-
-//        postInvalidate()
+        postInvalidate()
     }
 
     private val cursorPaint = Paint().apply {
