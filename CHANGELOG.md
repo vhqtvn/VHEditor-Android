@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.13.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.13.0...v2.13.1) (2023-02-09)
+
+
+### Bug Fixes
+
+* **reactnative:** explicitly load hermes ([6ff56d6](https://github.com/vhqtvn/VHEditor-Android/commit/6ff56d6dde5690fcb96dcee3b25e95289c82ff55))
+
 ## [2.13.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.12.1...v2.13.0) (2023-02-09)
 
 
