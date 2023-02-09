@@ -107,7 +107,20 @@ hack([
 hack([
     "node_modules/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
 ], (s) => {
-    s=s.replace("variant.sources.assets?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)","// variant.sources.assets?.addGeneratedSourceDirectory(/*DISABLE*/bundleTask, BundleHermesCTask::jsBundleDir)")
+    s=s.replace(
+        "variant.sources.assets?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)",
+        "// variant.sources.assets?./*we're embedding so, not-*/addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)"
+    )
+    return s;
+})
+
+hack([
+    "node_modules/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt",
+], (s) => {
+    s=s.replace(
+        "variant.mergeResourcesProvider.get().dependsOn(bundleTaskName)",
+        "// variant.mergeResourcesProvider.get()./*we're embedding so, not-*/dependsOn(bundleTaskName)"
+    )
     return s;
 })
 
