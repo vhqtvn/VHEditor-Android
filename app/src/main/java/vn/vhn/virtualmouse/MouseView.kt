@@ -298,30 +298,34 @@ class MouseView(
         cy = y
     }
 
-//    val mMouseLeft: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotX
-//    val mMouseRight: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.width - mCurrentMouseHotspotX
-//    val mMouseTop: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotY
-//    val mMouseBottom: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.height - mCurrentMouseHotspotY
+    val mMousePadding: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else maxOf(mCurrentMouseBitmap!!.width, mCurrentMouseBitmap!!.height).toFloat()
+    val mMouseLeft: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotX
+    val mMouseRight: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.width - mCurrentMouseHotspotX
+    val mMouseTop: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotY
+    val mMouseBottom: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.height - mCurrentMouseHotspotY
 
-    public fun updateDeltaTimed(triggerTime: Long, x: Float, y: Float) {
-//        var left = cx
-//        var right = cx
-//        var top = cy
-//        var bottom = cy
+    fun updateDeltaTimed(triggerTime: Long, x: Float, y: Float) {
+        var left = cx
+        var right = cx
+        var top = cy
+        var bottom = cy
         cx += x
         cy += y
-//        if (cx < 0) cx = 0.0F
-//        if (cx > width) cx = width.toFloat()
-//        if (cy < 0) cy = 0.0F
-//        if (cy > height) cy = height.toFloat()
-//        if (cx > left) right = cx else left = cx
-//        if (cy > top) bottom = cy else top = cy
-//        left = maxOf(0f, left - mMouseLeft)
-//        right = minOf(width.toFloat(), right + mMouseRight)
-//        top = maxOf(0f, top - mMouseTop)
-//        bottom = minOf(height.toFloat(), bottom + mMouseBottom)
-//        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
-        postInvalidate()
+        if (cx < 0) cx = 0.0F
+        if (cx > width) cx = width.toFloat()
+        if (cy < 0) cy = 0.0F
+        if (cy > height) cy = height.toFloat()
+        if (cx > left) right = cx else left = cx
+        if (cy > top) bottom = cy else top = cy
+
+        val padding = mMousePadding
+        left = maxOf(0f, left - mMouseLeft + padding)
+        right = minOf(width.toFloat(), right + mMouseRight + padding)
+        top = maxOf(0f, top - mMouseTop + padding)
+        bottom = minOf(height.toFloat(), bottom + mMouseBottom + padding)
+        postInvalidate(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
+
+//        postInvalidate()
     }
 
     private val cursorPaint = Paint().apply {
@@ -342,7 +346,9 @@ class MouseView(
     var cursorScale: Float
         get() = mCursorScale
         set(value) {
-            mCursorScale = value; postInvalidate()
+            if(value != mCursorScale) {
+                mCursorScale = value; postInvalidate()
+            }
         }
 
     override fun onDraw(canvas: Canvas) {
