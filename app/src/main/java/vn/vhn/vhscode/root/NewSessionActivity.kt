@@ -107,6 +107,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
         SoLoader.init(this, false)
         reactRootView = ReactRootView(this)
         val packages: List<ReactPackage> = PackageList(application).packages
+        HermesExecutor.loadLibrary()
         reactInstanceManager = ReactInstanceManager.builder()
             .setApplication(application)
             .setCurrentActivity(this)
@@ -115,6 +116,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
             .addPackages(packages)
             .addPackage(VHEReactNativePackage())
             .setUseDeveloperSupport(false && BuildConfig.DEBUG)
+            .setJavaScriptExecutorFactory(HermesExecutorFactory())
             .setInitialLifecycleState(LifecycleState.RESUMED)
             .build()
         reactRootView.startReactApplication(reactInstanceManager, "VHERoot", Bundle().also {
