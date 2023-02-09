@@ -104,6 +104,13 @@ hack([
     return s;
 })
 
+hack([
+    "node_modules/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
+], (s) => {
+    s=s.replace("variant.sources.assets?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)","// variant.sources.assets?.addGeneratedSourceDirectory(/*DISABLE*/bundleTask, BundleHermesCTask::jsBundleDir)")
+    return s;
+})
+
 
 function hack(file, transform) {
     if (Array.isArray(file)) {
