@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.14.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.14.0...v2.14.1) (2023-02-09)
+
+
+### Bug Fixes
+
+* **virtualmouse:** disable partial invalidate ([9e147ca](https://github.com/vhqtvn/VHEditor-Android/commit/9e147cac6c56959743199378cfc62ed92f87698a))
+
 ## [2.14.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.13.3...v2.14.0) (2023-02-09)
 
 
