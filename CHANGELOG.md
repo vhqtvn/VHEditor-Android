@@ -1,4 +1,14 @@
 # VHEditor Changelog
+## [2.14.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.13.3...v2.14.0) (2023-02-09)
+
+
+### Bug Fixes
+
+* **codeserver-remote:** remote editor session now also tracking code-server's version ([a3e62d9](https://github.com/vhqtvn/VHEditor-Android/commit/a3e62d93d59c7a7deb5d76305bd13f78db0099a2))
+* **codeserver:** limit the log buffers ([8959069](https://github.com/vhqtvn/VHEditor-Android/commit/89590691438478ddc3f66773fdd9b12b1b41562f)), closes [#220](https://github.com/vhqtvn/VHEditor-Android/issues/220)
+* **react-native:react-native-os:** hack: patching the very old package to ignore runtime exception ([e486811](https://github.com/vhqtvn/VHEditor-Android/commit/e486811737890f4903197c11a0068dd7c232a37b)), closes [#219](https://github.com/vhqtvn/VHEditor-Android/issues/219)
+* **virtualmouse:** prevent mouse from escaping viewport ([efb1968](https://github.com/vhqtvn/VHEditor-Android/commit/efb1968dd0bb9dc7fa04b86c4b87ee8cdd4d2d1a)), closes [#215](https://github.com/vhqtvn/VHEditor-Android/issues/215)
+
 ### [2.13.3](https://github.com/vhqtvn/VHEditor-Android/compare/v2.13.2...v2.13.3) (2023-02-09)
 
 ### [2.13.2](https://github.com/vhqtvn/VHEditor-Android/compare/v2.13.1...v2.13.2) (2023-02-09)
