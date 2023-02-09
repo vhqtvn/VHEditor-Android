@@ -42,8 +42,4 @@ abstract class ICodeServerSession {
     }
 
     abstract val inputState: MutableLiveData<InputState>
-
-    fun z() {
-
-    }
 }

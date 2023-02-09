@@ -23,6 +23,8 @@ class CodeServerLocalService(
     val verbose: Boolean = false,
 ) : ICodeServerSession() {
     companion object {
+        private const val LOG_LIMIT = 64000
+
         const val OUTPUT_STREAM_STDOUT = 1
         const val OUTPUT_STREAM_STDERR = 2
 
@@ -212,6 +214,9 @@ class CodeServerLocalService(
     @Synchronized
     private fun appendLog(type: Int, log: String) {
         outputBuffer += log
+        if (outputBuffer.length >= LOG_LIMIT) {
+            outputBuffer = outputBuffer.substring(outputBuffer.length - LOG_LIMIT)
+        }
         if (!isServerStarted) {
             if (
                 outputBuffer.indexOf("HTTPS server listening on") >= 0
