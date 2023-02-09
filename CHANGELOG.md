@@ -1,4 +1,12 @@
 # VHEditor Changelog
+## [2.13.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.12.1...v2.13.0) (2023-02-09)
+
+
+### Features
+
+* **remote-editor:** allow confirmation before upgrade remote code-server ([9124508](https://github.com/vhqtvn/VHEditor-Android/commit/91245084f66069139372df11bc0c8b00b8a9c3c1))
+* **remote-editor:** check remote code-server version, check to reinstall if needed ([96e2bed](https://github.com/vhqtvn/VHEditor-Android/commit/96e2bedb2c765d3a176f71adab4103ee1c85bdd3))
+
 ### [2.12.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.12.0...v2.12.1) (2022-11-19)
 
 
