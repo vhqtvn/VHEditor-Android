@@ -89,12 +89,20 @@ hack([
     return s;
 })
 
-//hack([
-//    "node_modules/asyncstorage-down/default-opts.js",
-//], (s) => {
-//    s=s.replace("require('react-native').AsyncStorage","require('@react-native-async-storage/async-storage').default")
-//    return s;
-//})
+// causing freeze with Hermes on 0.71.2
+hack([
+    "node_modules/errno/custom.js",
+], (s) => {
+    s=s.replace(/Error[.]captureStackTrace/g,'Error.__nope__captureStackTrace')
+    return s;
+})
+
+hack([
+    "node_modules/asyncstorage-down/asyncstorage-core.js",
+], (s) => {
+    s=s.replace("const { AsyncStorage } = require('react-native')","const AsyncStorage = require('@react-native-async-storage/async-storage').default")
+    return s;
+})
 
 
 function hack(file, transform) {

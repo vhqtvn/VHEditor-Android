@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
+import com.facebook.hermes.reactexecutor.HermesExecutor
+import com.facebook.hermes.reactexecutor.HermesExecutorFactory
 import com.facebook.react.PackageList
 import com.facebook.react.ReactInstanceManager
 import com.facebook.react.ReactPackage
@@ -51,7 +53,7 @@ import java.net.URL
 class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
     companion object {
         val TAG = "NewSessionActivity"
-        val kCurrentServerVersion = "4.8.3-" + BuildConfig.CS_VERSION
+        val kCurrentServerVersion = "4.9.1-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 
@@ -304,6 +306,7 @@ class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
                     }
                     onStartCode(binding.root)
                 }
+                else -> {}
             }
     }
 

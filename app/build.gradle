@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+
+apply plugin: "com.facebook.react"
 apply plugin: 'kotlin-android'
 
 def bootstrapVersion = "bootstrap-2022.11.08-r1+apt-android-7"
@@ -8,22 +10,23 @@ f1b0486b404c03225e0870082a6e17d79650e7b92261e7c8cc983a320c2fcec7  bootstrap-arm.
 dc1aec73f587228ff5e41b511c675cd47abcfcef17c361157b25c2cac10f5da4  bootstrap-i686.zip
 db86eca36238cc0b6aeccf6b98768114fc035249b2a6d252c54987a6c7e167f6  bootstrap-x86_64.zip
 """)
-def csVersion = "cs-2022.11.12-r1"
+def csVersion = "cs-2023.02.07-r2"
 def csHashes = parseHashes("""
-69f36e469c018ecbd94811e7e148839480986c403bcabe2b58b75cb34cdfde75 cs-aarch64.tgz
-3a3f97ceb9f68d810d500c2baabbba1f207243450da078b00ed778ac16c6947e cs-arm.tgz
-9a06629ce8457508b7bfa89e7e6f47dfb09a8c5ae3862f5f6ad8b6e26d6496d0 cs-x86.tgz
-0d8a7be13050e622c692a40bf8df2b6cf7c9d9f9f33f86c074f3df0811b25092 cs-x86_64.tgz
+62816c93f6d521f0d3e56bd9574564c403f85892a7dd1888ace94abee1d03e06  cs-aarch64.tgz
+66a0450a9ad54a4e763ccdefae0f42f1ab29caa914fc429e4ce5c13e8d3b9d24  cs-arm.tgz
+d4e0984902ee6331004b542ba7268c276a11a142c5dcc6da1dd6fa4c7e43fa76  cs-x86.tgz
+168300b1394b93a9b9689fcb2e4245bbb5fe5602e9cacd07996f078205e82a7e  cs-x86_64.tgz
 """)
 
 def packageJsonFile = new File(projectDir, "../package.json")
 def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonFile.text)
 
-project.ext.react = [
-        enableHermes: true
-]
-//apply from: "../node_modules/react-native/react.gradle"
-
+react {
+    cliFile = file("${rootProject.ext.rootDir}/node_modules/react-native/cli.js")
+    root = file("${rootProject.ext.rootDir}")
+//    jsRootDir = file("../Libraries")
+    reactNativeDir = file("${rootProject.ext.rootDir}/node_modules/react-native")
+}
 
 android {
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
@@ -45,12 +48,6 @@ android {
         }
         versionCode packageJson.config.versionCode
         versionName System.getenv("CI_VERSION_NAME") ?: "git describe --tags --abbrev=0".execute().text.trim()
-
-        externalNativeBuild {
-            ndkBuild {
-                cFlags "-Wall", "-Wextra", "-Werror", "-Os", "-fno-stack-protector", "-Wl,--gc-sections"
-            }
-        }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -111,8 +108,11 @@ android {
     }
 
     externalNativeBuild {
-        ndkBuild {
-            path "src/main/cpp/Android.mk"
+//        ndkBuild {
+//            path "src/main/cpp/Android.mk"
+//        }
+        cmake {
+            path file("src/main/cpp/CMakeLists.txt")
         }
     }
     lint {
@@ -149,8 +149,13 @@ dependencies {
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'com.github.Dimezis:BlurView:version-2.0.0'
 
-    implementation "com.facebook.react:react-native:+" // From node_modules
-    implementation "org.webkit:android-jsc:+"
+    implementation "com.facebook.react:react-android"
+    if (hermesEnabled.toBoolean()) {
+        implementation "com.facebook.react:hermes-android"
+    } else {
+        implementation "org.webkit:android-jsc:+"
+    }
+
 
     api project(':termux-shared')
     api project(':terminal-emulator')
@@ -258,3 +263,4 @@ afterEvaluate {
 }
 
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+

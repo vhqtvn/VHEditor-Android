@@ -48,6 +48,7 @@ class SessionsListAdapter(
                     if (sessionsHost.getVSCodeSessionForId(sid)?.terminated != false)
                         sessionsHost.cleanupVSCodeSessionForId(sid)
                 }
+                else -> {}
             }
         }
     }
@@ -206,6 +207,7 @@ class SessionsListAdapter(
                 }
                 return true
             }
+            else -> {}
         }
         return false
     }

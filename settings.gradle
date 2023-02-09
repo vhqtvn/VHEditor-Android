@@ -1,8 +1,16 @@
 rootProject.name = 'VHSCode'
+
 include ':app'
+
+project(':app').properties.put('react', [
+        bundleForVariant: (x -> false)
+])
+
 include 'termux-shared', 'terminal-emulator', 'terminal-view'
 project(':termux-shared').projectDir = file('deps/termux-app/termux-shared')
 project(':terminal-emulator').projectDir = file('deps/termux-app/terminal-emulator')
 project(':terminal-view').projectDir = file('deps/termux-app/terminal-view')
 
 apply from: file("node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+
+includeBuild('node_modules/react-native-gradle-plugin')

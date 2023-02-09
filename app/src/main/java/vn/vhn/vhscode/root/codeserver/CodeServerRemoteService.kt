@@ -234,6 +234,7 @@ class CodeServerRemoteService(
                     stdin?.flush()
                 }
             }
+            else -> {}
         }
     }
 

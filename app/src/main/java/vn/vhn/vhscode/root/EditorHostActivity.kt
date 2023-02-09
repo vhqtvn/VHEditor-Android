@@ -712,6 +712,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 binding.overlayKillBtn.isEnabled =
                     codeServerService?.sessionsHost?.getVSCodeSessionForId(sid)?.terminated != true
             }
+            else -> {}
         }
     }
 
@@ -726,6 +727,7 @@ class EditorHostActivity : FragmentActivity(), ServiceConnection,
                 val (sid) = item
                 codeServerService?.sessionsHost?.killVSCodeSessionForId(sid)
             }
+            else -> {}
         }
         binding.viewPager.postDelayed({
             setSessionsListView()

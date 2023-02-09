@@ -111,7 +111,7 @@ class BBKeyboardEventDispatcher(val jsInterface: VSCodeJSInterface) : IGenericEv
                 }
             SpecialHandlingState.STATE_ENABLED ->
                 when (true) {
-                    ev.action == MotionEvent.ACTION_MOVE && ev.pointerCount > 1 && ev.historySize > 0 -> {
+                    (ev.action == MotionEvent.ACTION_MOVE && ev.pointerCount > 1 && ev.historySize > 0) -> {
                         var dx = 0.0
                         var dy = 0.0
                         for (pointerId in 0 until ev.pointerCount) {

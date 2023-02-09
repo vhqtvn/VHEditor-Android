@@ -277,6 +277,7 @@ class VSCodeFragment : Fragment() {
                             }
                             .show()
                     }
+                    else -> {}
                 }
             }
         }
@@ -404,8 +405,6 @@ class VSCodeFragment : Fragment() {
         webView.settings.allowFileAccess = true
         @Suppress("DEPRECATION") webView.settings.allowFileAccessFromFileURLs = true
         @Suppress("DEPRECATION") webView.settings.allowUniversalAccessFromFileURLs = true
-        webView.settings.setAppCachePath("/data/data/vn.vhn.vsc/cache")
-        webView.settings.setAppCacheEnabled(true)
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
         webView.webChromeClient = VSCodeWebChromeClient(this)
         webView.setInitialScale(host.preferences.editorUIScale)

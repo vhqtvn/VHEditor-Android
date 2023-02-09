@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <jni.h>
 #include <dlfcn.h>
+#include <cassert>
 
 #if defined __i686__
 static const char* arch = "x86";
