@@ -3,12 +3,12 @@ apply plugin: 'com.android.application'
 apply plugin: "com.facebook.react"
 apply plugin: 'kotlin-android'
 
-def bootstrapVersion = "bootstrap-2022.11.08-r1+apt-android-7"
+def bootstrapVersion = "bootstrap-2023.02.09-r1+apt-android-7"
 def bootstrapHashes = parseHashes("""
-38e242623f03874314118a92595e31ee1f2463f74508772b7c3128430fd95dae  bootstrap-aarch64.zip
-f1b0486b404c03225e0870082a6e17d79650e7b92261e7c8cc983a320c2fcec7  bootstrap-arm.zip
-dc1aec73f587228ff5e41b511c675cd47abcfcef17c361157b25c2cac10f5da4  bootstrap-i686.zip
-db86eca36238cc0b6aeccf6b98768114fc035249b2a6d252c54987a6c7e167f6  bootstrap-x86_64.zip
+d0ebd9efa91f64669faefeb1656c3e3fd55f2808ea0aaa7ee8ef605e412f753a bootstrap-aarch64.zip
+ac311287af1ed0425247ec27db9d1f118a7a346e0788d39dca5469e68ab5f53c bootstrap-arm.zip
+9c6f74dcd660982b8c8b5a9d7219e39e97ffd601eae4d64383fb866b6b40e354 bootstrap-i686.zip
+aa15be79808dc4fbd81b8aac362b34647ce6fea68ce9838268234ad54b268d00 bootstrap-x86_64.zip
 """)
 def csVersion = "cs-2023.02.07-r2"
 def csHashes = parseHashes("""
