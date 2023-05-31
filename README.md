@@ -7,6 +7,6 @@ VHEditor Android
 
 This project uses [https://github.com/cdr/code-server](https://github.com/cdr/code-server) as its core engine, and not Visual Studio Code. It is not affiliated with or endorsed by Microsoft Corporation.
 
-If you want to play with the server, build it yourself using [this repository](https://github.com/vhqtvn/vscode-android-server).
+To play with the server, build it yourself using [this repository](https://github.com/vhqtvn/vscode-android-server).
 
 This app has built-in termux, you can start right away by opening the terminal view and run `apt install git` (there's maybe incompatible package, please report).
