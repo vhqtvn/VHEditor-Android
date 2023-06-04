@@ -1,4 +1,11 @@
 # VHEditor Changelog
+## [2.15.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.14.1...v2.15.0) (2023-06-04)
+
+
+### Bug Fixes
+
+* fix broken link ([b5555d5](https://github.com/vhqtvn/VHEditor-Android/commit/b5555d5ea1e7d054eb4ece83cb12a790a8b91135))
+
 ### [2.14.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.14.0...v2.14.1) (2023-02-09)
 
 
