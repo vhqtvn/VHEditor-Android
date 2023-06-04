@@ -53,7 +53,7 @@ import java.net.URL
 class NewSessionActivity : AppCompatActivity(), VHEApiModuleHandler {
     companion object {
         val TAG = "NewSessionActivity"
-        val kCurrentServerVersion = "4.9.1-" + BuildConfig.CS_VERSION
+        val kCurrentServerVersion = "v4.13.0-" + BuildConfig.CS_VERSION
 
         val kVersionCheckPeriodMilli = 24 * 60 * 60 * 1000; // 1 day
 

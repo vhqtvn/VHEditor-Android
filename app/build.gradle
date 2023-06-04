@@ -3,19 +3,19 @@ apply plugin: 'com.android.application'
 apply plugin: "com.facebook.react"
 apply plugin: 'kotlin-android'
 
-def bootstrapVersion = "bootstrap-2023.02.09-r1+apt-android-7"
+def bootstrapVersion = "bootstrap-2023.06.04-r2+apt-android-7"
 def bootstrapHashes = parseHashes("""
-d0ebd9efa91f64669faefeb1656c3e3fd55f2808ea0aaa7ee8ef605e412f753a bootstrap-aarch64.zip
-ac311287af1ed0425247ec27db9d1f118a7a346e0788d39dca5469e68ab5f53c bootstrap-arm.zip
-9c6f74dcd660982b8c8b5a9d7219e39e97ffd601eae4d64383fb866b6b40e354 bootstrap-i686.zip
-aa15be79808dc4fbd81b8aac362b34647ce6fea68ce9838268234ad54b268d00 bootstrap-x86_64.zip
+de1d08f2b2230b0c2c3e55f2659f1785a74fa1d7a729c1c181c54038c752d673  bootstrap-aarch64.zip
+aa3acf080e6ced69aff2060a47025eea99f23a4fa402f601d74f6fb8c72310c9  bootstrap-arm.zip
+7cc3dff0d6e7731e400b294bb82429947f8583673bc9eea7473333a04acf401c  bootstrap-i686.zip
+393991e8b3ea69c25c148a2516cdc7f02beff81b16188de9c31dfa252f100763  bootstrap-x86_64.zip
 """)
-def csVersion = "cs-2023.02.07-r2"
+def csVersion = "cs-2023.06.04-r1"
 def csHashes = parseHashes("""
-62816c93f6d521f0d3e56bd9574564c403f85892a7dd1888ace94abee1d03e06  cs-aarch64.tgz
-66a0450a9ad54a4e763ccdefae0f42f1ab29caa914fc429e4ce5c13e8d3b9d24  cs-arm.tgz
-d4e0984902ee6331004b542ba7268c276a11a142c5dcc6da1dd6fa4c7e43fa76  cs-x86.tgz
-168300b1394b93a9b9689fcb2e4245bbb5fe5602e9cacd07996f078205e82a7e  cs-x86_64.tgz
+376f26a7eb31dafb1ce89185a6b3a39b2e19bc3afae020692121792c7fb94fea  cs-aarch64.tgz
+e0c0470a295a11b8bbf85c352eae38eb83dd5758329552f465476b8180580b94  cs-arm.tgz
+62f56f413388377e112f3cef71cf04619f79c7e10426d0f98d51686676b25bef  cs-x86.tgz
+1dea7996013f9f3eb1866f14ee0b7fa36d30df996995ae7ba7edcc9aae1ba47e  cs-x86_64.tgz
 """)
 
 def packageJsonFile = new File(projectDir, "../package.json")
