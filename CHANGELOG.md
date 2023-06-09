@@ -1,4 +1,11 @@
 # VHEditor Changelog
+### [2.15.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.15.0...v2.15.1) (2023-06-09)
+
+
+### Bug Fixes
+
+* **bootstrap:** add libbrotli to bootstrap ([8f987a4](https://github.com/vhqtvn/VHEditor-Android/commit/8f987a40f200f9abcfb3b9d9182fd7bf97bcc2d4)), closes [#255](https://github.com/vhqtvn/VHEditor-Android/issues/255)
+
 ## [2.15.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.14.1...v2.15.0) (2023-06-04)
 
 
