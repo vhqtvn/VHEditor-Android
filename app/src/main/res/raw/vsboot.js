@@ -6,7 +6,8 @@ var codeGetter = window.vscodeOrigKeyboardEventDescriptorCode.get;
 // var altGetter = window.vscodeOrigKeyboardEventDescriptorAlt.get;
 
 var customMapper = {
-    27: 'Escape'
+    27: 'Escape',
+    9: 'Tab'
 };
 var customKeyRemapper = {
     'Backspace': 'Backspace',
