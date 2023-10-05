@@ -198,17 +198,19 @@ class VSCodeFragment : Fragment() {
         session?.liveServerLog?.observeForever(serverLogObserver) // this will trigger any initial value
         session?.status?.observeForever(statusObserver)
         session?.inputState?.observeForever(inputStateObserver)
-        Log.d(TAG, "Started on model ${android.os.Build.MODEL}")
+        Log.d(TAG, "Started on model ${android.os.Build.BRAND}::${android.os.Build.MODEL}")
         jsInterface = VSCodeJSInterface(host)
         if (
             android.os.Build.MODEL.matches(Regex("BB[FB]100-[0-9]+")) //Key1,2
             || android.os.Build.MODEL.matches(Regex("STV100-[0-9]+")) //Priv
         ) {
+            Log.d(TAG, "Found BlackBerry device")
             genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface!!)
-        } else if (android.os.Build.BOARD == "Unihertz" && (
-                    android.os.Build.MODEL.matches(Regex("Titan"))
+        } else if (android.os.Build.BRAND == "Unihertz" && (
+                    android.os.Build.MODEL.matches(Regex("Titan( pocket)?.*"))
                     )
         ) {
+            Log.d(TAG, "Found Unihertz device")
             genericMotionEventDispatcher = BBKeyboardEventDispatcher(jsInterface!!)
         }
         if (genericMotionEventDispatcher != null) {
