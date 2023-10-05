@@ -117,7 +117,7 @@ class TerminalFragment : Fragment() {
     private fun ensureBindOrStartTerminalSession() {
         val term = terminalView
         if (term.currentSession != null) return
-        term.setTextSize(30)
+        term.setTextSize(host.preferences.fontSize)
         if (consoleFont == null) {
             consoleFont = Typeface.createFromAsset(host.applicationContext.assets,
                 "fonts/powerline/Literation Mono Powerline/Literation Mono Powerline.ttf")
