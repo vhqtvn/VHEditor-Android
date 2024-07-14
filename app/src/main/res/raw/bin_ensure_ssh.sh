@@ -3,7 +3,7 @@
 RED="\033[0;31m"
 NC="\033[0m"
 
-while ! which ssh >/dev/null; do
+while ! command -v ssh &>/dev/null; do
   set +x
   echo -e ${RED}ssh command not installed, which package do you want to install?${NC}
   echo 1. dropbear
