@@ -188,10 +188,15 @@ class MouseView(
                     }
                     hackPointerHotpotXField?.apply { if (!isAccessible) isAccessible = true }
                     hackPointerHotpotYField?.apply { if (!isAccessible) isAccessible = true }
-                    Log.d(TAG,
-                        "Pointer hotspot field " + hackPointerHotpotXField + "; " + hackPointerHotpotYField)
-                    hackPointerLoadMethod =
-                        PointerIcon::class.java.getDeclaredMethod("load", Context::class.java)
+                    Log.d(
+                        TAG,
+                        "Pointer hotspot field " + hackPointerHotpotXField + "; " + hackPointerHotpotYField
+                    )
+                    try {
+                        hackPointerLoadMethod =
+                            PointerIcon::class.java.getDeclaredMethod("load", Context::class.java)
+                    } catch (e: NoSuchMethodException) {
+                    }
                 } else {
                     Log.e(TAG, "Cant resolve pointer fields")
                 }
@@ -211,6 +216,7 @@ class MouseView(
                     mTouchState.reset()
                     mousePerformClick()
                 }
+
                 MOUSE_ACTION_FLING -> {
                     mCurrentFlingAnimation?.also { anim ->
                         if (!mousePerformScroll(0f, anim.nextDelta()) || anim.isFinished()) {
@@ -220,6 +226,7 @@ class MouseView(
                         sendFlingMessage()
                     }
                 }
+
                 MOUSE_ACTION_UPDATE_POINTER -> {
                     mMotionEventToUpdate.getAndSet(null)?.apply {
                         performUpdatePointer(this)
@@ -227,6 +234,7 @@ class MouseView(
                     }
                     postUpdateMousePointer(100)
                 }
+
                 PERFORM_HOVER -> {
                     performHoverEvent()
                 }
@@ -284,7 +292,14 @@ class MouseView(
         e.recycle()
 
         if (mCurrentMouseBitmap == null) {
-            val icon = PointerIcon.getSystemIcon(context, PointerIcon.TYPE_DEFAULT)
+            val icon = if (hackPointerLoadMethod != null) {
+                hackPointerLoadMethod!!.invoke(null, context) as PointerIcon
+            } else {
+                PointerIcon.getSystemIcon(
+                    context,
+                    PointerIcon.TYPE_HAND
+                ) as PointerIcon
+            }
             if (icon != null) updatePointer(icon)
         }
 
@@ -298,7 +313,11 @@ class MouseView(
         cy = y
     }
 
-    val mMousePadding: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else maxOf(mCurrentMouseBitmap!!.width, mCurrentMouseBitmap!!.height).toFloat()
+    val mMousePadding: Float
+        get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else maxOf(
+            mCurrentMouseBitmap!!.width,
+            mCurrentMouseBitmap!!.height
+        ).toFloat()
     val mMouseLeft: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotX
     val mMouseRight: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseBitmap!!.width - mCurrentMouseHotspotX
     val mMouseTop: Float get() = if (mCurrentMouseBitmap == null) mMouseSize / 2 else mCurrentMouseHotspotY
@@ -334,7 +353,14 @@ class MouseView(
     private val cursorPaint = Paint().apply {
         style = Paint.Style.FILL
         color = Color.RED
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY)
+        alpha = 128
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.XOR)
+    }
+
+    private val cursorPaintInner = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.WHITE
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.XOR)
     }
 
     private val cursorBitmapPaint = Paint().apply {
@@ -349,7 +375,7 @@ class MouseView(
     var cursorScale: Float
         get() = mCursorScale
         set(value) {
-            if(value != mCursorScale) {
+            if (value != mCursorScale) {
                 mCursorScale = value; postInvalidate()
             }
         }
@@ -358,15 +384,14 @@ class MouseView(
         val bitmap = mCurrentMouseBitmap
         if (bitmap == null) {
             canvas.drawCircle(cx, cy, mMouseSize / 2, cursorPaint)
+            canvas.drawCircle(cx, cy, mMouseSize / 8, cursorPaintInner)
         } else {
-//            canvas.drawBitmap(bitmap,
-//                cx - mCurrentMouseHotspotX,
-//                cy - mCurrentMouseHotspotY,
-//                null)
-            cursorBitmapMatrix.setScale(mCursorScale,
+            cursorBitmapMatrix.setScale(
+                mCursorScale,
                 mCursorScale,
                 mCurrentMouseHotspotX,
-                mCurrentMouseHotspotY)
+                mCurrentMouseHotspotY
+            )
             cursorBitmapMatrix.postTranslate(cx - mCurrentMouseHotspotX, cy - mCurrentMouseHotspotY)
             canvas.drawBitmap(bitmap, cursorBitmapMatrix, cursorBitmapPaint)
         }
@@ -384,11 +409,14 @@ class MouseView(
             val type = hackPointerTypeField!!.get(pointer) as Int
             Log.d(TAG, "Resolved to $type")
             if (type != mCurrentMouseType) {
-                val loadedPointer = hackPointerLoadMethod!!.invoke(pointer, context)
+                val loadedPointer = PointerIcon.getSystemIcon(context, PointerIcon.TYPE_ARROW)
                 mCurrentMouseType = type
-                mCurrentMouseBitmap = hackPointerBitmapField!!.get(loadedPointer) as Bitmap
-                mCurrentMouseHotspotX = hackPointerHotpotXField!!.get(loadedPointer) as Float
-                mCurrentMouseHotspotY = hackPointerHotpotYField!!.get(loadedPointer) as Float
+                val bitmap = hackPointerBitmapField!!.get(loadedPointer) as Bitmap?
+                if (bitmap != null ) {
+                    mCurrentMouseBitmap = bitmap
+                    mCurrentMouseHotspotX = hackPointerHotpotXField!!.get(loadedPointer) as Float
+                    mCurrentMouseHotspotY = hackPointerHotpotYField!!.get(loadedPointer) as Float
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error: ${e}")
@@ -538,6 +566,7 @@ class MouseView(
                     dispatchHoverEvent(MotionEvent.ACTION_HOVER_ENTER)
                 }
             }
+
             MotionEvent.ACTION_POINTER_DOWN -> {
                 mVelocityTracker.addMovement(motionEvent)
                 maxPointers = maxOf(maxPointers, motionEvent.pointerCount)
@@ -545,6 +574,7 @@ class MouseView(
                 mInitialMotionEvent[pointerId]?.recycle()
                 mInitialMotionEvent[pointerId] = MotionEvent.obtain(motionEvent)
             }
+
             MotionEvent.ACTION_POINTER_UP -> {
                 mVelocityTracker.addMovement(motionEvent)
                 val pointerId = motionEvent.getPointerId(motionEvent.actionIndex)
@@ -556,10 +586,12 @@ class MouseView(
                     mInitialMotionEvent.remove(pointerId)
                 }
             }
+
             MotionEvent.ACTION_BUTTON_PRESS -> {
                 mTouchState.accumulateDeltaX = 0f
                 mTouchState.accumulateDeltaY = 0f
             }
+
             MotionEvent.ACTION_MOVE -> {
                 mVelocityTracker.addMovement(motionEvent)
                 if (mTouchState.hasFlag(TouchState.FLAG_POSSIBLE_TAP)) {
@@ -596,8 +628,10 @@ class MouseView(
                         mTouchState.accumulateDeltaX += dx
                         mTouchState.accumulateDeltaY += dy
                         if (!mTouchState.hasFlag(TouchState.FLAG_IS_DRAGGING) && (
-                                    maxOf(abs(mTouchState.accumulateDeltaX),
-                                        abs(mTouchState.accumulateDeltaY)) > kTouchSlop
+                                    maxOf(
+                                        abs(mTouchState.accumulateDeltaX),
+                                        abs(mTouchState.accumulateDeltaY)
+                                    ) > kTouchSlop
                                     )
                         ) {
                             mTouchState.addFlag(TouchState.FLAG_HAS_SCROLLED)
@@ -612,6 +646,7 @@ class MouseView(
                 }
                 if (unsetDragging) mTouchState.removeFlag(TouchState.FLAG_IS_DRAGGING)
             }
+
             MotionEvent.ACTION_UP -> {
                 if (mLeftMouseDown) {
                     dispatchMouseAction(MotionEvent.ACTION_UP)
@@ -653,9 +688,13 @@ class MouseView(
                     } else if (maxPointers == 1) {
                         if (mTouchState.canEnableTapTapDrag() && kEnableTapTapDrag) {
                             mTouchState.addFlag(TouchState.FLAG_POSSIBLE_TAP_DRAG)
-                            mHandler.sendEmptyMessageDelayed(MOUSE_ACTION_CLICK_AFTER_TAP,
-                                max(0L,
-                                    touchStartTime + DOUBLE_TAP_MS - SystemClock.uptimeMillis()))
+                            mHandler.sendEmptyMessageDelayed(
+                                MOUSE_ACTION_CLICK_AFTER_TAP,
+                                max(
+                                    0L,
+                                    touchStartTime + DOUBLE_TAP_MS - SystemClock.uptimeMillis()
+                                )
+                            )
                         } else {
                             mousePerformClick()
                         }
@@ -667,6 +706,7 @@ class MouseView(
                 mRecentPointerIds.clear()
                 mTouchState.removeFlag(TouchState.FLAG_IS_DRAGGING)
             }
+
             MotionEvent.ACTION_CANCEL -> {
                 if (mLeftMouseDown) {
                     dispatchMouseAction(MotionEvent.ACTION_UP)
@@ -775,8 +815,10 @@ class MouseView(
 
     private fun sendFlingMessage() {
         val now = SystemClock.uptimeMillis()
-        mHandler.sendEmptyMessageDelayed(MOUSE_ACTION_FLING,
-            max(0, mNextFlingMessageTime - SystemClock.uptimeMillis()))
+        mHandler.sendEmptyMessageDelayed(
+            MOUSE_ACTION_FLING,
+            max(0, mNextFlingMessageTime - SystemClock.uptimeMillis())
+        )
         mNextFlingMessageTime = now + 16 // ~ 60fps =))
     }
 
@@ -960,9 +1002,11 @@ class MouseView(
         }
 
         fun canEnableTapTapDrag(): Boolean = !hasFlag(FLAG_HAS_SCROLLED) && !hasFlag(
-            FLAG_IS_DRAGGING)
+            FLAG_IS_DRAGGING
+        )
 
         fun canPerformRightClick(): Boolean = !hasFlag(FLAG_HAS_SCROLLED) && !hasFlag(
-            FLAG_IS_DRAGGING)
+            FLAG_IS_DRAGGING
+        )
     }
 }
