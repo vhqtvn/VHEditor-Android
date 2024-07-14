@@ -6,17 +6,17 @@ fs.rmSync("node_modules/resolve/test/resolver/malformed_package_json", { recursi
 exec("npx rn-nodeify --hack");
 exec("npx jetify");
 
-hack("node_modules/metro-react-native-babel-preset/src/configs/main.js", (s) => {
-    // extraPlugins.push([
-    //     require("@babel/plugin-transform-react-jsx", {
-    //       useBuiltIns: true,
-    //     }),
-    //   ]);
-    return s.replace(
-        /\[\s*require[(]("@babel[/]plugin-transform-react-jsx"),\s*([{].*?[}])\s*[)]\s*,?\s*\]/sg,
-        '[require($1),$2]'
-    )
-})
+//hack("node_modules/metro-react-native-babel-preset/src/configs/main.js", (s) => {
+//    // extraPlugins.push([
+//    //     require("@babel/plugin-transform-react-jsx", {
+//    //       useBuiltIns: true,
+//    //     }),
+//    //   ]);
+//    return s.replace(
+//        /\[\s*require[(]("@babel[/]plugin-transform-react-jsx"),\s*([{].*?[}])\s*[)]\s*,?\s*\]/sg,
+//        '[require($1),$2]'
+//    )
+//})
 
 hack([
     "node_modules/react-native-os/android/build.gradle",
@@ -78,16 +78,16 @@ hack([
     )
 })
 
-hack([
-    "node_modules/metro-react-native-babel-transformer/src/index.js",
-], (s) => {
-    var rnd = function() {
-        return JSON.stringify(require("crypto").randomBytes(20).toString('hex'));
-    }
-    s=s.replace('fs.readFileSync(__filename)',rnd)
-    s=s.replace('require("babel-preset-fbjs/package.json").version',rnd)
-    return s;
-})
+//hack([
+//    "node_modules/metro-react-native-babel-transformer/src/index.js",
+//], (s) => {
+//    var rnd = function() {
+//        return JSON.stringify(require("crypto").randomBytes(20).toString('hex'));
+//    }
+//    s=s.replace('fs.readFileSync(__filename)',rnd)
+//    s=s.replace('require("babel-preset-fbjs/package.json").version',rnd)
+//    return s;
+//})
 
 // causing freeze with Hermes on 0.71.2
 hack([
@@ -105,7 +105,7 @@ hack([
 })
 
 hack([
-    "node_modules/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
+    "node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
 ], (s) => {
     s=s.replace(
         "variant.sources.assets?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)",
@@ -115,7 +115,7 @@ hack([
 })
 
 hack([
-    "node_modules/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt",
+    "node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt",
 ], (s) => {
     s=s.replace(
         "variant.mergeResourcesProvider.get().dependsOn(bundleTaskName)",

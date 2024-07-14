@@ -13,8 +13,8 @@ import vn.vhn.vhscode.R
 import vn.vhn.vhscode.databinding.SessionsListItemBinding
 import vn.vhn.vhscode.root.codeserver.SharedLocalCodeServerSession
 
-const val kTagBinding = R.string.tag_binding
-const val kTagBindingPosition = R.string.tag_binding_position
+val kTagBinding = R.string.tag_binding
+val kTagBindingPosition = R.string.tag_binding_position
 
 val ColorDEADGRAY = 0xFF666666.toInt()
 val spanNumberRunning = ForegroundColorSpan(Color.GREEN)

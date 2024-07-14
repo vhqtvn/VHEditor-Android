@@ -33,7 +33,7 @@ const normalize = function (url, base) {
 process.version = 'vheditor-custom';
 const BASEDIR = '/data/data/vn.vhn.vsc/files/home/vhe-modules';
 process.cwd = () => BASEDIR;
-const bundler = require('metro-react-native-babel-transformer').transform;
+const bundler = require('metro-babel-transformer').transform;
 const generator = require("@babel/generator").default;
 const require_cache = require('./require-cached');
 

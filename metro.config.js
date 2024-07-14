@@ -1,11 +1,17 @@
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 const path = require("path");
 const metroResolver = require("metro-resolver");
 const exclusionList = require('metro-config/src/defaults/exclusionList');
 
 // exclusionList is a function that takes an array of regexes and combines
 // them with the default exclusions to return a single regex.
-
-module.exports = {
+/**
+ * Metro configuration
+ * https://reactnative.dev/docs/metro
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
+const config = {
     resolver: {
         blacklistRE: exclusionList([
             /node_modules\/hermes-parser\/.*/,
@@ -27,3 +33,5 @@ module.exports = {
         }
     }
 };
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

@@ -1,4 +1,4 @@
 [submodule "deps/termux-app"]
 	path = deps/termux-app
         ignore = dirty
-	url = https://github.com/termux/termux-app
+	url = https://github.com/vhqtvn/termux-app

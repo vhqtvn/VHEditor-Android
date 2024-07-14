@@ -122,7 +122,7 @@ class CodeServerManager {
                                 R.string.error_failed_to_extract,
                                 Toast.LENGTH_LONG).show()
                             progressLog.setTextColor(ContextCompat.getColor(context,
-                                R.color.red_error))
+                                com.termux.shared.R.color.red_error))
                             dialog.setCancelable(true)
                         }
                     } else {
@@ -133,7 +133,7 @@ class CodeServerManager {
                     withContext(Dispatchers.Main) {
                         progressLog.text =
                             progressLog.text.toString() + context.resources.getString(R.string.long_press_to_copy_full)
-                        progressLog.setTextColor(ContextCompat.getColor(context, R.color.red_error))
+                        progressLog.setTextColor(ContextCompat.getColor(context, com.termux.shared.R.color.red_error))
                         dialog.setCancelable(true)
                     }
                 }
