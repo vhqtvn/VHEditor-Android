@@ -9,6 +9,26 @@ hack("deps/termux-app/termux-shared/build.gradle", (s) => {
     )
 })
 
+for(const f of [
+    "deps/termux-app/terminal-view/build.gradle",
+    "deps/termux-app/terminal-emulator/build.gradle",
+    "deps/termux-app/termux-shared/build.gradle",
+])
+hack(f, (s) => {
+    // https://youtrack.jetbrains.com/issue/KT-55624
+    s = s.replace(
+        /classifier "sources"/sg,
+        'archiveClassifier.set("sources")'
+    )
+
+    s = s.replace(
+        /release\(MavenPublication\) \{.*?\}/sg,
+        ''
+    )
+
+    return s
+})
+
 function hack(file, transform) {
     if (Array.isArray(file)) {
         for (const f of file) hack(f, transform)
