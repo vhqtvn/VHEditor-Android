@@ -29,14 +29,13 @@ def REACT_NATIVE_VERSION = new JsonSlurper().parseText(file("$rootDir/package-lo
 print("REACT_NATIVE_VERSION=" + REACT_NATIVE_VERSION)
 
 allprojects {
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy {
             force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
         }
     }
     repositories {
         google()
-        jcenter()
         maven { url "https://jitpack.io" }
         maven {
             url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
