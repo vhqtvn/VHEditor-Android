@@ -7,7 +7,7 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     },
-    "versionCode": 61
+    "versionCode": 62
   },
   "standard-version": {
     "header": "# VHEditor Changelog",
@@ -17,7 +17,7 @@
   },
   "name": "vheditor-android-ci",
   "description": "VHEditor Android",
-  "version": "2.17.3",
+  "version": "2.17.4",
   "main": "ci/ci.js",
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.24.0",
