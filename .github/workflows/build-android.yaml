@@ -31,9 +31,8 @@ jobs:
       - name: "Setup variables"
         id: build-config
         run: |
-          echo '::echo::on'
-          echo 'is_prerelease='$(node ./ci/is-prerelease "$(basename ${{ github.ref }})") >> $GITHUB_ENV
-          echo 'version_name='$(basename ${{ github.ref }} | sed 's/^v//') >> $GITHUB_ENV
+          echo 'is_prerelease='$(node ./ci/is-prerelease "$(basename ${{ github.ref }})") >> $GITHUB_OUTPUT
+          echo 'version_name='$(basename ${{ github.ref }} | sed 's/^v//') >> $GITHUB_OUTPUT
       - name: "Build for Google Play"
         run: |
           [[ -z "${{ steps.build-config.outputs.version_name }}" ]] && exit 13
