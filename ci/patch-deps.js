@@ -29,6 +29,13 @@ hack(f, (s) => {
     return s
 })
 
+hack("deps/termux-app/termux-shared/src/main/java/com/termux/shared/interact/MessageDialogUtils.java", (s) => {
+    return s.replace(
+        ", R.style.Theme_AppCompat_Light_Dialog",
+        ', androidx.appcompat.R.style.Theme_AppCompat_Light_Dialog'
+    )
+});
+
 function hack(file, transform) {
     if (Array.isArray(file)) {
         for (const f of file) hack(f, transform)

@@ -98,15 +98,15 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
         util.renameTo(File(utilOrigPath))
         File(utilPath).writeText(
             """
-                    module.exports = require('./cli_orig_vhcode')
+                    Object.assign(exports, require('./cli_orig_vhcode'));
                     Object.assign(
-                        module.exports.options,
+                        exports.options,
                         {
                             'without-connection-token': {type: "boolean",desc:'zzz'},
                             'connection-token': {type: "string",desc:'zzz1'},
                             'connection-token-file': {type: "string",desc:'zzz2'},
                         }
-                    )
+                    );
                 """
         )
     } while (false)
@@ -120,10 +120,6 @@ fun CodeServerService.Companion.setupIfNeeded(context: Context, whenDone: () -> 
     "${PREFIX_PATH}/boot-remote.sh".apply {
         copyRawResource(context, R.raw.boot_remote, this)
         File(this).setExecutable(true)
-    }
-
-    File("${PREFIX_PATH}/usr/lib/libc++_shared.so").apply {
-        if (exists()) copyTo(File("${ROOT_PATH}/libc++_shared.so"), true)
     }
 
     File("${PREFIX_PATH}/usr/bin/vh-editor-ensure-ssh").also { f ->

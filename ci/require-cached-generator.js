@@ -11,11 +11,13 @@ for (var package of [
 for (var fn of glob.sync("node_modules/@babel/runtime/helpers/*.js")) {
     fn = fn.substring(13);
     fn = fn.substring(0, fn.length - 3);
+    fn = fn.replace(/\\/g, "/");
     console.log(`preload_fns[${JSON.stringify(fn)}] = ()=>require(${JSON.stringify(fn)})`)
 }
 for (var fn of glob.sync("node_modules/@babel/runtime/helpers/esm/*.js")) {
     fn = fn.substring(13);
     fn = fn.substring(0, fn.length - 3);
+    fn = fn.replace(/\\/g, "/");
     console.log(`preload_fns[${JSON.stringify(fn)}] = ()=>require(${JSON.stringify(fn)})`)
 }
 console.log(`module.exports = function (gmodule, path, def) {`)
