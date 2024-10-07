@@ -108,6 +108,10 @@ hack([
     "node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
 ], (s) => {
     s=s.replace(
+        "val bundleTask =",
+        "/*val*//*bundleTask/**/=*/"
+    )
+    s=s.replace(
         "variant.sources.res?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)",
         "// variant.sources.res?./*we're embedding so, not-*/addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)"
     )
