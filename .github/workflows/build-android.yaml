@@ -4,7 +4,10 @@ on:
   push:
     tags:
       - 'v[0-9]+.*'
-    
+
+permissions:
+  contents: write
+
 jobs:
   build-android:
     runs-on: [ubuntu-latest]
