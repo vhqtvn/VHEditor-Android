@@ -29,8 +29,8 @@ jobs:
         id: build-config
         run: |
           echo '::echo::on'
-          echo '::set-output name=is_prerelease::'$(node ./ci/is-prerelease "$(basename ${{ github.ref }})")
-          echo '::set-output name=version_name::'$(basename ${{ github.ref }} | sed 's/^v//')
+          echo 'is_prerelease='$(node ./ci/is-prerelease "$(basename ${{ github.ref }})") >> $GITHUB_ENV
+          echo 'version_name='$(basename ${{ github.ref }} | sed 's/^v//') >> $GITHUB_ENV
       - name: "Build for Google Play"
         run: |
           [[ -z "${{ steps.build-config.outputs.version_name }}" ]] && exit 13
