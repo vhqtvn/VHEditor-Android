@@ -1,4 +1,6 @@
 # VHEditor Changelog
+### [2.17.5](https://github.com/vhqtvn/VHEditor-Android/compare/v2.17.4...v2.17.5) (2024-10-07)
+
 ### [2.17.4](https://github.com/vhqtvn/VHEditor-Android/compare/v2.17.3...v2.17.4) (2024-10-07)
 
 ### [2.17.3](https://github.com/vhqtvn/VHEditor-Android/compare/v2.17.2...v2.17.3) (2024-10-07)
