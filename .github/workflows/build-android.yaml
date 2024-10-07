@@ -15,7 +15,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
+          java-version: '21'
       - name: "npm install"
         run: |
           npm ci
