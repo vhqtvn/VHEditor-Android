@@ -1,4 +1,20 @@
 # VHEditor Changelog
+## [2.16.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.15.1...v2.16.0) (2024-10-07)
+
+
+### Features
+
+* **code-server:** update code-server to v4.93.1 ([0159895](https://github.com/vhqtvn/VHEditor-Android/commit/01598952c321f1bae018a8c643ecf7dd42174de5))
+
+
+### Bug Fixes
+
+* **editor:** update detection for Unihertz Titan & Pocket ([6243ea2](https://github.com/vhqtvn/VHEditor-Android/commit/6243ea28c693536cb7df4427bf005d3093aafbbc))
+* **mouseview:** ignore null system pointer bitmap ([6d861f8](https://github.com/vhqtvn/VHEditor-Android/commit/6d861f80f971b957807e110e255d0a3b65f7362a))
+* **ssh:** use 'command -v' instead of 'which' for checking ssh command ([2831dc7](https://github.com/vhqtvn/VHEditor-Android/commit/2831dc732aa810772c7a6372e5f32e2ae1452b78))
+* tab key fix ([01d42fb](https://github.com/vhqtvn/VHEditor-Android/commit/01d42fbc4a29334d486d8138244eed0539c78767))
+* **terminal:** use font size from preferences ([2f8a2ca](https://github.com/vhqtvn/VHEditor-Android/commit/2f8a2ca0fd6eecb1a9f468153877676f5da36dc0))
+
 ### [2.15.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.15.0...v2.15.1) (2023-06-09)
 
 
