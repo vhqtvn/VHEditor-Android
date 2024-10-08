@@ -33,7 +33,7 @@ const normalize = function (url, base) {
 process.version = 'vheditor-custom';
 const BASEDIR = '/data/data/vn.vhn.vsc/files/home/vhe-modules';
 process.cwd = () => BASEDIR;
-const bundler = require('metro-babel-transformer').transform;
+const bundler = require('@react-native/metro-babel-transformer').transform;
 const generator = require("@babel/generator").default;
 const require_cache = require('./require-cached');
 
@@ -64,7 +64,9 @@ function compile(content, path) {
     const cache = compiler_cache(path, content);
     [result, ok] = cache.read()
     if (!ok) {
-        const transformed = bundler({ filename: path, options: {}, src: content })
+        // enabling babel runtime will cause the app to crash
+        // > You gave us a visitor for the node type ReferencedIdentifier but it's not a valid type
+        const transformed = bundler({ filename: path, options: {enableBabelRuntime: false}, src: content })
         result = generator(transformed.ast, {}, content)
         cache.write(JSON.stringify(result))
         ok = true

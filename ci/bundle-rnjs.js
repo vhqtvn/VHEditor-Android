@@ -36,6 +36,7 @@ if(isWin) hermescCmd = hermescCmd.replace(/\//g,'\\');
 
 const child2 = child_process.spawnSync(hermescCmd, [
     "-emit-binary",
+    "-g3",
     "-out","app/src/main/assets/loader.bundled.tmp.js",
     "app/src/main/assets/loader.bundled.js",
     "-O"

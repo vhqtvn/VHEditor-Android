@@ -6,6 +6,13 @@ fs.rmSync("node_modules/resolve/test/resolver/malformed_package_json", { recursi
 exec("npx rn-nodeify --hack");
 exec("npx jetify");
 
+hack("node_modules/@react-native/metro-babel-transformer/src/index.js", (s) => {
+    return s.replace(
+        /fs\.readFileSync\(__filename\)/sg,
+        JSON.stringify(require("crypto").randomBytes(20).toString('hex'))
+    )
+})
+
 //hack("node_modules/metro-react-native-babel-preset/src/configs/main.js", (s) => {
 //    // extraPlugins.push([
 //    //     require("@babel/plugin-transform-react-jsx", {
@@ -107,14 +114,14 @@ hack([
 hack([
     "node_modules/@react-native/gradle-plugin/src/main/kotlin/com/facebook/react/TaskConfiguration.kt",
 ], (s) => {
-//    s=s.replace(
-//        "val bundleTask =",
-//        "/*val*//*bundleTask/**/=*/"
-//    )
-//    s=s.replace(
-//        "variant.sources.res?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)",
-//        "// variant.sources.res?./*we're embedding so, not-*/addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)"
-//    )
+    s=s.replace(
+        "val bundleTask =",
+        "/*val*//*bundleTask/**/=*/"
+    )
+    s=s.replace(
+        "variant.sources.res?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)",
+        "// variant.sources.res?./*we're embedding so, not-*/addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::resourcesDir)"
+    )
     s=s.replace(
         "variant.sources.assets?.addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)",
         "// variant.sources.assets?./*we're embedding so, not-*/addGeneratedSourceDirectory(bundleTask, BundleHermesCTask::jsBundleDir)"
