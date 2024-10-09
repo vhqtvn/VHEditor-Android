@@ -292,15 +292,20 @@ class MouseView(
         e.recycle()
 
         if (mCurrentMouseBitmap == null) {
-            val icon = if (hackPointerLoadMethod != null) {
-                hackPointerLoadMethod!!.invoke(null, context) as PointerIcon
-            } else {
-                PointerIcon.getSystemIcon(
-                    context,
-                    PointerIcon.TYPE_HAND
-                ) as PointerIcon
+            try {
+                val icon = if (hackPointerLoadMethod != null) {
+                    hackPointerLoadMethod!!.invoke(null, context) as PointerIcon
+                } else {
+                    PointerIcon.getSystemIcon(
+                        context,
+                        PointerIcon.TYPE_HAND
+                    ) as PointerIcon
+                }
+                if (icon != null) updatePointer(icon)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error: ${e}")
+                hackPointerLoadMethod = null
             }
-            if (icon != null) updatePointer(icon)
         }
 
         if (mTarget is PointerIconChangedListen) {

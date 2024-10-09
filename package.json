@@ -177,6 +177,7 @@
     "release-major": "standard-version -r major",
     "release-minor": "standard-version -r minor",
     "release-patch": "standard-version -r patch",
+    "release-pre": "standard-version --prerelease",
     "postinstall": "node ci/post-install.js",
     "play": "env GPLAY_BUILD=1 ./gradlew bundleRelease",
     "gen-require-cache": "node ci/require-cached-generator.js > js/require-cached.js",
