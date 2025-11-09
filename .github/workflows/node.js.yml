@@ -1,0 +1,132 @@
+name: Build Android CI
+
+on: 
+  push:
+    tags:
+      - 'v[0-9]+.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 7
+          submodules: recursive
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '21'
+      - name: "npm install"
+        run: |
+          npm ci
+      - name: "patch deps"
+        run: |
+          node ./ci/patch-deps
+      - name: "build jsbundle"
+        run: |
+          npm run bundle-rnjs
+      - name: "Setup variables"
+        id: build-config
+        run: |
+          echo 'is_prerelease='$(node ./ci/is-prerelease "$(basename ${{ github.ref }})") >> $GITHUB_OUTPUT
+          echo 'version_name='$(basename ${{ github.ref }} | sed 's/^v//') >> $GITHUB_OUTPUT
+      - name: "Build for Google Play"
+        run: |
+          [[ -z "${{ steps.build-config.outputs.version_name }}" ]] && exit 13
+          npm run play -- --no-daemon
+      - name: "Build for Github release"
+        run: |
+          [[ -z "${{ steps.build-config.outputs.version_name }}" ]] && exit 13
+          USE_SPLITBUILD=1 CI_BUILD=1 CI_VERSION_NAME="${{ steps.build-config.outputs.version_name }}" ./gradlew assembleRelease --no-daemon
+      - name: "Changelog"
+        run: |
+           git log -p -n1 -- CHANGELOG.md  | grep -Po '(?<=^\+)(?!\+\+).*' > CHANGELOG_current.md
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: CHANGELOG_current.md
+          draft: false
+          prerelease: ${{ steps.build-config.outputs.is_prerelease }}
+      - name: Upload arm64 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-arm64--${{ steps.build-config.outputs.version_name }}.apk
+          asset_path: ./app/build/outputs/apk/release/app-arm64-v8a-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload arm release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode--arm---${{ steps.build-config.outputs.version_name }}.apk
+          asset_path: ./app/build/outputs/apk/release/app-armeabi-v7a-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload x86_64 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-x86_64-${{ steps.build-config.outputs.version_name }}.apk
+          asset_path: ./app/build/outputs/apk/release/app-x86_64-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload x86 release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode--x86---${{ steps.build-config.outputs.version_name }}.apk
+          asset_path: ./app/build/outputs/apk/release/app-x86-release.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload GooglePlay bundle
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: VHSCode-gplay-${{ steps.build-config.outputs.version_name }}.aab
+          asset_path: ./app/build/outputs/bundle/release/app-release.aab
+          asset_content_type: application/x-authorware-bin# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
