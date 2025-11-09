@@ -408,6 +408,13 @@ class VSCodeFragment : Fragment() {
         @Suppress("DEPRECATION") webView.settings.allowFileAccessFromFileURLs = true
         @Suppress("DEPRECATION") webView.settings.allowUniversalAccessFromFileURLs = true
         webView.settings.cacheMode = WebSettings.LOAD_DEFAULT
+
+        // Set mobile display mode user agent if enabled
+        if (host.preferences.editorMobileDisplayMode) {
+            val mobileUserAgent = "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36"
+            webView.settings.userAgentString = mobileUserAgent
+        }
+
         webView.webChromeClient = VSCodeWebChromeClient(this)
         webView.setInitialScale(host.preferences.editorUIScale)
         webView.settings.fixedFontFamily = "vscode-monospace"
