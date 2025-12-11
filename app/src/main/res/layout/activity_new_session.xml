@@ -64,7 +64,8 @@
         app:layout_constraintBottom_toTopOf="@+id/mainGroup"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtInstalledServerVersion" />
+        app:layout_constraintTop_toBottomOf="@+id/txtInstalledServerVersion"
+        tools:visibility="gone" />
 
     <vn.vhn.vhscode.ui.ShrinkingScrollView
         android:id="@+id/mainGroup"
