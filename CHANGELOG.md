@@ -1,4 +1,11 @@
 # VHEditor Changelog
+## [2.20.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.19.0...v2.20.0) (2025-12-11)
+
+
+### Features
+
+* **code-server:** update code-server to v4.106.3 ([640c8d9](https://github.com/vhqtvn/VHEditor-Android/commit/640c8d9bc21693df6ca6592a84035d614c7d6a66))
+
 ## [2.19.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.18.1-0...v2.19.0) (2024-10-21)
 
 ### [2.18.1-0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.18.0...v2.18.1-0) (2024-10-09)
