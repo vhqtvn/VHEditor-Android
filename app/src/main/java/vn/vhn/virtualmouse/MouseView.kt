@@ -178,7 +178,6 @@ class MouseView(
                                 if (idx == 0) hackPointerHotpotXField = f
                                 else if (idx == 1) hackPointerHotpotYField = f
                                 if (++idx == 2) break
-                                break
                             }
                         }
                         if (idx != 2) {
@@ -195,7 +194,7 @@ class MouseView(
                     try {
                         hackPointerLoadMethod =
                             PointerIcon::class.java.getDeclaredMethod("load", Context::class.java)
-                    } catch (e: NoSuchMethodException) {
+                    } catch (_: NoSuchMethodException) {
                     }
                 } else {
                     Log.e(TAG, "Cant resolve pointer fields")
@@ -417,7 +416,7 @@ class MouseView(
                 val loadedPointer = PointerIcon.getSystemIcon(context, PointerIcon.TYPE_ARROW)
                 mCurrentMouseType = type
                 val bitmap = hackPointerBitmapField!!.get(loadedPointer) as Bitmap?
-                if (bitmap != null ) {
+                if (bitmap != null) {
                     mCurrentMouseBitmap = bitmap
                     mCurrentMouseHotspotX = hackPointerHotpotXField!!.get(loadedPointer) as Float
                     mCurrentMouseHotspotY = hackPointerHotpotYField!!.get(loadedPointer) as Float
