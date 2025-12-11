@@ -19,6 +19,9 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
       - name: "npm install"
         run: |
           npm ci
