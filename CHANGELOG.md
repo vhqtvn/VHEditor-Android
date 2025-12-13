@@ -1,4 +1,11 @@
 # VHEditor Changelog
+## [2.22.0-0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.21.0...v2.22.0-0) (2025-12-13)
+
+
+### Features
+
+* **code-server:** add mobile display mode support ([ea35985](https://github.com/vhqtvn/VHEditor-Android/commit/ea35985a6f989f1bff58b606b9690235869cca7a)), closes [#320](https://github.com/vhqtvn/VHEditor-Android/issues/320)
+
 ## [2.21.0](https://github.com/vhqtvn/VHEditor-Android/compare/v2.20.1...v2.21.0) (2025-12-11)
 
 ### [2.20.1](https://github.com/vhqtvn/VHEditor-Android/compare/v2.20.0...v2.20.1) (2025-12-11)
