@@ -3,8 +3,16 @@
     <domain-config>
         <domain includeSubdomains="true">127.0.0.1</domain>
         <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
             <certificates src="@raw/my_ca" />
         </trust-anchors>
     </domain-config>
-    <base-config cleartextTrafficPermitted="true"/>
+    <!-- Applies to remote code-server URLs and any other host not matched above. -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>
